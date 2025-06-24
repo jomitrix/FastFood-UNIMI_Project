@@ -1,1 +1,2 @@
-# fast-food-unimi-project
+# Fast Food - UNIMI Project
+Ricorda di pubblicare il repository prima della consegna
