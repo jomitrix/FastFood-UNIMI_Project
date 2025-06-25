@@ -74,9 +74,9 @@ export default function Register() {
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-background to-background/60 flex flex-col items-center justify-center relative p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#ff8844]/20">
+      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003f5e]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#ff8844] text-3xl text-center">Registrati</h1>
+          <h1 className="font-bold text-[#003f5e] text-3xl text-center">Registrati</h1>
           <p className="text-default-500 text-center">Crea il tuo account</p>
         </CardHeader>
         
@@ -231,7 +231,7 @@ export default function Register() {
               type="submit"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2 bg-[#ff8844]"
+              className="w-full mt-2 bg-[#003f5e] text-white"
             >
               {isLoading ? "Registrazione in corso..." : "Registrati"}
             </Button>
@@ -239,7 +239,7 @@ export default function Register() {
             <div className="flex flex-col gap-2 mt-4 text-center">
               <p className="text-sm text-default-500">
                 Hai già un account?{" "}
-                <Link href="/auth/login" className="text-[#ff8844] font-medium">
+                <Link href="/auth/login" className="text-[#003f5e] font-medium">
                   Accedi
                 </Link>
               </p>

@@ -12,8 +12,7 @@ export default function Custom404() {
         className="w-full flex bg-[#ff8844]"
       >
         <NavbarBrand className="gap-2">
-          🍔
-          <p className="font-bold text-inherit">Fast Food</p>
+          <img src="/images/logo.png" alt="🍔 Fast Food" className="h-32" />
         </NavbarBrand>
 
         <NavbarContent justify="end" className="flex">

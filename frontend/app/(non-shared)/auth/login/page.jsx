@@ -60,9 +60,9 @@ export default function Login() {
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-background to-background/60 flex flex-col items-center justify-center relative p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#ff8844]/20">
+      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003f5e]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#ff8844] text-3xl text-center">Benvenuto</h1>
+          <h1 className="font-bold text-[#003f5e] text-3xl text-center">Benvenuto</h1>
           <p className="text-default-500 text-center">Accedi al tuo account</p>
         </CardHeader>
         
@@ -131,7 +131,7 @@ export default function Login() {
               size="lg"
             />
 
-            {/*<Link href="/auth/forgot-password" className="ml-1 text-sm text-[#ff8844]">
+            {/*<Link href="/auth/forgot-password" className="ml-1 text-sm text-[#003f5e]">
               Password dimenticata?
             </Link>*/}
             
@@ -139,7 +139,7 @@ export default function Login() {
               type="submit"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2 bg-[#ff8844]"
+              className="w-full mt-2 bg-[#003f5e] text-white"
             >
               {isLoading ? "Accesso in corso..." : "Accedi"}
             </Button>
@@ -147,7 +147,7 @@ export default function Login() {
             <div className="flex flex-col gap-2 mt-4 text-center">
               <p className="text-sm text-default-500">
                 Non hai un account?{" "}
-                <Link href="/auth/register" className="text-[#ff8844] font-medium">
+                <Link href="/auth/register" className="text-[#003f5e] font-medium">
                   Registrati
                 </Link>
               </p>

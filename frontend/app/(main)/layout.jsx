@@ -43,8 +43,7 @@ export default function Layout({ children }) {
         isMenuOpen={isMenuOpen}
       >
         <NavbarBrand className="gap-2">
-          🍔
-          <p className="font-bold text-inherit">Fast Food</p>
+          <img src="/images/logo.png" alt="🍔 Fast Food" className="h-32" />
         </NavbarBrand>
 
         {/* Toggle visibile solo su mobile */}
@@ -95,7 +94,7 @@ export default function Layout({ children }) {
                   Account
                 </Button>
               ) : (
-                <Button onPress={handleLogout} color="primary" className="bg-primary font-semibold rounded-full">
+                <Button onPress={handleLogout} className="bg-[#003f5e] text-white font-semibold rounded-full">
                   <Logout className="w-5 h-5 mr-1" />
                   Logout
                 </Button>
@@ -117,7 +116,7 @@ export default function Layout({ children }) {
           </NavbarMenuItem>
           <NavbarMenuItem>
             <Link
-              href="#"
+              href="/restaurant"
               className={`text-black ${isActive("/restaurant") ? "font-semibold underline" : ""}`}
               onClick={() => setIsMenuOpen(false)}
             >
@@ -137,7 +136,7 @@ export default function Layout({ children }) {
                   Account
                 </Button>
               ) : (
-                <Button color="primary" onPress={handleLogout} className="bg-primary font-semibold rounded-lg py-0 px-3">
+                <Button color="primary" onPress={handleLogout} className="bg-[#003f5e] font-semibold rounded-lg py-0 px-3">
                   <Logout className="w-5 h-5 mr-1" />
                   Logout
                 </Button>

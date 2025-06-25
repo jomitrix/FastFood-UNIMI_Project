@@ -41,12 +41,14 @@ export default function OrderList() {
                                 height={64}
                                 className="rounded mr-4"
                             />
-                            <div className="flex-grow">
+                            <div className="flex-grow ">
                                 <CardHeader className="p-0 pb-2">
-                                    <h2 className="text-lg font-semibold">{order.restaurant}</h2>
+                                    <h2 className="text-lg text-black font-semibold">{order.restaurant}</h2>
                                 </CardHeader>
-                                <p className="text-gray-500">{order.status}</p>
-                                <p>{order.currency}{order.total.toFixed(2)} • {new Date(order.orderDate).toLocaleDateString()}</p>
+                                <div className="text-gray-500">
+                                    <p>{order.status}</p>
+                                    <p>{order.currency}{order.total.toFixed(2)} • {new Date(order.orderDate).toLocaleDateString()}</p>
+                                </div>
                             </div>
                         </CardBody>
                     </Card>
