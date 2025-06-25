@@ -13,7 +13,9 @@ export default function Register() {
   const router = useRouter();
 
   const [accountType, setAccountType] = useState("user");
-  const [name, setName] = useState("");
+  const [username, setUsername] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -38,7 +40,11 @@ export default function Register() {
 
     // Validazione
     const newErrors = {};
-    if (!name) newErrors.name = "Nome richiesto";
+    if (!firstName) newErrors.firstName = "Nome richiesto";
+    if (!surname)    newErrors.surname    = "Cognome richiesto";
+    if (!username) newErrors.username = accountType === "restaurant"
+      ? "Nome ristorante richiesto"
+      : "Nome utente richiesto";
     if (!email) newErrors.email = "Email richiesta";
     else if (!validateEmail(email)) newErrors.email = "Email non valida";
     if (!password) newErrors.password = "Password richiesta";
@@ -68,9 +74,9 @@ export default function Register() {
 
   return (
     <section className="min-h-screen bg-gradient-to-b from-background to-background/60 flex flex-col items-center justify-center relative p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-primary/20">
+      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#ff8844]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-primary text-3xl text-center">Registrati</h1>
+          <h1 className="font-bold text-[#ff8844] text-3xl text-center">Registrati</h1>
           <p className="text-default-500 text-center">Crea il tuo account</p>
         </CardHeader>
         
@@ -93,17 +99,51 @@ export default function Register() {
 
             <Input
               type="text"
-              label={accountType === "restaurant" ? "Nome Ristorante" : "Nome Utente"}
-              placeholder={accountType === "restaurant" ? "Inserisci il nome del ristorante" : "Inserisci il tuo nome utente"}
-              value={name}
+              label="Nome"
+              placeholder="Inserisci il tuo nome"
+              value={firstName}
               onChange={(e) => {
-                setName(e.target.value.trim());
-                if (errors.name) {
-                  setErrors(prev => ({ ...prev, name: undefined }));
+                setFirstName(e.target.value);
+                if (errors.firstName) {
+                  setErrors(prev => ({ ...prev, firstName: undefined }));
                 }
               }}
-              isInvalid={!!errors.name}
-              errorMessage={errors.name}
+              isInvalid={!!errors.firstName}
+              errorMessage={errors.firstName}
+              variant="bordered"
+              size="lg"
+            />
+
+            <Input
+              type="text"
+              label="Cognome"
+              placeholder="Inserisci il tuo cognome"
+              value={surname}
+              onChange={(e) => {
+                setSurname(e.target.value);
+                if (errors.surname) {
+                  setErrors(prev => ({ ...prev, surname: undefined }));
+                }
+              }}
+              isInvalid={!!errors.surname}
+              errorMessage={errors.surname}
+              variant="bordered"
+              size="lg"
+            />
+
+            <Input
+              type="text"
+              label={accountType === "restaurant" ? "Nome Ristorante" : "Nome Utente"}
+              placeholder={accountType === "restaurant" ? "Inserisci il nome del ristorante" : "Inserisci il tuo nome utente"}
+              value={username}
+              onChange={(e) => {
+                setUsername(e.target.value.trim());
+                if (errors.username) {
+                  setErrors(prev => ({ ...prev, username: undefined }));
+                }
+              }}
+              isInvalid={!!errors.username}
+              errorMessage={errors.username}
               variant="bordered"
               size="lg"
             />
@@ -189,10 +229,9 @@ export default function Register() {
 
             <Button
               type="submit"
-              color="primary"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2"
+              className="w-full mt-2 bg-[#ff8844]"
             >
               {isLoading ? "Registrazione in corso..." : "Registrati"}
             </Button>
@@ -200,7 +239,7 @@ export default function Register() {
             <div className="flex flex-col gap-2 mt-4 text-center">
               <p className="text-sm text-default-500">
                 Hai già un account?{" "}
-                <Link href="/auth/login" className="text-primary font-medium">
+                <Link href="/auth/login" className="text-[#ff8844] font-medium">
                   Accedi
                 </Link>
               </p>

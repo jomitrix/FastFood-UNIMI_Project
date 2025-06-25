@@ -9,11 +9,5 @@ export default function Home() {
     router.push("/home");
   }, []);
 
-  return (
-     <div className=" w-full">
-        <div className="flex items-center justify-center min-h-screen">
-          
-        </div>
-    </div>
-  );
+  return;
 }
