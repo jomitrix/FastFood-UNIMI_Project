@@ -8,6 +8,7 @@ import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import { Tabs, Tab } from "@heroui/tabs";
 import { Eye, EyeClosed } from "@/components/icons/heroicons";
+import { WaveClean } from "@/components/waves";
 
 export default function Login() {
   const router = useRouter();
@@ -24,8 +25,8 @@ export default function Login() {
     email.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
 
   const invalidEmail = useMemo(() => {
-        if (email === "") return false;
-        return validateEmail(email) ? false : true;
+    if (email === "") return false;
+    return validateEmail(email) ? false : true;
   }, [email]);
 
   const handleSubmit = async (e) => {
@@ -37,19 +38,19 @@ export default function Login() {
     if (!email) newErrors.email = "Email richiesta";
     else if (!validateEmail(email)) newErrors.email = "Email non valida";
     if (!password) newErrors.password = "Password richiesta";
-    
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
 
     setIsLoading(true);
-    
+
     // Mock API call
     try {
       // Simula chiamata API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       router.push("/home");
     } catch (error) {
       setErrors({ general: "Errore durante il login. Riprova." });
@@ -59,13 +60,18 @@ export default function Login() {
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-background to-background/60 flex flex-col items-center justify-center relative p-4">
+    <>
+    <WaveClean/>
+    
+    <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center mt-[5rem] relative p-4">
       <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003f5e]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#003f5e] text-3xl text-center">Benvenuto</h1>
-          <p className="text-default-500 text-center">Accedi al tuo account</p>
+          <h1 className="font-bold text-[#003f5e] text-3xl text-center">
+            Welcome
+          </h1>
+          <p className="text-default-500 text-center">Login to your account</p>
         </CardHeader>
-        
+
         <CardBody className="px-6 py-6">
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             {errors.general && (
@@ -73,57 +79,57 @@ export default function Login() {
                 {errors.general}
               </div>
             )}
-            
+
             <Tabs
               className="items-center justify-center mb-2"
               selectedKey={accountType}
               onSelectionChange={(value) => setAccountType(value)}
             >
-              <Tab key="user" title="Utente"/>
-              <Tab key="restaurant" title="Ristorante"/>
+              <Tab key="user" title="User" />
+              <Tab key="restaurant" title="Restaurant" />
             </Tabs>
 
             <Input
               type="email"
               label="Email"
-              placeholder="Inserisci la tua email"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);
                 if (errors.email) {
-                  setErrors(prev => ({ ...prev, email: undefined }));
+                  setErrors((prev) => ({ ...prev, email: undefined }));
                 }
               }}
               isInvalid={!!errors.email || invalidEmail}
-              errorMessage={errors.email || "Email non valida"}
+              errorMessage={errors.email || "Invalid email"}
               variant="bordered"
               size="lg"
             />
-            
+
             <Input
               type={isVisible ? "text" : "password"}
               label="Password"
-              placeholder="Inserisci la tua password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value);
                 if (errors.password) {
-                  setErrors(prev => ({ ...prev, password: undefined }));
+                  setErrors((prev) => ({ ...prev, password: undefined }));
                 }
               }}
               isInvalid={!!errors.password}
               errorMessage={errors.password}
               endContent={
-                <button 
-                  className="focus:outline-none" 
-                  type="button" 
+                <button
+                  className="focus:outline-none"
+                  type="button"
                   onClick={toggleVisibility}
                   aria-label="toggle password visibility"
                 >
                   {isVisible ? (
-                    <EyeClosed className="text-2xl text-default-400 pointer-events-none" size={20} />
+                    <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                   ) : (
-                    <Eye className="text-2xl text-default-400 pointer-events-none" size={20} />
+                    <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                   )}
                 </button>
               }
@@ -134,21 +140,24 @@ export default function Login() {
             {/*<Link href="/auth/forgot-password" className="ml-1 text-sm text-[#003f5e]">
               Password dimenticata?
             </Link>*/}
-            
+
             <Button
               type="submit"
               size="lg"
               isLoading={isLoading}
               className="w-full mt-2 bg-[#003f5e] text-white"
             >
-              {isLoading ? "Accesso in corso..." : "Accedi"}
+              {isLoading ? "Logging in..." : "Log in"}
             </Button>
-            
+
             <div className="flex flex-col gap-2 mt-4 text-center">
               <p className="text-sm text-default-500">
-                Non hai un account?{" "}
-                <Link href="/auth/register" className="text-[#003f5e] font-medium">
-                  Registrati
+                Don't have an account?{" "}
+                <Link
+                  href="/auth/register"
+                  className="text-[#003f5e] font-medium"
+                >
+                  Sign up
                 </Link>
               </p>
             </div>
@@ -156,5 +165,6 @@ export default function Login() {
         </CardBody>
       </Card>
     </section>
+    </>
   );
 }

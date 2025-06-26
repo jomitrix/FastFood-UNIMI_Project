@@ -8,6 +8,7 @@ import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
 import { Tabs, Tab } from "@heroui/tabs";
 import { Eye, EyeClosed } from "@/components/icons/heroicons";
+import { WaveClean } from "@/components/waves";
 
 export default function Register() {
   const router = useRouter();
@@ -40,17 +41,17 @@ export default function Register() {
 
     // Validazione
     const newErrors = {};
-    if (!firstName) newErrors.firstName = "Nome richiesto";
-    if (!surname)    newErrors.surname    = "Cognome richiesto";
+    if (!firstName) newErrors.firstName = "First Name required";
+    if (!surname)    newErrors.surname    = "Surname required";
     if (!username) newErrors.username = accountType === "restaurant"
-      ? "Nome ristorante richiesto"
-      : "Nome utente richiesto";
-    if (!email) newErrors.email = "Email richiesta";
-    else if (!validateEmail(email)) newErrors.email = "Email non valida";
-    if (!password) newErrors.password = "Password richiesta";
-    else if (password.length < 6) newErrors.password = "Password deve essere di almeno 6 caratteri";
-    if (!confirmPassword) newErrors.confirmPassword = "Conferma password richiesta";
-    else if (password !== confirmPassword) newErrors.confirmPassword = "Le password non coincidono";
+      ? "Restaurant Name required"
+      : "Username required";
+    if (!email) newErrors.email = "Email required";
+    else if (!validateEmail(email)) newErrors.email = "Invalid email";
+    if (!password) newErrors.password = "Password required";
+    else if (password.length < 6) newErrors.password = "Password must be at least 6 characters";
+    if (!confirmPassword) newErrors.confirmPassword = "Confirm password required";
+    else if (password !== confirmPassword) newErrors.confirmPassword = "Passwords do not match";
     
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -66,18 +67,21 @@ export default function Register() {
       
       router.push("/auth/login");
     } catch (error) {
-      setErrors({ general: "Errore durante la registrazione. Riprova." });
+      setErrors({ general: "Error during registration. Please try again." });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <section className="min-h-screen bg-gradient-to-b from-background to-background/60 flex flex-col items-center justify-center relative p-4">
+    <>
+    <WaveClean/>
+
+    <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center relative p-4">
       <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003f5e]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#003f5e] text-3xl text-center">Registrati</h1>
-          <p className="text-default-500 text-center">Crea il tuo account</p>
+          <h1 className="font-bold text-[#003f5e] text-3xl text-center">Register</h1>
+          <p className="text-default-500 text-center">Create your account</p>
         </CardHeader>
         
         <CardBody className="px-6 py-6">
@@ -93,14 +97,14 @@ export default function Register() {
               selectedKey={accountType}
               onSelectionChange={(value) => setAccountType(value)}
             >
-              <Tab key="user" title="Utente"/>
-              <Tab key="restaurant" title="Ristorante"/>
+              <Tab key="user" title="User"/>
+              <Tab key="restaurant" title="Restaurant"/>
             </Tabs>
 
             <Input
               type="text"
-              label="Nome"
-              placeholder="Inserisci il tuo nome"
+              label="First Name"
+              placeholder="Enter your first name"
               value={firstName}
               onChange={(e) => {
                 setFirstName(e.target.value);
@@ -116,8 +120,8 @@ export default function Register() {
 
             <Input
               type="text"
-              label="Cognome"
-              placeholder="Inserisci il tuo cognome"
+              label="Surname"
+              placeholder="Enter your surname"
               value={surname}
               onChange={(e) => {
                 setSurname(e.target.value);
@@ -133,8 +137,8 @@ export default function Register() {
 
             <Input
               type="text"
-              label={accountType === "restaurant" ? "Nome Ristorante" : "Nome Utente"}
-              placeholder={accountType === "restaurant" ? "Inserisci il nome del ristorante" : "Inserisci il tuo nome utente"}
+              label={accountType === "restaurant" ? "Restaurant Name" : "Username"}
+              placeholder={accountType === "restaurant" ? "Enter the restaurant name" : "Enter your username"}
               value={username}
               onChange={(e) => {
                 setUsername(e.target.value.trim());
@@ -151,7 +155,7 @@ export default function Register() {
             <Input
               type="email"
               label="Email"
-              placeholder="Inserisci la tua email"
+              placeholder="Enter your email"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value.trim());
@@ -160,7 +164,7 @@ export default function Register() {
                 }
               }}
               isInvalid={!!errors.email || invalidEmail}
-              errorMessage={errors.email || "Email non valida"}
+              errorMessage={errors.email || "Invalid email"}
               variant="bordered"
               size="lg"
             />
@@ -168,7 +172,7 @@ export default function Register() {
             <Input
               type={isVisible ? "text" : "password"}
               label="Password"
-              placeholder="Inserisci la tua password"
+              placeholder="Enter your password"
               value={password}
               onChange={(e) => {
                 setPassword(e.target.value.trim());
@@ -186,9 +190,9 @@ export default function Register() {
                   aria-label="toggle password visibility"
                 >
                   {isVisible ? (
-                    <EyeClosed className="text-2xl text-default-400 pointer-events-none" size={20} />
+                    <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                   ) : (
-                    <Eye className="text-2xl text-default-400 pointer-events-none" size={20} />
+                    <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                   )}
                 </button>
               }
@@ -198,8 +202,8 @@ export default function Register() {
 
             <Input
               type={isConfirmVisible ? "text" : "password"}
-              label="Ripeti Password"
-              placeholder="Ripeti la tua password"
+              label="Confirm Password"
+              placeholder="Repeat your password"
               value={confirmPassword}
               onChange={(e) => {
                 setConfirmPassword(e.target.value.trim());
@@ -217,9 +221,9 @@ export default function Register() {
                   aria-label="toggle confirm password visibility"
                 >
                   {isConfirmVisible ? (
-                    <EyeClosed className="text-2xl text-default-400 pointer-events-none" size={20} />
+                    <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                   ) : (
-                    <Eye className="text-2xl text-default-400 pointer-events-none" size={20} />
+                    <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                   )}
                 </button>
               }
@@ -233,14 +237,14 @@ export default function Register() {
               isLoading={isLoading}
               className="w-full mt-2 bg-[#003f5e] text-white"
             >
-              {isLoading ? "Registrazione in corso..." : "Registrati"}
+              {isLoading ? "Registering..." : "Register"}
             </Button>
             
             <div className="flex flex-col gap-2 mt-4 text-center">
               <p className="text-sm text-default-500">
-                Hai già un account?{" "}
+                Already have an account?{" "}
                 <Link href="/auth/login" className="text-[#003f5e] font-medium">
-                  Accedi
+                  Login
                 </Link>
               </p>
             </div>
@@ -248,5 +252,6 @@ export default function Register() {
         </CardBody>
       </Card>
     </section>
+    </>
   );
 }

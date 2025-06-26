@@ -1,25 +1,24 @@
 'use client';
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Tabs, Tab } from "@heroui/tabs";
-import { WaveClean } from "@/components/waves";
 import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
-import { Eye, EyeClosed, Profile, Restaurant } from "@/components/icons/heroicons";
+import { Eye, EyeClosed, Profile, Restaurant, Email, Handle, Storefront } from "@/components/icons/heroicons";
 import { Chip } from "@heroui/chip";
-import OrderList from "@/components/app/profile/OrderList";
+import AccountHeader from "@/components/app/account/AccountHeader";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const [section, setSection] = useState("account");
+
   const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible(!isVisible);
   const [isNewVisible, setIsNewVisible] = useState(false);
   const toggleNewVisibility = () => setIsNewVisible(!isNewVisible);
   const [isConfNewVisible, setIsConfNewVisible] = useState(false);
   const toggleConfNewVisibility = () => setIsConfNewVisible(!isConfNewVisible);
+
   const [isUserChanged, setIsUserChanged] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -30,18 +29,28 @@ export default function ProfilePage() {
 
   // dati iniziali mock
   const mockUser = {
-    name: "Mario",
-    surname: "Rossi",
-    email: "mario.rossi@example.com",
-    username: "MarioRossi",
-    accountType: "user" // or "restaurant"
+    name: "John",
+    surname: "Glovo",
+    email: "john.glovo@example.com",
+    username: "JohnGlovo",
+    accountType: "user"
   };
 
+  const mockRestaurant = {
+    name: "Luca",
+    surname: "Toni",
+    email: "luca.toni@esempio.it",
+    username: "La Pizzeria di Luca",
+    accountType: "restaurant"
+  };
+
+  const mock = mockRestaurant;
+
   // stati locali per rendere i campi editabili
-  const [name, setName] = useState(mockUser.name);
-  const [surname, setSurname] = useState(mockUser.surname);
-  const [username, setUsername] = useState(mockUser.username);
-  const [email, setEmail] = useState(mockUser.email);
+  const [name, setName] = useState(mock.name);
+  const [surname, setSurname] = useState(mock.surname);
+  const [username, setUsername] = useState(mock.username);
+  const [email, setEmail] = useState(mock.email);
 
   useEffect(() => {
     // esegui solo in ambiente client
@@ -62,17 +71,17 @@ export default function ProfilePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!name) newErrors.name = "Nome richiesto";
-    if (!surname) newErrors.surname = "Cognome richiesto";
-    if (!username) newErrors.username = "Username richiesto";
-    if (!email) newErrors.email = "Email richiesta";
-    else if (invalidEmail) newErrors.email = "Email non valida";
+    if (!name) newErrors.name = "Name required";
+    if (!surname) newErrors.surname = "Surname required";
+    if (!username) newErrors.username = `${mock.accountType === "user" ? "Username" : "Restaurant Name"} required`;
+    if (!email) newErrors.email = "Email required";
+    else if (invalidEmail) newErrors.email = "Invalid email";
     if (newPassword && newPassword.length < 6)
-      newErrors.newPassword = "Password deve essere di almeno 6 caratteri";
+      newErrors.newPassword = "Password must be at least 6 characters";
     if (newPassword && newPassword !== confirmNewPassword)
-      newErrors.confirmNewPassword = "Le password non coincidono";
+      newErrors.confirmNewPassword = "Passwords don't match";
     if (isUserChanged && !currentPassword)
-      newErrors.currentPassword = "Password attuale richiesta";
+      newErrors.currentPassword = "Current password required";
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
@@ -85,8 +94,8 @@ export default function ProfilePage() {
 
   const handleDelete = (e) => {
     e.preventDefault();
-    if (deleteInput !== "ELIMINA") {
-      setDeleteError('Devi digitare "ELIMINA" per confermare');
+    if (deleteInput !== "DELETE") {
+      setDeleteError('You must type "DELETE" to confirm');
       return;
     }
     // Simula cancellazione account e logout
@@ -96,58 +105,23 @@ export default function ProfilePage() {
 
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f6f6f6]">
-      <div className="w-full bg-[#ff8844] flex flex-col items-center text-center">
-        {section === "account" && (
-            <div className="h-24 flex flex-col items-center justify-center">
-                <h1 className="text-4xl font-bold">
-                    Benvenuto, {mockUser.name}
-                </h1>
-                <p>{mockUser.email}</p>
-            </div>
-        )}
-
-        {section === "orders" && (
-            <div className="h-24 flex flex-col items-center justify-center">
-                <h1 className="text-4xl font-bold">
-                    Ordini
-                </h1>
-            </div>
-        )}
-        
-        <Tabs
-          variant="light"
-          color="white"
-          radius="full"
-          className="py-2"
-          classNames={{
-            tabContent: "text-black",
-            tab: "data-[selected=true]:font-bold"
-          }}
-          selectedKey={section}
-          onSelectionChange={(value) => setSection(value)}
-        >
-          <Tab key={"account"} title="Info Account" />
-          <Tab key={"orders"} title="Storico Ordini" />
-        </Tabs>
-      </div>
-
-      <div className="w-full">
-        <WaveClean className="h-10 sm:h-20" />
-      </div>
+      <AccountHeader
+        accountType={mock.accountType}
+        title={`Welcome, ${mock.name}`}
+      />
 
       <div className="w-full lg:w-2/3 xl:w-1/2 flex flex-col justify-center items-center p-4 pb-10">
-        {section === "account" && (
           <div className="w-full mt-4 sm:mt-6 gap-2 flex flex-col gap-5 sm:gap-8">
             <Card className="w-full p-4 sm:p-8">
               <CardHeader className="w-full font-bold text-2xl flex justify-between">
-                <div>Info Account</div>
-                {mockUser.accountType === "user" ? (
+                <div>Account Info</div>
+                {mock.accountType === "user" ? (
                   <Chip
                     color="primary"
                     startContent={<Profile size={18} />}
                     variant="flat"
                   >
-                    Utente
+                    User
                   </Chip>
                 ) : (
                   <Chip
@@ -156,7 +130,7 @@ export default function ProfilePage() {
                     startContent={<Restaurant size={14} />}
                     variant="flat"
                   >
-                    Ristorante
+                    Restaurant
                   </Chip>
                 )}
               </CardHeader>
@@ -167,6 +141,31 @@ export default function ProfilePage() {
 
               <form onSubmit={handleSubmit}>
                 <CardBody className="flex flex-col gap-4">
+                  {mock.accountType === "restaurant" && (
+                    <>
+                      <Input
+                        value={username}
+                        onChange={(e) => {
+                          setUsername(e.target.value);
+                          setIsUserChanged(true);
+                          setErrors((prev) => ({ ...prev, username: undefined }));
+                        }}
+                        isInvalid={!!errors.username}
+                        errorMessage={errors.username}
+                        type="text"
+                        label="Restaurant Name"
+                        placeholder="Restaurant Name"
+                        labelPlacement="outside"
+                        endContent={<Storefront className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                        radius="sm"
+                        size="lg"
+                      />
+                      <h3 className="text-lg font-bold pt-2">
+                        Manager Information
+                      </h3>
+                    </>
+                  )}
+
                   <div className="flex gap-4">
                     <Input
                       value={name}
@@ -178,8 +177,8 @@ export default function ProfilePage() {
                       isInvalid={!!errors.name}
                       errorMessage={errors.name}
                       type="text"
-                      label="Nome"
-                      placeholder="Nome"
+                      label="Name"
+                      placeholder="Name"
                       labelPlacement="outside"
                       radius="sm"
                       size="lg"
@@ -194,30 +193,33 @@ export default function ProfilePage() {
                       isInvalid={!!errors.surname}
                       errorMessage={errors.surname}
                       type="text"
-                      label="Cognome"
-                      placeholder="Cognome"
+                      label="Surname"
+                      placeholder="Surname"
                       labelPlacement="outside"
                       radius="sm"
                       size="lg"
                     />
                   </div>
 
-                  <Input
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, username: undefined }));
-                    }}
-                    isInvalid={!!errors.username}
-                    errorMessage={errors.username}
-                    type="text"
-                    label="Username"
-                    placeholder="Username"
-                    labelPlacement="outside"
-                    radius="sm"
-                    size="lg"
-                  />
+                  {mock.accountType === "user" && (
+                    <Input
+                      value={username}
+                      onChange={(e) => {
+                        setUsername(e.target.value);
+                        setIsUserChanged(true);
+                        setErrors((prev) => ({ ...prev, username: undefined }));
+                      }}
+                      isInvalid={!!errors.username}
+                      errorMessage={errors.username}
+                      type="text"
+                      label="Username"
+                      placeholder="Username"
+                      labelPlacement="outside"
+                      endContent={<Handle className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                      radius="sm"
+                      size="lg"
+                    />
+                  )}
 
                   <Input
                     value={email}
@@ -227,11 +229,12 @@ export default function ProfilePage() {
                       setErrors((prev) => ({ ...prev, email: undefined }));
                     }}
                     isInvalid={!!errors.email || invalidEmail}
-                    errorMessage={errors.email || "Email non valida"}
+                    errorMessage={errors.email || "Invalid email"}
                     type="email"
                     label="Email"
                     placeholder="Email"
                     labelPlacement="outside"
+                    endContent={<Email className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
                     radius="sm"
                     size="lg"
                   />
@@ -252,8 +255,8 @@ export default function ProfilePage() {
                     }}
                     isInvalid={!!errors.newPassword}
                     errorMessage={errors.newPassword}
-                    label="Nuova Password"
-                    placeholder="Nuova Password"
+                    label="New Password"
+                    placeholder="New Password"
                     labelPlacement="outside"
                     radius="sm"
                     size="lg"
@@ -265,15 +268,9 @@ export default function ProfilePage() {
                         aria-label="toggle password visibility"
                       >
                         {isNewVisible ? (
-                          <EyeClosed
-                            className="text-2xl text-default-400 pointer-events-none"
-                            size={20}
-                          />
+                          <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                         ) : (
-                          <Eye
-                            className="text-2xl text-default-400 pointer-events-none"
-                            size={20}
-                          />
+                          <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                         )}
                       </button>
                     }
@@ -292,8 +289,8 @@ export default function ProfilePage() {
                     }}
                     isInvalid={!!errors.confirmNewPassword}
                     errorMessage={errors.confirmNewPassword}
-                    label="Conferma Nuova Password"
-                    placeholder="Conferma Nuova Password"
+                    label="Confirm New Password"
+                    placeholder="Confirm New Password"
                     labelPlacement="outside"
                     radius="sm"
                     size="lg"
@@ -305,15 +302,9 @@ export default function ProfilePage() {
                         aria-label="toggle password visibility"
                       >
                         {isConfNewVisible ? (
-                          <EyeClosed
-                            className="text-2xl text-default-400 pointer-events-none"
-                            size={20}
-                          />
+                          <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                         ) : (
-                          <Eye
-                            className="text-2xl text-default-400 pointer-events-none"
-                            size={20}
-                          />
+                          <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                         )}
                       </button>
                     }
@@ -328,9 +319,9 @@ export default function ProfilePage() {
 
                     <CardBody className="flex flex-col gap-4 items-center">
                       <p className="font-semibold text-center">
-                        Inserisci la tua password attuale per modificare
+                        Enter your current password to make changes
                       </p>
-                      <div className="w-[50%] flex flex-col gap-4">
+                      <div className="w-full lg:w-1/2 flex flex-col gap-4">
                         <Input
                           type={isVisible ? "text" : "password"}
                           value={currentPassword}
@@ -338,7 +329,7 @@ export default function ProfilePage() {
                           isInvalid={!!errors.currentPassword}
                           errorMessage={errors.currentPassword}
                           className="w-full p-0"
-                          label="Password attuale"
+                          label="Current Password"
                           radius="sm"
                           size="lg"
                           endContent={
@@ -349,15 +340,9 @@ export default function ProfilePage() {
                               aria-label="toggle password visibility"
                             >
                               {isVisible ? (
-                                <EyeClosed
-                                  className="text-2xl text-default-400 pointer-events-none"
-                                  size={20}
-                                />
+                                <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                               ) : (
-                                <Eye
-                                  className="text-2xl text-default-400 pointer-events-none"
-                                  size={20}
-                                />
+                                <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
                               )}
                             </button>
                           }
@@ -369,7 +354,7 @@ export default function ProfilePage() {
                           radius="sm"
                           className="w-full"
                         >
-                          Applica Modifiche
+                          Apply Changes
                         </Button>
                       </div>
                     </CardBody>
@@ -380,7 +365,7 @@ export default function ProfilePage() {
 
             <Card className="w-full p-4 sm:p-8">
               <CardHeader className="font-bold text-2xl">
-                Elimina Account
+                Delete Account
               </CardHeader>
 
               <div className="w-full flex flex-col justify-center items-center my-3">
@@ -393,18 +378,17 @@ export default function ProfilePage() {
                 className="flex flex-col gap-4"
               >
                 <p>
-                  Per eliminare il tuo account, digita "ELIMINA" nella casella
-                  sottostante.
+                  To delete your account, type "DELETE" in the box below.
                   <br />
-                  Una volta inviata la richiesta, non potrai più accedere,
-                  accedere al tuo credito o ripristinare il tuo account.
+                  Once submitted, you will no longer be able to log in,
+                  access your credit, or restore your account.
                 </p>
 
                 <div className="lg:w-1/2 flex flex-col gap-4">
                   <Input
                     type="text"
-                    label='Scrivi "ELIMINA"'
-                    placeholder="ELIMINA"
+                    label='Type "DELETE"'
+                    placeholder="DELETE"
                     value={deleteInput}
                     onChange={(e) => {
                       setDeleteInput(e.target.value);
@@ -424,17 +408,12 @@ export default function ProfilePage() {
                     size="lg"
                     className="w-full break-words whitespace-normal"
                   >
-                    Elimina Permanentemente
+                    Delete Permanently
                   </Button>
                 </div>
               </CardBody>
             </Card>
           </div>
-        )}
-
-        {section === "orders" && (
-            <OrderList />
-        )}
       </div>
     </div>
   );

@@ -19,11 +19,11 @@ export default function Home() {
         <div className="w-full flex flex-col md:flex-row items-center lg:w-3/5 p-5 lg:p-0 gap-10">
           <img src="/images/burger.png" alt="Burger" className="w-[50%] md:w-1/2" />
           <div className="flex flex-col w-full -mt-7 sm:mt-0 md:w-1/2 gap-2 md:gap-3 lg:gap-5">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">Ordini da asporto e consegne a domicilio!</h1>
-            <h3 className="text-xl md:text:3xl lg:text-4xl">Ordina ora!</h3>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">Takeaway and delivery orders!</h1>
+            <h3 className="text-xl md:text:3xl lg:text-4xl">Order now!</h3>
             <Input
               type="search"
-              placeholder="Cerca ristoranti e piatti"
+              placeholder="Search restaurants and dishes"
               className="w-[75%] lg:w-full"
               classNames={{
                 inputWrapper: "py-4 sm:py-7",
