@@ -16,15 +16,19 @@ export default function Home() {
   return (
     <div className="w-full flex flex-col min-h-screen bg-[#f6f6f6]">
       <div className="w-full bg-[#ff8844] flex items-center justify-center pb-5 md:pb-0 lg:pb-10">
-        <div className="w-full flex flex-col md:flex-row items-center lg:w-3/5 p-5 lg:p-0 gap-10">
+        <div className="w-full flex flex-col md:flex-row text-center md:text-left items-center lg:w-3/5 p-5 lg:p-0 gap-10">
           <img src="/images/burger.png" alt="Burger" className="w-[50%] md:w-1/2" />
-          <div className="flex flex-col w-full -mt-7 sm:mt-0 md:w-1/2 gap-2 md:gap-3 lg:gap-5">
-            <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">Takeaway and delivery orders!</h1>
-            <h3 className="text-xl md:text:3xl lg:text-4xl">Order now!</h3>
+          <div className="flex flex-col w-[75%] md:w-1/2 -mt-8 md:mt-0 md:w-1/2 gap-2 md:gap-3 lg:gap-5 items-center md:items-start ">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold">
+              Takeaway and delivery orders!
+            </h1>
+            <h3 className="text-xl md:text:3xl lg:text-4xl">
+              Order now!
+            </h3>
             <Input
               type="search"
-              placeholder="Search restaurants and dishes"
-              className="w-[75%] lg:w-full"
+              placeholder="Search restaurants and meals"
+              className="w-full"
               classNames={{
                 inputWrapper: "py-4 sm:py-7",
               }}

@@ -221,5 +221,50 @@ const Delivery = ({ size = 24, width, height, ...props }) => (
     </svg>
 );
 
+const Hamburger = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        strokeWidth="1.5" 
+        stroke="currentColor" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+    </svg>
+);
+
+const Orders = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        strokeWidth="1.5" 
+        stroke="currentColor" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+    </svg>
+);
+
+const Meals = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="currentColor" 
+        viewBox="0 0 24 24" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path fillRule="evenodd" clipRule="evenodd" d="M20 18H4C4 19.1046 4.89543 20 6 20H18C19.1046 20 20 19.1046 20 18ZM4 16C2.89543 16 2 16.8954 2 18C2 20.2091 3.79086 22 6 22H18C20.2091 22 22 20.2091 22 18C22 16.8954 21.1046 16 20 16H4Z" />
+        <path fillRule="evenodd" clipRule="evenodd" d="M14.655 6.39803C14.8753 5.98056 15 5.50484 15 5C15 3.34315 13.6569 2 12 2C10.3431 2 9 3.34315 9 5C9 5.50484 9.1247 5.98056 9.34498 6.39803C5.67037 7.53089 3 10.9536 3 15V17C3 17.5523 3.44772 18 4 18H20C20.5523 18 21 17.5523 21 17V15C21 10.9536 18.3296 7.53089 14.655 6.39803ZM13 5C13 5.55228 12.5523 6 12 6C11.4477 6 11 5.55228 11 5C11 4.44772 11.4477 4 12 4C12.5523 4 13 4.44772 13 5ZM12 8C8.13401 8 5 11.134 5 15V16H19V15C19 11.134 15.866 8 12 8Z" />
+    </svg>
+);
+
 export { Eye, EyeClosed, Profile, Login, Logout, Restaurant, Search, Home, Email, Handle,
-    Storefront, ChevronRight, Dashboard, Takeaway, Delivery };
+    Storefront, ChevronRight, Dashboard, Takeaway, Delivery, Hamburger, Orders,
+    Meals };

@@ -1,10 +1,9 @@
 'use client';
-import { notFound } from "next/navigation";
+// import { notFound } from "next/navigation";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import User from "./User"
-import Restaurant from "./Restaurant";
 
 export default function OrderPage() {
   const router = useRouter();
@@ -17,16 +16,6 @@ export default function OrderPage() {
     username: "MarioRossi",
     accountType: "user"
   };
-
-  const mockRestaurant = {
-    name: "Mario",
-    surname: "Rossi",
-    email: "mario.rossi@example.com",
-    username: "La Pizzeria di Mario",
-    accountType: "restaurant"
-  };
-
-  const mock = mockRestaurant;
 
   // dati iniziali mock
   const mockOrders = [
@@ -107,6 +96,20 @@ export default function OrderPage() {
       restaurant: "Burger King Milano Centrale",
       status: "ready",
       items: [
+        {
+          name: "Whopper",
+          ingredients: [
+            "Beef Patty",
+            "Lettuce",
+            "Tomato",
+            "Onion",
+            "Pickles",
+            "Ketchup",
+            "Mayonnaise",
+          ],
+          quantity: 1,
+          price: 6.99,
+        },
         {
           name: "Whopper",
           ingredients: [
@@ -223,30 +226,18 @@ export default function OrderPage() {
     }
   }, [router]);
 
-  /*if (mock.accountType !== "user") {
-    notFound();
-  }*/
-
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f6f6f6]">
       <AccountHeader
-        accountType={mock.accountType}
-        title={`${mock.accountType === "user" ? "Order History" : "Order Management"}`}
-        subtitle={mock.accountType === "restaurant" && "Manage orders for your restaurant."}
+        accountType={mockUser.accountType}
+        title="Order History"
+        subtitle="View your past orders"
       />
 
-      { mock.accountType === "user" && (
-        <User
-          orders={mockOrders}
-          statuses={statuses}
-        />
-      )}
-      { mock.accountType === "restaurant" && (
-        <Restaurant
-          orders={mockOrders}
-          statuses={statuses}
-        />
-      )}
+      <User
+        orders={mockOrders}
+        statuses={statuses}
+      />
     </div>
   );
 }

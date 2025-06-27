@@ -4,17 +4,8 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AccountHeader from "@/components/app/account/AccountHeader";
 
-export default function DishesPage() {
+export default function MealsPage() {
   const router = useRouter();
-
-  // dati mock
-  const mockUser = {
-    name: "Mario",
-    surname: "Rossi",
-    email: "mario.rossi@example.com",
-    username: "MarioRossi",
-    accountType: "user"
-  };
 
   const mockRestaurant = {
     name: "Mario",
@@ -43,8 +34,8 @@ export default function DishesPage() {
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f6f6f6]">
       <AccountHeader
         accountType={mock.accountType}
-        title="Dishes Management"
-        subtitle="Manage your restaurant's dishes"
+        title="Meals Management"
+        subtitle="Manage your restaurant's meals"
       />
 
       <div className="mt-[15rem] w-full flex text-5xl font-extrabold justify-center items-center">

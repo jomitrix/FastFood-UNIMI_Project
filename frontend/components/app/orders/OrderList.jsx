@@ -8,7 +8,12 @@ export default function OrderList({ orders, statuses, setIsModalOpen, setOrderMo
         <div className="w-full mt-4 sm:mt-6 flex flex-col items-center justify-center w-full h-full">
             <div className="w-full max-w-3xl flex flex-col gap-3">
                 {orders.map(order => (
-                    <Card className="w-full flex flex-row items-center p-5 gap-4" key={order.id}>
+                    <Card 
+                        isPressable
+                        key={order.id}
+                        className="w-full flex flex-row items-center p-5 gap-4 cursor-pointer"
+                        onPress={() => {setIsModalOpen(true), setOrderModalId(order.id)}}
+                    >
                         <CardBody className="flex-1 flex flex-row items-center p-0">
                             <img 
                                 src={order.thumbnail} 
@@ -23,14 +28,8 @@ export default function OrderList({ orders, statuses, setIsModalOpen, setOrderMo
                                 <p className="text-gray-500">{order.currency}{order.total.toFixed(2)} • {new Date(order.orderDate).toLocaleDateString()}</p>
                             </div>
                         </CardBody>
-                        <Button
-                            className="m-1 bg-[#003f5e] text-white flex p-0"
-                            onPress={() => {setIsModalOpen(true), setOrderModalId(order.id)}}
-                            radius="full"
-                            isIconOnly
-                        >
-                            <ChevronRight className="flex-shrink-0" size={18}/>
-                        </Button>
+
+                        <ChevronRight className="m-1 text-[#003c6e] flex flex-shrink-0" size={24}/>
                     </Card>
                 ))}
             </div>

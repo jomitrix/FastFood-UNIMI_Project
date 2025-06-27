@@ -8,10 +8,11 @@ export default function NotFoundPage() {
   return (
     <Navbar
         className="w-full flex bg-[#ff8844]"
+        maxWidth="full"
     >
         <NavbarBrand className="gap-2">
             <Link href="/home">
-                <img src="/images/logo.png" alt="🍔 Fast Food" className="h-32" />
+                <img src="/images/logo.png" alt="🍔 Fast Food" className="w-32" />
             </Link>
         </NavbarBrand>
 

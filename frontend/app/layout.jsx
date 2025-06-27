@@ -6,7 +6,7 @@ import { fontSans } from "@/config/fonts";
 
 export default function RootLayout({ children }) {
   return (
-    <html suppressHydrationWarning lang="en" className={fontSans.className}>
+    <html suppressHydrationWarning lang="en" className={`${fontSans.className} bg-[#f6f6f6]`}>
       <head />
       <body
         className="min-h-screen bg-background text-foreground font-sans antialiased"

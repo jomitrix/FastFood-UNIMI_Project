@@ -3,6 +3,7 @@ import { useState, useMemo, } from "react";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/modal";
 import { Progress } from "@heroui/progress";
 import { Divider } from "@heroui/divider";
+import { ScrollShadow } from "@heroui/scroll-shadow";
 import { Takeaway, Delivery } from "@/components/icons/heroicons";
 import OrderList from "@/components/app/orders/OrderList";
 
@@ -34,13 +35,13 @@ export default function OrderUser({orders, statuses}) {
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false) && setOrderModalId(null)}
           scrollBehavior="inside"
-          className="m-0 w-full"
+          className="m-0 w-full md:max-h-[90vh] md:h-auto"
           classNames={{
             closeButton: "text-xl text-white hover:bg-white/10 active:!text-black",
             
           }}
         >
-          <ModalContent className="rounded-t-xl rounded-b-none sm:rounded-b-xl overflow-hidden w-full sm:w-none">
+          <ModalContent className="rounded-t-xl rounded-b-none sm:rounded-b-xl overflow-hidden w-full sm:w-none md:h-[80vh] md:max-h-[800px]">
             <div className="bg-[#1d1d1d] text-white rounded-b-xl">
               <ModalHeader className="flex flex-col items-center justify-center pb-4">
                 <div className="flex flex-col gap-2">
@@ -86,37 +87,46 @@ export default function OrderUser({orders, statuses}) {
               </ModalHeader>
             </div>
             
-            <ModalBody className="mt-4 bg-[#efefef] mx-2 rounded-xl">
-              <div>
-                <h1 className="text-2xl font-bold">
-                  Your Order
-                </h1>
-                <div className="flex flex-col gap-2 mt-4">
-                  {order.items.map((item, index) => (
-                    <div className="flex flex-row gap-4" key={index}>
-                      <div className="text-lg text-gray-500 min-w-[40px]">
-                        {item.quantity}x
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-lg flex justify-between font-medium">
-                          <span>{item.name}</span>
-                          <span>{item.price.toFixed(2)}{order.currency}</span>
+            
+              <ModalBody 
+                className="mt-4 bg-[#efefef] mx-2 rounded-xl"
+              >
+                <ScrollShadow
+                  size={30}
+                  hideScrollBar
+                >
+                  <div>
+                  <h1 className="text-2xl font-bold">
+                    Your Order
+                  </h1>
+                  <div className="flex flex-col gap-[0.375rem] mt-4">
+                    {order.items.map((item, index) => (
+                      <div className="flex flex-row gap-4" key={index}>
+                        <div className="text-lg text-gray-500 min-w-[40px]">
+                          {item.quantity}x
                         </div>
-                        {item.ingredients && item.ingredients.length > 0 && (
-                          <ul className="text-sm text-gray-700 mt-0 ml-3">
-                            {item.ingredients.map((ingredient, i) => (
-                              <li key={i} className="list-disc">
-                                {ingredient}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                        <div className="flex-1">
+                          <div className="text-lg flex justify-between font-medium">
+                            <span>{item.name}</span>
+                            <span>{item.price.toFixed(2)}{order.currency}</span>
+                          </div>
+                          {item.ingredients && item.ingredients.length > 0 && (
+                            <ul className="text-sm text-gray-700 mt-0 ml-3">
+                              {item.ingredients.map((ingredient, i) => (
+                                <li key={i} className="list-disc">
+                                  {ingredient}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            </ModalBody>
+                </ScrollShadow>
+              </ModalBody>
+            
             <ModalFooter className="w-full">
               <div className="w-full pb-2">
                   <div className="flex justify-between items-center pt-0">

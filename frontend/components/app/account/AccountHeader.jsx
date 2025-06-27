@@ -16,9 +16,9 @@ export default function AccountHeader({accountType, title, subtitle}) {
               </h3>
             }
         </div>
-        <SectionSwitcher 
-            accountType={accountType}
-        />
+        { accountType === "user" &&
+          <SectionSwitcher />
+        }
       </div>
       <div className="w-full">
         <WaveClean className="h-10 sm:h-20" />

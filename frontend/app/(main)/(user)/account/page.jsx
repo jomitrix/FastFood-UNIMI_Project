@@ -5,7 +5,7 @@ import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
-import { Eye, EyeClosed, Profile, Restaurant, Email, Handle, Storefront } from "@/components/icons/heroicons";
+import { Eye, EyeClosed, Profile, Email, Handle } from "@/components/icons/heroicons";
 import { Chip } from "@heroui/chip";
 import AccountHeader from "@/components/app/account/AccountHeader";
 
@@ -36,15 +36,7 @@ export default function ProfilePage() {
     accountType: "user"
   };
 
-  const mockRestaurant = {
-    name: "Luca",
-    surname: "Toni",
-    email: "luca.toni@esempio.it",
-    username: "La Pizzeria di Luca",
-    accountType: "restaurant"
-  };
-
-  const mock = mockRestaurant;
+  const mock = mockUser;
 
   // stati locali per rendere i campi editabili
   const [name, setName] = useState(mock.name);
@@ -73,7 +65,7 @@ export default function ProfilePage() {
     const newErrors = {};
     if (!name) newErrors.name = "Name required";
     if (!surname) newErrors.surname = "Surname required";
-    if (!username) newErrors.username = `${mock.accountType === "user" ? "Username" : "Restaurant Name"} required`;
+    if (!username) newErrors.username = "Username required";
     if (!email) newErrors.email = "Email required";
     else if (invalidEmail) newErrors.email = "Invalid email";
     if (newPassword && newPassword.length < 6)
@@ -115,24 +107,13 @@ export default function ProfilePage() {
             <Card className="w-full p-4 sm:p-8">
               <CardHeader className="w-full font-bold text-2xl flex justify-between">
                 <div>Account Info</div>
-                {mock.accountType === "user" ? (
-                  <Chip
-                    color="primary"
-                    startContent={<Profile size={18} />}
-                    variant="flat"
-                  >
-                    User
-                  </Chip>
-                ) : (
-                  <Chip
-                    color="secondary"
-                    className="pl-2"
-                    startContent={<Restaurant size={14} />}
-                    variant="flat"
-                  >
-                    Restaurant
-                  </Chip>
-                )}
+                <Chip
+                  color="primary"
+                  startContent={<Profile size={18} />}
+                  variant="flat"
+                >
+                  User
+                </Chip>
               </CardHeader>
 
               <div className="w-full flex flex-col justify-center items-center my-4">
@@ -141,31 +122,6 @@ export default function ProfilePage() {
 
               <form onSubmit={handleSubmit}>
                 <CardBody className="flex flex-col gap-4">
-                  {mock.accountType === "restaurant" && (
-                    <>
-                      <Input
-                        value={username}
-                        onChange={(e) => {
-                          setUsername(e.target.value);
-                          setIsUserChanged(true);
-                          setErrors((prev) => ({ ...prev, username: undefined }));
-                        }}
-                        isInvalid={!!errors.username}
-                        errorMessage={errors.username}
-                        type="text"
-                        label="Restaurant Name"
-                        placeholder="Restaurant Name"
-                        labelPlacement="outside"
-                        endContent={<Storefront className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                        radius="sm"
-                        size="lg"
-                      />
-                      <h3 className="text-lg font-bold pt-2">
-                        Manager Information
-                      </h3>
-                    </>
-                  )}
-
                   <div className="flex gap-4">
                     <Input
                       value={name}
@@ -201,25 +157,28 @@ export default function ProfilePage() {
                     />
                   </div>
 
-                  {mock.accountType === "user" && (
-                    <Input
-                      value={username}
-                      onChange={(e) => {
-                        setUsername(e.target.value);
-                        setIsUserChanged(true);
-                        setErrors((prev) => ({ ...prev, username: undefined }));
-                      }}
-                      isInvalid={!!errors.username}
-                      errorMessage={errors.username}
-                      type="text"
-                      label="Username"
-                      placeholder="Username"
-                      labelPlacement="outside"
-                      endContent={<Handle className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                      radius="sm"
-                      size="lg"
-                    />
-                  )}
+                  <Input
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setIsUserChanged(true);
+                      setErrors((prev) => ({ ...prev, username: undefined }));
+                    }}
+                    isInvalid={!!errors.username}
+                    errorMessage={errors.username}
+                    type="text"
+                    label={
+                      <span>
+                        Username
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Username"
+                    labelPlacement="outside"
+                    endContent={<Handle className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
 
                   <Input
                     value={email}
@@ -231,7 +190,12 @@ export default function ProfilePage() {
                     isInvalid={!!errors.email || invalidEmail}
                     errorMessage={errors.email || "Invalid email"}
                     type="email"
-                    label="Email"
+                    label={
+                      <span>
+                        Email
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
                     placeholder="Email"
                     labelPlacement="outside"
                     endContent={<Email className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
@@ -329,7 +293,12 @@ export default function ProfilePage() {
                           isInvalid={!!errors.currentPassword}
                           errorMessage={errors.currentPassword}
                           className="w-full p-0"
-                          label="Current Password"
+                          label={
+                            <span>
+                              Current Password
+                              <span className="text-danger ml-1">*</span>
+                            </span>
+                          }
                           radius="sm"
                           size="lg"
                           endContent={

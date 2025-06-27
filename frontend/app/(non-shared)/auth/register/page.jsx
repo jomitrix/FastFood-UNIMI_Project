@@ -15,8 +15,6 @@ export default function Register() {
 
   const [accountType, setAccountType] = useState("user");
   const [username, setUsername] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [surname, setSurname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -41,8 +39,6 @@ export default function Register() {
 
     // Validazione
     const newErrors = {};
-    if (!firstName) newErrors.firstName = "First Name required";
-    if (!surname)    newErrors.surname    = "Surname required";
     if (!username) newErrors.username = accountType === "restaurant"
       ? "Restaurant Name required"
       : "Username required";
@@ -77,10 +73,10 @@ export default function Register() {
     <>
     <WaveClean/>
 
-    <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center relative p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003f5e]/20">
+    <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center relative  lg:mt-[5rem] pb-[2.5rem] p-4">
+      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003c6e]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#003f5e] text-3xl text-center">Register</h1>
+          <h1 className="font-bold text-[#003c6e] text-3xl text-center">Register</h1>
           <p className="text-default-500 text-center">Create your account</p>
         </CardHeader>
         
@@ -103,41 +99,12 @@ export default function Register() {
 
             <Input
               type="text"
-              label="First Name"
-              placeholder="Enter your first name"
-              value={firstName}
-              onChange={(e) => {
-                setFirstName(e.target.value);
-                if (errors.firstName) {
-                  setErrors(prev => ({ ...prev, firstName: undefined }));
-                }
-              }}
-              isInvalid={!!errors.firstName}
-              errorMessage={errors.firstName}
-              variant="bordered"
-              size="lg"
-            />
-
-            <Input
-              type="text"
-              label="Surname"
-              placeholder="Enter your surname"
-              value={surname}
-              onChange={(e) => {
-                setSurname(e.target.value);
-                if (errors.surname) {
-                  setErrors(prev => ({ ...prev, surname: undefined }));
-                }
-              }}
-              isInvalid={!!errors.surname}
-              errorMessage={errors.surname}
-              variant="bordered"
-              size="lg"
-            />
-
-            <Input
-              type="text"
-              label={accountType === "restaurant" ? "Restaurant Name" : "Username"}
+              label={
+                <span>
+                  {accountType === "restaurant" ? "Restaurant Name" : "Username"}
+                  <span className="text-danger ml-1">*</span>
+                </span>
+              }
               placeholder={accountType === "restaurant" ? "Enter the restaurant name" : "Enter your username"}
               value={username}
               onChange={(e) => {
@@ -154,7 +121,12 @@ export default function Register() {
 
             <Input
               type="email"
-              label="Email"
+              label={
+                <span>
+                  Email
+                  <span className="text-danger ml-1">*</span>
+                </span>
+              }
               placeholder="Enter your email"
               value={email}
               onChange={(e) => {
@@ -171,7 +143,12 @@ export default function Register() {
             
             <Input
               type={isVisible ? "text" : "password"}
-              label="Password"
+              label={
+                <span>
+                  Password
+                  <span className="text-danger ml-1">*</span>
+                </span>
+              }
               placeholder="Enter your password"
               value={password}
               onChange={(e) => {
@@ -202,7 +179,12 @@ export default function Register() {
 
             <Input
               type={isConfirmVisible ? "text" : "password"}
-              label="Confirm Password"
+              label={
+                <span>
+                  Confirm Password
+                  <span className="text-danger ml-1">*</span>
+                </span>
+              }
               placeholder="Repeat your password"
               value={confirmPassword}
               onChange={(e) => {
@@ -235,7 +217,7 @@ export default function Register() {
               type="submit"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2 bg-[#003f5e] text-white"
+              className="w-full mt-2 bg-[#003c6e] text-white"
             >
               {isLoading ? "Registering..." : "Register"}
             </Button>
@@ -243,7 +225,7 @@ export default function Register() {
             <div className="flex flex-col gap-2 mt-4 text-center">
               <p className="text-sm text-default-500">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="text-[#003f5e] font-medium">
+                <Link href="/auth/login" className="text-[#003c6e] font-medium">
                   Login
                 </Link>
               </p>

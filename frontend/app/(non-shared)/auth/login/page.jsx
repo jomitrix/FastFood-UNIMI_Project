@@ -64,9 +64,9 @@ export default function Login() {
     <WaveClean/>
     
     <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center mt-[5rem] relative p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003f5e]/20">
+      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003c6e]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#003f5e] text-3xl text-center">
+          <h1 className="font-bold text-[#003c6e] text-3xl text-center">
             Welcome
           </h1>
           <p className="text-default-500 text-center">Login to your account</p>
@@ -91,7 +91,12 @@ export default function Login() {
 
             <Input
               type="email"
-              label="Email"
+              label={
+                <span>
+                  Email
+                  <span className="text-danger ml-1">*</span>
+                </span>
+              }
               placeholder="Enter your email"
               value={email}
               onChange={(e) => {
@@ -108,7 +113,12 @@ export default function Login() {
 
             <Input
               type={isVisible ? "text" : "password"}
-              label="Password"
+              label={
+                <span>
+                  Password
+                  <span className="text-danger ml-1">*</span>
+                </span>
+              }
               placeholder="Enter your password"
               value={password}
               onChange={(e) => {
@@ -137,7 +147,7 @@ export default function Login() {
               size="lg"
             />
 
-            {/*<Link href="/auth/forgot-password" className="ml-1 text-sm text-[#003f5e]">
+            {/*<Link href="/auth/forgot-password" className="ml-1 text-sm text-[#003c6e]">
               Password dimenticata?
             </Link>*/}
 
@@ -145,7 +155,7 @@ export default function Login() {
               type="submit"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2 bg-[#003f5e] text-white"
+              className="w-full mt-2 bg-[#003c6e] text-white"
             >
               {isLoading ? "Logging in..." : "Log in"}
             </Button>
@@ -155,7 +165,7 @@ export default function Login() {
                 Don't have an account?{" "}
                 <Link
                   href="/auth/register"
-                  className="text-[#003f5e] font-medium"
+                  className="text-[#003c6e] font-medium"
                 >
                   Sign up
                 </Link>
