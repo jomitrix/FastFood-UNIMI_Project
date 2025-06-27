@@ -21,6 +21,7 @@ export default function MealsPage() {
 
   const mockMeals = [
         {
+          "id": "1",
           "price": 12.99,
           "currency": "€",
           "data": {
@@ -87,6 +88,7 @@ export default function MealsPage() {
           }
         },
         {
+          "id": "2",
           "price": 12.99,
           "currency": "€",
           "data": {
@@ -153,6 +155,7 @@ export default function MealsPage() {
           }
         },
         {
+          "id": "3",
           "price": 12.99,
           "currency": "€",
           "data": {
