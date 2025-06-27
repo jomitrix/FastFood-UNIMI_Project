@@ -51,7 +51,7 @@ export default function Login() {
       // Simula chiamata API
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      router.push("/home");
+      accountType === "user" ? router.push("/home") : router.push("/manager/account");
     } catch (error) {
       setErrors({ general: "Errore durante il login. Riprova." });
     } finally {

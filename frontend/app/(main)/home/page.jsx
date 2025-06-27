@@ -27,7 +27,7 @@ export default function Home() {
             </h3>
             <Input
               type="search"
-              placeholder="Search restaurants and meals"
+              placeholder="Search restaurants and dishes"
               className="w-full"
               classNames={{
                 inputWrapper: "py-4 sm:py-7",

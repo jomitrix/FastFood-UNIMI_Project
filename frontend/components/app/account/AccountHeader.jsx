@@ -7,11 +7,11 @@ export default function AccountHeader({accountType, title, subtitle}) {
     <>
       <div className="w-full bg-[#ff8844] flex flex-col items-center text-center">
         <div className="h-24 flex flex-col items-center justify-center">
-            <h1 className="text-4xl font-bold">
+            <h1 className="text-3xl sm:text-4xl font-bold">
                 {title}
             </h1>
             { subtitle &&
-              <h3 className="text-lg font-medium">
+              <h3 className="text-md sm:text-lg font-medium">
                 {subtitle}
               </h3>
             }

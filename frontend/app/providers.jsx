@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { HeroUIProvider } from "@heroui/system";
+import { ToastProvider } from "@heroui/toast";
 import { useRouter } from "next/navigation";
 
 export function Providers({ children }) {
@@ -9,6 +10,7 @@ export function Providers({ children }) {
 
   return (
     <HeroUIProvider navigate={router.push}>
+      <ToastProvider />
       {children}
     </HeroUIProvider>
   );

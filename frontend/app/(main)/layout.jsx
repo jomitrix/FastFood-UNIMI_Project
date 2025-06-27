@@ -42,10 +42,12 @@ export default function Layout({ children }) {
   }
 
   return (
+    <div className="bg-[#ff8844]">
     <ManagerProvider value={managerContextValue}>
       <div className="flex flex-col min-h-screen">
         <Navbar
-          className="flex bg-[#ff8844]"
+          className="flex bg-[#ff8844] fixed"
+          position="sticky"
           maxWidth="full"
         >
           <NavbarBrand>
@@ -88,13 +90,13 @@ export default function Layout({ children }) {
           {/* Pulsanti login/account */}
           <NavbarContent justify="end" className="flex">
             <NavbarItem>
-              {isLogged ? (
+              {!isLogged ? (
                 <Button as={Link} color="primary" href="/auth/login" className="bg-black font-semibold rounded-full">
                   <Login className="w-5 h-5 mr-1" />
                   Login
                 </Button>
               ) : (
-                !pathname.startsWith("/account") ? (
+                ! (pathname.startsWith("/account") || (pathname.startsWith("/manager")) ) ? (
                   <Button as={Link} color="primary" href="/account" className="bg-black font-semibold rounded-full">
                     {accountType !== "restaurant" ? (
                       <>
@@ -119,8 +121,9 @@ export default function Layout({ children }) {
           </NavbarContent>
         </Navbar>
 
-        <main>{children}</main>
+        <main className="mt-16">{children}</main>
       </div>
     </ManagerProvider>
+    </div>
   );
 }

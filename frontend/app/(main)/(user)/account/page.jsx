@@ -7,6 +7,7 @@ import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Eye, EyeClosed, Profile, Email, Handle } from "@/components/icons/heroicons";
 import { Chip } from "@heroui/chip";
+import { addToast } from "@heroui/toast";
 import AccountHeader from "@/components/app/account/AccountHeader";
 
 export default function ProfilePage() {
@@ -63,8 +64,6 @@ export default function ProfilePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!name) newErrors.name = "Name required";
-    if (!surname) newErrors.surname = "Surname required";
     if (!username) newErrors.username = "Username required";
     if (!email) newErrors.email = "Email required";
     else if (invalidEmail) newErrors.email = "Invalid email";
@@ -82,6 +81,16 @@ export default function ProfilePage() {
     // invia la richiesta di aggiornamento...
     setIsUserChanged(false);
     setCurrentPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+
+    addToast({
+      title: "Success",
+      description: "Changes saved successfully!",
+      color: "success",
+      timeout: 5000,
+      shouldShowTimeoutProgress: true,
+    })
   };
 
   const handleDelete = (e) => {
@@ -215,7 +224,10 @@ export default function ProfilePage() {
                     onChange={(e) => {
                       setNewPassword(e.target.value);
                       setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, newPassword: undefined }));
+                      setErrors((prev) => ({ ...prev, 
+                        newPassword: undefined,
+                        confirmNewPassword: undefined
+                       }));
                     }}
                     isInvalid={!!errors.newPassword}
                     errorMessage={errors.newPassword}
@@ -289,7 +301,10 @@ export default function ProfilePage() {
                         <Input
                           type={isVisible ? "text" : "password"}
                           value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          onChange={(e) => {
+                            setCurrentPassword(e.target.value);
+                            setErrors((prev) => ({ ...prev, currentPassword: undefined }));
+                          }}
                           isInvalid={!!errors.currentPassword}
                           errorMessage={errors.currentPassword}
                           className="w-full p-0"
@@ -350,7 +365,7 @@ export default function ProfilePage() {
                   To delete your account, type "DELETE" in the box below.
                   <br />
                   Once submitted, you will no longer be able to log in,
-                  access your credit, or restore your account.
+                  access your data, or restore your account.
                 </p>
 
                 <div className="lg:w-1/2 flex flex-col gap-4">

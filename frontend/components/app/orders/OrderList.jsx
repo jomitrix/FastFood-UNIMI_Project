@@ -1,6 +1,5 @@
 'use client';
 import { Card, CardBody, CardHeader } from "@heroui/card";
-import { Button } from "@heroui/button";
 import { ChevronRight } from "@/components/icons/heroicons";
 
 export default function OrderList({ orders, statuses, setIsModalOpen, setOrderModalId }) {
@@ -25,7 +24,12 @@ export default function OrderList({ orders, statuses, setIsModalOpen, setOrderMo
                                     <h2 className="text-lg text-black font-semibold">{order.restaurant}</h2>
                                 </CardHeader>
                                 <p className={`pb-[0.375rem] ${statuses[order.status].color}`}>{statuses[order.status].display}</p>
-                                <p className="text-gray-500">{order.currency}{order.total.toFixed(2)} • {new Date(order.orderDate).toLocaleDateString()}</p>
+                                <p className="text-gray-500">{order.total.toFixed(2)}{order.currency} • {new Date(order.orderDate).toLocaleDateString("it", { 
+                                        day: 'numeric',
+                                        month: 'short',
+                                        year: 'numeric'
+                                    })}
+                                </p>
                             </div>
                         </CardBody>
 

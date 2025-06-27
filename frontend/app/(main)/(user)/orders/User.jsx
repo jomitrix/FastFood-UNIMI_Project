@@ -44,7 +44,7 @@ export default function OrderUser({orders, statuses}) {
           <ModalContent className="rounded-t-xl rounded-b-none sm:rounded-b-xl overflow-hidden w-full sm:w-none md:h-[80vh] md:max-h-[800px]">
             <div className="bg-[#1d1d1d] text-white rounded-b-xl">
               <ModalHeader className="flex flex-col items-center justify-center pb-4">
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col">
                   <h1 className="w-full flex gap-3 justify-center text-3xl font-bold underline">
                     { order.type === "delivery" ?
                       <Delivery size={36} className="text-white" />
@@ -53,22 +53,52 @@ export default function OrderUser({orders, statuses}) {
                     }
                     <span className="">{`Order #${order.id}`}</span>
                   </h1>
-                  <h3 className="w-full text- text-xl">
+                  <h3 className="w-full text-xl mt-2">
                     {order.restaurant}
                   </h3>
+                  <p className="text-xs text-center text-gray-300 text-medium">
+                    {"Ordered: " + new Date(order.orderDate).toLocaleDateString("it", { 
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    }) + " - " + new Date(order.orderDate).toLocaleTimeString("it", {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    })}
+                  </p>
                 </div>
 
                 <div className="w-full flex flex-col justify-center items-center">
                   <Divider className="w-[90%] flex bg-white/10 my-3" />
                 </div>
 
-                <div className="flex flex-col w-[90%] mx-auto gap-4">
+                <div className="flex flex-col w-[90%] mx-auto">
                 <h1 className={`text-2xl text-center font-bold ${statuses[order.status].darkColor}`}>
                   {statuses[order.status].alternative || statuses[order.status].display}
                 </h1>
+                { order.status === "completed" && (
+                  <p className="text-lg text-center text-medium">
+                    {new Date(order.orderDate).toLocaleDateString("it", { 
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric'
+                    }) + " - " + new Date(order.orderDate).toLocaleTimeString("it", {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: false
+                    })}
+                  </p>
+                )}
+                { order.status === "canceled" && (
+                  <p className="text-lg text-center text-medium">
+                    If you have any questions, please contact the restaurant.
+                  </p>
+                )}
                 
                 {!["completed", "canceled"].includes(order.status) && (
                   <Progress
+                    className="mt-4"
                     classNames={{
                       indicator: `${statuses[order.status].darkBgColor}`,
                       track: "bg-gray-300 h-4",

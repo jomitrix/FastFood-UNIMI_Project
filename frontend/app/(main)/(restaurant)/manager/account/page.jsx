@@ -5,8 +5,11 @@ import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
-import { Eye, EyeClosed, Restaurant, Email, Storefront } from "@/components/icons/heroicons";
+import { Alert } from "@heroui/alert";
+import { Eye, EyeClosed, Restaurant, Email, 
+         Storefront, Phone, MapPin, Briefcase } from "@/components/icons/heroicons";
 import { Chip } from "@heroui/chip";
+import { addToast } from "@heroui/toast";
 import AccountHeader from "@/components/app/account/AccountHeader";
 
 export default function ProfilePage() {
@@ -41,6 +44,9 @@ export default function ProfilePage() {
   const [surname, setSurname] = useState(restaurantData.surname);
   const [username, setUsername] = useState(restaurantData.username);
   const [email, setEmail] = useState(restaurantData.email);
+  const [phone, setPhone] = useState(restaurantData.phone || "");
+  const [address, setAddress] = useState(restaurantData.address || "");
+  const [iva, setIva] = useState(restaurantData.iva || "");
 
   useEffect(() => {
     // esegui solo in ambiente client
@@ -58,14 +64,39 @@ export default function ProfilePage() {
     return validateEmail(email) ? false : true;
   }, [email]);
 
+  const validatePhone = (phone) =>
+    phone.match(/^\+(?:[0-9] ?){6,14}[0-9]$/);
+  const invalidPhone = useMemo(() => {
+    if (phone === "") return false;
+    return validatePhone(phone) ? false : true;
+  }, [phone]);
+
+  const validateAddress = (address) => 
+    address.match(/^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u);
+  const invalidAddress = useMemo(() => {
+    if (address === "") return false;
+    return validateAddress(address) ? false : true;
+  }, [address]);
+
+  const validateIva = (iva) =>
+    iva.match(/^\d{11}$/);
+  const invalidIva = useMemo(() => {
+    if (iva === "") return false;
+    return validateIva(iva) ? false : true;
+  }, [iva]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!name) newErrors.name = "Name required";
-    if (!surname) newErrors.surname = "Surname required";
     if (!username) newErrors.username = "Restaurant Name required";
     if (!email) newErrors.email = "Email required";
     else if (invalidEmail) newErrors.email = "Invalid email";
+    if (!phone) newErrors.phone = "Phone number required";
+    else if (invalidPhone) newErrors.phone = "Invalid phone number";
+    if (!address) newErrors.address = "Address required";
+    else if (invalidAddress) newErrors.address = "Invalid address";
+    if (!iva) newErrors.iva = "VAT Number required";
+    else if (invalidIva) newErrors.iva = "Invalid VAT Number";
     if (newPassword && newPassword.length < 6)
       newErrors.newPassword = "Password must be at least 6 characters";
     if (newPassword && newPassword !== confirmNewPassword)
@@ -77,9 +108,21 @@ export default function ProfilePage() {
       setErrors(newErrors);
       return;
     }
+
     // invia la richiesta di aggiornamento...
+    
     setIsUserChanged(false);
     setCurrentPassword("");
+    setNewPassword("");
+    setConfirmNewPassword("");
+    
+    addToast({
+      title: "Success",
+      description: "Changes saved successfully!",
+      color: "success",
+      timeout: 5000,
+      shouldShowTimeoutProgress: true,
+    })
   };
 
   const handleDelete = (e) => {
@@ -103,6 +146,17 @@ export default function ProfilePage() {
 
       <div className="w-full lg:w-2/3 xl:w-1/2 flex flex-col justify-center items-center p-4 pb-10">
           <div className="w-full mt-4 sm:mt-6 gap-2 flex flex-col gap-5 sm:gap-8">
+            
+            { ((!iva || invalidIva) || !address || invalidAddress || !phone || invalidPhone) && (
+              <Alert color="danger" title={`Warning`} className="text-sm text-left"
+                classNames={{
+                  title: "font-bold text-lg",
+                }}>
+                <span>To make your restaurant findable, you <b>must fill in all the mandatory fields</b> that are not required during registration.</span>
+                <span>You are therefore requested to fill in the fields "<b>Phone</b>" "<b>Address</b>" and "<b>VAT Number</b>"</span>
+              </Alert>
+            )}
+            
             <Card className="w-full p-4 sm:p-8">
               <CardHeader className="w-full font-bold text-2xl flex justify-between">
                 <div>Account Info</div>
@@ -122,6 +176,9 @@ export default function ProfilePage() {
 
               <form onSubmit={handleSubmit}>
                 <CardBody className="flex flex-col gap-4">
+                  <h3 className="text-lg font-bold pt-2">
+                    Resturant Details
+                  </h3>
                   <Input
                     value={username}
                     onChange={(e) => {
@@ -144,10 +201,76 @@ export default function ProfilePage() {
                     radius="sm"
                     size="lg"
                   />
+                  <Input
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setIsUserChanged(true);
+                      setErrors((prev) => ({ ...prev, phone: undefined }));
+                    }}
+                    isInvalid={!!errors.phone || invalidPhone}
+                    errorMessage={errors.phone || "Invalid phone number"}
+                    type="tel"
+                    label={
+                      <span>
+                        Restaurant Phone Number
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Example: +39 1234 567 890"
+                    labelPlacement="outside"
+                    endContent={<Phone className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
+                  <Input
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      setIsUserChanged(true);
+                      setErrors((prev) => ({ ...prev, address: undefined }));
+                    }}
+                    isInvalid={!!errors.address || invalidAddress}
+                    errorMessage={errors.address || "Invalid address"}
+                    type="text"
+                    label={
+                      <span>
+                        Restaurant Address
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Example: Via Roma 1, Roma, 00100, Italy"
+                    labelPlacement="outside"
+                    endContent={<MapPin className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
+
                   <h3 className="text-lg font-bold pt-2">
                     Manager Information
                   </h3>
-
+                  <Input
+                    value={iva}
+                    onChange={(e) => {
+                      setIva(e.target.value);
+                      setIsUserChanged(true);
+                      setErrors((prev) => ({ ...prev, iva: undefined }));
+                    }}
+                    isInvalid={!!errors.iva || invalidIva}
+                    errorMessage={errors.iva || "Invalid VAT Number"}
+                    type="text"
+                    label={
+                      <span>
+                        VAT Number
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Example: 01234567890"
+                    labelPlacement="outside"
+                    endContent={<Briefcase className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
                   <div className="flex gap-4">
                     <Input
                       value={name}
@@ -218,7 +341,10 @@ export default function ProfilePage() {
                     onChange={(e) => {
                       setNewPassword(e.target.value);
                       setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, newPassword: undefined }));
+                      setErrors((prev) => ({ ...prev, 
+                        newPassword: undefined,
+                        confirmNewPassword: undefined
+                      }));
                     }}
                     isInvalid={!!errors.newPassword}
                     errorMessage={errors.newPassword}
@@ -292,7 +418,10 @@ export default function ProfilePage() {
                         <Input
                           type={isVisible ? "text" : "password"}
                           value={currentPassword}
-                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          onChange={(e) => {
+                            setCurrentPassword(e.target.value);
+                            setErrors((prev) => ({ ...prev, currentPassword: undefined }));
+                          }}
                           isInvalid={!!errors.currentPassword}
                           errorMessage={errors.currentPassword}
                           className="w-full p-0"
@@ -353,7 +482,7 @@ export default function ProfilePage() {
                   To delete your account, type "DELETE" in the box below.
                   <br />
                   Once submitted, you will no longer be able to log in,
-                  access your credit, or restore your account.
+                  access your data, or restore your account.
                 </p>
 
                 <div className="lg:w-1/2 flex flex-col gap-4">
