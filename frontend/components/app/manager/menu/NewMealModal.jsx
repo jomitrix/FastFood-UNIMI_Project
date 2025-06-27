@@ -279,19 +279,12 @@ export default function NewMealModal({ isOpen, onClose, onSubmit }) {
                                 onChange={(value) => {
                                     let numValue = typeof value === 'string' ? parseFloat(value) : value;
                                     numValue = isNaN(numValue) ? 0.49 : numValue;
-                                    // Applica il valore minimo immediatamente
                                     if (numValue < 0.49) {
-                                        numValue = 0.49;
+                                        numValue = 0.49; // Imposta il prezzo minimo a 0.49
                                     }
                                     setPrice(numValue);
                                     if (errors.price) {
                                         setErrors({...errors, price: undefined});
-                                    }
-                                }}
-                                onBlur={() => {
-                                    // Doppio controllo quando l'utente esce dal campo
-                                    if (price < 0.49) {
-                                        setPrice(0.49);
                                     }
                                 }}
                                 isInvalid={!!errors.price}

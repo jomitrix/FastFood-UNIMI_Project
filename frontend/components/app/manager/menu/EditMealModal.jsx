@@ -6,6 +6,7 @@ import { Button } from '@heroui/button';
 import { Plus, Upload } from '@/components/icons/heroicons';
 import { ScrollShadow } from '@heroui/scroll-shadow';
 import { Modal, ModalHeader, ModalContent, ModalBody, ModalFooter } from "@heroui/modal";
+import ConfirmDelete from '@/components/ConfirmDelete';
 
 export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mealData }) {
     const [image, setImage] = useState(null);
@@ -29,7 +30,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             setName(mealData.data?.strMeal || '');
             setIngredients(mealData.data?.ingredients || []);
             setDescription(mealData.data?.description || '');
-            setPrice(mealData.price || 9.99);
+            setPrice(mealData.price || 0.49);
             setErrors({});
             setNewIngredient('');
         }
@@ -303,19 +304,12 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                     onChange={(value) => {
                                         let numValue = typeof value === 'string' ? parseFloat(value) : value;
                                         numValue = isNaN(numValue) ? 0.49 : numValue;
-                                        // Applica il valore minimo immediatamente
                                         if (numValue < 0.49) {
-                                            numValue = 0.49;
+                                            numValue = 0.49; // Imposta il prezzo minimo a 0.49
                                         }
                                         setPrice(numValue);
                                         if (errors.price) {
                                             setErrors({...errors, price: undefined});
-                                        }
-                                    }}
-                                    onBlur={() => {
-                                        // Doppio controllo quando l'utente esce dal campo
-                                        if (price < 0.49) {
-                                            setPrice(0.49);
                                         }
                                     }}
                                     isInvalid={!!errors.price}
@@ -350,35 +344,13 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             </Modal>
             
             {/* Modale di conferma per l'eliminazione */}
-            <Modal
-                isOpen={isDeleteModalOpen}
+            <ConfirmDelete
+                type="this meal"
+                isModalOpen={isDeleteModalOpen}
+                setIsModalOpen={setIsDeleteModalOpen}
+                onDelete={confirmDelete}
                 onClose={cancelDelete}
-                size="sm"
-                className="bg-white shadow-lg"
-            >
-                <ModalContent className="rounded-xl">
-                    <ModalHeader className="flex flex-col gap-1">
-                        Confirm Delete
-                    </ModalHeader>
-                    <ModalBody>
-                        <p>Are you sure you want to delete this meal? This action cannot be undone.</p>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button 
-                            variant="ghost" 
-                            onPress={cancelDelete}
-                        >
-                            Cancel
-                        </Button>
-                        <Button 
-                            className="bg-danger text-white"
-                            onPress={confirmDelete}
-                        >
-                            Delete
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            />
         </>
     );
 }

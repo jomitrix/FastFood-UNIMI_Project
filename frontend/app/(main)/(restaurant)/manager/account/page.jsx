@@ -11,6 +11,7 @@ import { Eye, EyeClosed, Restaurant, Email,
 import { Chip } from "@heroui/chip";
 import { addToast } from "@heroui/toast";
 import AccountHeader from "@/components/app/account/AccountHeader";
+import ConfirmDelete from "@/components/ConfirmDelete";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -29,6 +30,7 @@ export default function ProfilePage() {
   const [errors, setErrors] = useState({});
   const [deleteInput, setDeleteInput] = useState("");
   const [deleteError, setDeleteError] = useState("");
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // dati iniziali del ristorante
   const restaurantData = {
@@ -125,14 +127,19 @@ export default function ProfilePage() {
     })
   };
 
-  const handleDelete = (e) => {
+  const checkDelete = (e) => {
     e.preventDefault();
     if (deleteInput !== "DELETE") {
       setDeleteError('You must type "DELETE" to confirm');
       return;
     }
+    
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDelete = (e) => {
     // Simula cancellazione account e logout
-    localStorage.removeItem("token");
+    /*localStorage.removeItem("token");*/
     router.push("/auth/login");
   };
 
@@ -475,7 +482,7 @@ export default function ProfilePage() {
 
               <CardBody
                 as="form"
-                onSubmit={handleDelete}
+                onSubmit={checkDelete}
                 className="flex flex-col gap-4"
               >
                 <p>
@@ -515,6 +522,13 @@ export default function ProfilePage() {
               </CardBody>
             </Card>
           </div>
+
+          <ConfirmDelete
+            type="your Resturant account"
+            isModalOpen={isDeleteModalOpen}
+            setIsModalOpen={setIsDeleteModalOpen}
+            onDelete={handleDelete}
+          />
       </div>
     </div>
   );
