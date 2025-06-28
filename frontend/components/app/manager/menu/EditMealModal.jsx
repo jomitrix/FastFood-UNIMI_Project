@@ -9,7 +9,7 @@ import { Modal, ModalHeader, ModalContent, ModalBody, ModalFooter } from "@herou
 import { Select, SelectItem } from "@heroui/select";
 import ConfirmDelete from '@/components/ConfirmDelete';
 
-export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mealData, courses = [], areas = [] }) {
+export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mealData, courses = [], areas = [], allergens = [] }) {
     const [image, setImage] = useState(null);
     const [name, setName] = useState('');
     const [ingredients, setIngredients] = useState([]);
@@ -18,6 +18,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
     const [price, setPrice] = useState(9.99);
     const [category, setCategory] = useState("Miscellaneous");
     const [area, setArea] = useState("Unknown");
+    const [selectedAllergens, setSelectedAllergens] = useState(new Set([]));
     const [errors, setErrors] = useState({});
     const newIngredientInputRef = useRef(null);
     const scrollContainerRef = useRef(null);
@@ -36,6 +37,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             setPrice(mealData.price || 0.49);
             setCategory(mealData?.category || "Miscellaneous");
             setArea(mealData?.area || "Unknown");
+            setSelectedAllergens(new Set(mealData?.allergens || []));
             setErrors({});
             setNewIngredient('');
         }
@@ -108,7 +110,8 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             price: price,
             currency: "€",
             category: category,
-            area: area
+            area: area,
+            allergens: Array.from(selectedAllergens)
         };
 
         // Invio del pasto aggiornato al componente padre
@@ -259,6 +262,28 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                     {areas.map((areaItem) => (
                                         <SelectItem key={areaItem} value={areaItem}>
                                             {areaItem}
+                                        </SelectItem>
+                                    ))}
+                                </Select>
+                            </div>
+
+                            {/* Allergeni */}
+                            <div className="w-full">
+                                <Select
+                                    label="Allergens"
+                                    placeholder="Select allergens"
+                                    variant="faded"
+                                    selectionMode="multiple"
+                                    className="w-full"
+                                    classNames={{
+                                        trigger: "bg-danger-100",
+                                    }}
+                                    selectedKeys={selectedAllergens}
+                                    onSelectionChange={setSelectedAllergens}
+                                >
+                                    {allergens.map((allergen) => (
+                                        <SelectItem key={allergen} value={allergen}>
+                                            {allergen}
                                         </SelectItem>
                                     ))}
                                 </Select>

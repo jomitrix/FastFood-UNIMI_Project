@@ -8,7 +8,7 @@ import { ScrollShadow } from '@heroui/scroll-shadow';
 import { Modal, ModalHeader, ModalContent, ModalBody, ModalFooter } from "@heroui/modal";
 import { Select, SelectItem } from "@heroui/select";
 
-export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], areas = [] }) {
+export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], areas = [], allergens = [] }) {
     const [image, setImage] = useState(null);
     const [name, setName] = useState('');
     const [ingredients, setIngredients] = useState([]);
@@ -17,6 +17,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
     const [price, setPrice] = useState(9.99);
     const [category, setCategory] = useState("Miscellaneous");
     const [area, setArea] = useState("Unknown");
+    const [selectedAllergens, setSelectedAllergens] = useState(new Set([]));
     const [errors, setErrors] = useState({});
     const newIngredientInputRef = useRef(null);
     const scrollContainerRef = useRef(null);
@@ -32,6 +33,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
             setPrice(9.99);
             setCategory("Miscellaneous");
             setArea("Unknown");
+            setSelectedAllergens(new Set([]));
             setErrors({});
         }
     }, [isOpen]);
@@ -103,7 +105,8 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
             currency: "€",
             ingredients: ingredients,
             category: category,
-            area: area
+            area: area,
+            allergens: Array.from(selectedAllergens)
         };
 
         // Invio del nuovo pasto al componente padre
@@ -233,6 +236,28 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                 {areas.map((areaItem) => (
                                     <SelectItem key={areaItem} value={areaItem}>
                                         {areaItem}
+                                    </SelectItem>
+                                ))}
+                            </Select>
+                        </div>
+
+                        {/* Allergeni */}
+                        <div className="w-full">
+                            <Select
+                                label="Allergens"
+                                placeholder="Select allergens"
+                                variant="faded"
+                                selectionMode="multiple"
+                                className="w-full"
+                                classNames={{
+                                    trigger: "bg-danger-100",
+                                }}
+                                selectedKeys={selectedAllergens}
+                                onSelectionChange={setSelectedAllergens}
+                            >
+                                {allergens.map((allergen) => (
+                                    <SelectItem key={allergen} value={allergen}>
+                                        {allergen}
                                     </SelectItem>
                                 ))}
                             </Select>

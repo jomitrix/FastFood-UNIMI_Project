@@ -3,7 +3,7 @@ import { useState, useEffect, use } from "react";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Button } from "@heroui/button";
 import { Draggable, MoveUp, MoveDown, Edit, Plus, ChefHat, Pizza,
-         ForkKnife, Flag
+         ForkKnife, Flag, ExclShield
  } from "@/components/icons/heroicons";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection } from "@heroui/dropdown";
 import { Chip } from "@heroui/chip";
@@ -11,6 +11,7 @@ import { Skeleton } from "@heroui/skeleton";
 import NewMealModal from "./NewMealModal";
 import ExistingMealModal from "./ExistingMealModal";
 import EditMealModal from "./EditMealModal";
+import { areas, courses, allergens } from "@/public/utils/lists.js";
 
 export default function MealsList({ meals, searchMeals, onMealsReorder }) {
     const [isMoveable, setIsMoveable] = useState(false);
@@ -22,57 +23,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
     const [queryResult, setQueryResult] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
 
-    const courses = [
-        "Beef",
-        "Breakfast",
-        "Chicken",
-        "Dessert",
-        "First Course",
-        "Goat",
-        "Lamb",
-        "Main Course",
-        "Miscellaneous",
-        "Pasta",
-        "Pork",
-        "Seafood",
-        "Side",
-        "Starter",
-        "Vegan",
-        "Vegetarian",
-    ]
-
-    const areas = [
-        "American",
-        "British",
-        "Canadian",
-        "Chinese",
-        "Croatian",
-        "Dutch",
-        "Egyptian",
-        "Filipino",
-        "French",
-        "Greek",
-        "Indian",
-        "Irish",
-        "Italian",
-        "Jamaican",
-        "Japanese",
-        "Kenyan",
-        "Malaysian",
-        "Mexican",
-        "Moroccan",
-        "Polish",
-        "Portuguese",
-        "Russian",
-        "Spanish",
-        "Thai",
-        "Tunisian",
-        "Turkish",
-        "Ukrainian",
-        "Uruguayan",
-        "Vietnamese",
-        "Unknown",
-  ]
+    
 
     useEffect(() => {
         setLocalMeals(meals);
@@ -125,9 +76,16 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
         if (!meal.category) meal.category = "Miscellaneous";
         if (!meal.area) meal.area = "Unknown";
 
-        setLocalMeals([...localMeals, meal]);
+        const newMeals = [...localMeals, meal];
+        setLocalMeals(newMeals);
         setIsModified(true);
         setIsModalOpen(null);
+        
+        // Imposta il pasto appena aggiunto come pasto selezionato e apri immediatamente la modale di modifica
+        setTimeout(() => {
+            setSelectedMeal(meal);
+            setIsModalOpen("edit");
+        }, 100); // Un piccolo timeout per garantire una transizione fluida tra le modali
     };
     
     const findMealById = (id) => {
@@ -166,7 +124,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
         <div className="w-full mt-0 flex flex-col items-center justify-center w-full h-full">
             {/* Meals List */}
             <div className="w-full max-w-3xl flex flex-col">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex justify-between items-center mb-4 gap-2">
                     <div className="flex gap-2">
                         <Button
                             className="text-sm sm:text-base"
@@ -254,7 +212,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                                             <CardHeader className="p-0">
                                                 <h2 className="text-base sm:text-lg text-black font-semibold truncate">{meal.name}</h2>
                                             </CardHeader>
-                                            <div className=" flex gap-1">
+                                            <div className="flex flex-wrap gap-1">
                                                 <Chip
                                                     color="warning"
                                                     className="pl-2"
@@ -275,6 +233,15 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                                                     >
                                                         {meal.area}
                                                 </Chip>
+                                                { meal.allergens && meal.allergens.length > 0 && (
+                                                    <Chip
+                                                    color="danger"
+                                                    classNames={{ content: "text-xs" }}
+                                                    startContent={<ExclShield size={14} className="ml-[0.375rem]"/>}
+                                                    variant="flat"
+                                                    size="sm"
+                                                    />
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -334,6 +301,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                 onSubmit={(newMeal) => handleAddMeal(newMeal)}
                 courses={courses}
                 areas={areas}
+                allergens={allergens}
             />
 
             {/* Modal per la modifica dei pasti */}
@@ -345,6 +313,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                 onDelete={handleDeleteMeal}
                 courses={courses}
                 areas={areas}
+                allergens={allergens}
             />
 
             {/* Modal per l'aggiunta di pasti esistenti */}
