@@ -204,9 +204,6 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                 placeholder="Select a category"
                                 variant="faded"
                                 className="w-full"
-                                classNames={{
-                                    trigger: "bg-warning-100",
-                                }}
                                 selectedKeys={[category]}
                                 onSelectionChange={(keys) => {
                                     const selected = Array.from(keys)[0];
@@ -224,9 +221,6 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                 placeholder="Select an area"
                                 variant="faded"
                                 className="w-full"
-                                classNames={{
-                                    trigger: "bg-primary-100",
-                                }}
                                 selectedKeys={[area]}
                                 onSelectionChange={(keys) => {
                                     const selected = Array.from(keys)[0];
@@ -249,9 +243,6 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                 variant="faded"
                                 selectionMode="multiple"
                                 className="w-full"
-                                classNames={{
-                                    trigger: "bg-danger-100",
-                                }}
                                 selectedKeys={selectedAllergens}
                                 onSelectionChange={setSelectedAllergens}
                             >

@@ -79,13 +79,14 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
         const newMeals = [...localMeals, meal];
         setLocalMeals(newMeals);
         setIsModified(true);
-        setIsModalOpen(null);
         
-        // Imposta il pasto appena aggiunto come pasto selezionato e apri immediatamente la modale di modifica
+        if (isModalOpen !== "existing") return setIsModalOpen(null); 
         setTimeout(() => {
             setSelectedMeal(meal);
             setIsModalOpen("edit");
-        }, 100); // Un piccolo timeout per garantire una transizione fluida tra le modali
+        }, 100); 
+
+        setIsModalOpen(null);
     };
     
     const findMealById = (id) => {
@@ -145,15 +146,6 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                                 </>
                             )}
                         </Button>
-                        {isModified && (
-                            <Button
-                                className="text-sm sm:text-base bg-green-600 text-white"
-                                size="sm"
-                                onPress={handleUpdate}
-                            >
-                                Aggiorna
-                            </Button>
-                        )}
                     </div>
                     <Dropdown placement="bottom-end">
                         <DropdownTrigger>
@@ -327,6 +319,31 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                 onAddMeal={(selectedMeal) => handleAddMeal(selectedMeal)}
             />
 
+            {/* Pulsanti fissi in fondo alla pagina */}
+            {isModified && (
+                <div className="fixed bottom-[4.5rem] sm:bottom-5 right-4 xl:right-auto sm:max-w-3xl sm:w-full sm:flex sm:justify-end z-50">
+                    <div className="flex gap-2 justify-between rounded-lg">
+                        <Button
+                            className="text-sm sm:text-base bg-gray-200 text-black"
+                            size="lg"
+                            onPress={() => {
+                                setLocalMeals(meals);
+                                setIsModified(false);
+                                setIsMoveable(false);
+                            }}
+                        >
+                            Undo All
+                        </Button>
+                        <Button
+                            className="text-sm sm:text-base bg-green-600 text-white"
+                            size="lg"
+                            onPress={handleUpdate}
+                        >
+                            Save
+                        </Button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

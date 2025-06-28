@@ -32,7 +32,7 @@ export default function ExistingModal({ isOpen, onClose, searchMeals, setQueryRe
             id: Date.now().toString(),
             name: mealToAdd.strMeal,
             image: mealToAdd.strMealThumb || "https://placehold.co/500x500?text=No+Image",
-            ingredients: mealToAdd.strIngredient1,
+            ingredients: mealToAdd.ingredients,
             category: mealToAdd.strCategory,
             area: mealToAdd.strArea,
             price: 0.49, // Default price, can be adjusted later
@@ -68,9 +68,9 @@ export default function ExistingModal({ isOpen, onClose, searchMeals, setQueryRe
                             value={searchValue}
                             onChange={handleSearchChange}
                         />
-                        <ScrollShadow size={30} hideScrollBar className="max-h-60 overflow-y-auto flex flex-col gap-2 mt-2">
+                        <ScrollShadow size={30} hideScrollBar className="h-60 overflow-y-auto flex flex-col gap-2 mt-2">
                             {queryResult.length === 0 ? (
-                                <p className="text-gray-500 text-sm text-center">
+                                <p className="text-gray-500 text-sm text-center flex items-center justify-center h-full">
                                     {searchValue.trim() === "" ? 
                                         "Start typing to search." : 
                                         "No meals found matching your search."}

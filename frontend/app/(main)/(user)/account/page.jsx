@@ -10,6 +10,9 @@ import { Chip } from "@heroui/chip";
 import { addToast } from "@heroui/toast";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import ConfirmDelete from "@/components/ConfirmDelete";
+import { Checkbox } from "@heroui/checkbox";
+import { Select, SelectItem } from "@heroui/select";
+import { courses, areas, allergens } from "@/public/utils/lists";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -47,6 +50,12 @@ export default function ProfilePage() {
   const [username, setUsername] = useState(mock.username);
   const [email, setEmail] = useState(mock.email);
 
+  // Modify these states to use new Set() instead of arrays
+  const [userAllergies, setUserAllergies] = useState(new Set([]));
+  const [preferredCourses, setPreferredCourses] = useState(new Set([]));
+  const [preferredAreas, setPreferredAreas] = useState(new Set([]));
+  const [offersOptIn, setOffersOptIn] = useState(false);
+
   useEffect(() => {
     // esegui solo in ambiente client
     if (typeof window === "undefined") return;
@@ -64,7 +73,11 @@ export default function ProfilePage() {
   }, [email]);
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    // Check if e exists and has preventDefault method before calling it
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
+    
     const newErrors = {};
     if (!username) newErrors.username = "Username required";
     if (!email) newErrors.email = "Email required";
@@ -80,11 +93,28 @@ export default function ProfilePage() {
       setErrors(newErrors);
       return;
     }
+    
+    // Convert Sets to arrays for the API request
+    const updatedUserData = {
+      name,
+      surname,
+      username,
+      email,
+      allergies: Array.from(userAllergies),
+      preferredCourses: Array.from(preferredCourses),
+      preferredAreas: Array.from(preferredAreas),
+      offersOptIn,
+    };
+    
     // invia la richiesta di aggiornamento...
+    console.log("Updated user data:", updatedUserData);
+    
     setIsUserChanged(false);
     setCurrentPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
+
+    console.log(updatedUserData);
 
     addToast({
       title: "Success",
@@ -352,6 +382,108 @@ export default function ProfilePage() {
                   </>
                 )}
               </form>
+            </Card>
+
+            <Card className="w-full p-4 sm:p-8">
+              <CardHeader className="font-bold text-2xl">
+                Preferences
+              </CardHeader>
+
+              <div className="w-full flex flex-col justify-center items-center my-3">
+                <Divider className="w-[90%] flex bg-black/10" />
+              </div>
+
+              <CardBody className="flex flex-col gap-6">
+                <div>
+                  <Select
+                    items={allergens.map(item => ({ value: item, label: item }))}
+                    label="Allergens"
+                    labelPlacement="outside"
+                    placeholder="Select allergens"
+                    selectionMode="multiple"
+                    selectedKeys={userAllergies}
+                    onSelectionChange={setUserAllergies}
+                    className="w-full"
+                    radius="sm"
+                    size="lg"
+                  >
+                    {(item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <p className="text-sm text-gray-500 mt-1">Select any allergens we should be aware of</p>
+                </div>
+
+                <div>
+                  <Select
+                    items={courses.map(item => ({ value: item, label: item }))}
+                    label="Preferred Food Categories"
+                    labelPlacement="outside"
+                    placeholder="Select preferred categories"
+                    selectionMode="multiple"
+                    selectedKeys={preferredCourses}
+                    onSelectionChange={setPreferredCourses}
+                    className="w-full"
+                    radius="sm"
+                    size="lg"
+                  >
+                    {(item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <p className="text-sm text-gray-500 mt-1">Select your favorite food categories</p>
+                </div>
+
+                <div>
+                  <Select
+                    items={areas.map(item => ({ value: item, label: item }))}
+                    label="Preferred Cuisines"
+                    labelPlacement="outside"
+                    placeholder="Select preferred cuisines"
+                    selectionMode="multiple"
+                    selectedKeys={preferredAreas}
+                    onSelectionChange={setPreferredAreas}
+                    className="w-full"
+                    radius="sm"
+                    size="lg"
+                  >
+                    {(item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <p className="text-sm text-gray-500 mt-1">Select your favorite cuisines</p>
+                </div>
+
+                <div className="mt-2 w-full">
+                  <Checkbox
+                    isSelected={offersOptIn}
+                    onValueChange={setOffersOptIn}
+                    className="w-full"
+                    size="lg"
+                  >
+                    <span className="h-full text-medium break-words">Subscribe to special offers and promotions</span>
+                  </Checkbox>
+                  <p className="text-sm text-gray-500 mt-1 ml-8">
+                    You'll see resturant food in your home that matches your preferences.
+                  </p>
+                </div>
+
+                <Button
+                  color="primary"
+                  size="lg"
+                  radius="sm"
+                  className="w-1/2 mt-2 self-center break-words whitespace-normal"
+                  onPress={handleSubmit}
+                >
+                  Save Preferences
+                </Button>
+              </CardBody>
             </Card>
 
             <Card className="w-full p-4 sm:p-8">
