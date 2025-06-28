@@ -1,27 +1,90 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Button } from "@heroui/button";
-import { Draggable, MoveUp, MoveDown, Edit, Plus, ChefHat, Pizza } from "@/components/icons/heroicons";
+import { Draggable, MoveUp, MoveDown, Edit, Plus, ChefHat, Pizza,
+         ForkKnife, Flag
+ } from "@/components/icons/heroicons";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, DropdownSection } from "@heroui/dropdown";
-import { Modal, ModalHeader, ModalContent, ModalBody, ModalFooter, M } from "@heroui/modal";
+import { Chip } from "@heroui/chip";
+import { Skeleton } from "@heroui/skeleton";
 import NewMealModal from "./NewMealModal";
 import ExistingMealModal from "./ExistingMealModal";
 import EditMealModal from "./EditMealModal";
 
-export default function MealsList({ meals, onMealsReorder }) {
+export default function MealsList({ meals, searchMeals, onMealsReorder }) {
     const [isMoveable, setIsMoveable] = useState(false);
     const [localMeals, setLocalMeals] = useState([]);
-    const [queryResult, setQueryResult] = useState([]);
     const [isModified, setIsModified] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(null);
     const [selectedMeal, setSelectedMeal] = useState(null);
     const [mealFormData, setMealFormData] = useState({});
+    const [queryResult, setQueryResult] = useState([]);
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const courses = [
+        "Beef",
+        "Breakfast",
+        "Chicken",
+        "Dessert",
+        "First Course",
+        "Goat",
+        "Lamb",
+        "Main Course",
+        "Miscellaneous",
+        "Pasta",
+        "Pork",
+        "Seafood",
+        "Side",
+        "Starter",
+        "Vegan",
+        "Vegetarian",
+    ]
+
+    const areas = [
+        "American",
+        "British",
+        "Canadian",
+        "Chinese",
+        "Croatian",
+        "Dutch",
+        "Egyptian",
+        "Filipino",
+        "French",
+        "Greek",
+        "Indian",
+        "Irish",
+        "Italian",
+        "Jamaican",
+        "Japanese",
+        "Kenyan",
+        "Malaysian",
+        "Mexican",
+        "Moroccan",
+        "Polish",
+        "Portuguese",
+        "Russian",
+        "Spanish",
+        "Thai",
+        "Tunisian",
+        "Turkish",
+        "Ukrainian",
+        "Uruguayan",
+        "Vietnamese",
+        "Unknown",
+  ]
 
     useEffect(() => {
         setLocalMeals(meals);
         setIsModified(false);
     }, [meals]);
+
+    useEffect(() => {
+        if (isModalOpen) {
+            setIsMoveable(false);
+        }
+        setIsMoveable(false);
+    }, [isModalOpen]);
     
     const handleMoveUp = (index) => {
         if (index <= 0) return;
@@ -55,31 +118,22 @@ export default function MealsList({ meals, onMealsReorder }) {
         setIsMoveable(false);
     };
 
-    // Funzione per gestire l'invio del nuovo pasto
-    const handleSubmitNewMeal = () => {
-        // Qui puoi effettuare la chiamata API o aggiornare lo stato locale
-        
-        setLocalMeals([...localMeals, {
-            id: Date.now().toString(),
-            price: mealFormData.price,
-            currency: "€",
-            data: {
-                strMeal: mealFormData.name,
-                strMealThumb: mealFormData.image,
-                ingredients: mealFormData.ingredients,
-            },
-        }]);
-        
-        setLastMeal(mealFormData);
+    
+    const handleAddMeal = (meal) => {
+        // API
+
+        if (!meal.category) meal.category = "Miscellaneous";
+        if (!meal.area) meal.area = "Unknown";
+
+        setLocalMeals([...localMeals, meal]);
+        setIsModified(true);
         setIsModalOpen(null);
     };
     
-    // Funzione per trovare il pasto selezionato
     const findMealById = (id) => {
         return localMeals.find(meal => meal.id === id);
     };
     
-    // Funzione per gestire l'aggiornamento di un pasto
     const handleUpdateMeal = (updatedMeal) => {
         const updatedMeals = localMeals.map(meal => 
             meal.id === updatedMeal.id ? updatedMeal : meal
@@ -89,32 +143,27 @@ export default function MealsList({ meals, onMealsReorder }) {
         setIsModified(true);
     };
     
-    // Funzione per gestire l'eliminazione di un pasto
+
     const handleDeleteMeal = (mealId) => {
         const updatedMeals = localMeals.filter(meal => meal.id !== mealId);
         setLocalMeals(updatedMeals);
         setIsModified(true);
     };
 
+    const handleSearch = (query) => {
+        setSearchQuery(query);
+        if (query.trim() === "") {
+            setQueryResult([]);
+        } else {
+            const filtered = searchMeals.filter(meal => 
+                meal.strMeal.toLowerCase().includes(query.toLowerCase())
+            );
+            setQueryResult(filtered);
+        }
+    };
+
     return (
         <div className="w-full mt-0 flex flex-col items-center justify-center w-full h-full">
-            {/* Search Bar */}
-            {/*<div className="w-full max-w-3xl mb-4 px-4 sm:px-0">
-                <Input
-                    type="search"
-                    placeholder="Cerca un pasto..."
-                    className="w-full"
-                    classNames={{
-                        inputWrapper: "py-5 sm:py-7",
-                        input: "text-base sm:text-lg"
-                    }}
-                    onChange={(e) => {
-                        const query = e.target.value.toLowerCase();
-                        setQueryResult(searchMeals.filter(result => result.strMeal.toLowerCase().includes(query)));
-                    }}
-                />
-            </div>*/}
-
             {/* Meals List */}
             <div className="w-full max-w-3xl flex flex-col">
                 <div className="flex justify-between items-center mb-4">
@@ -194,20 +243,39 @@ export default function MealsList({ meals, onMealsReorder }) {
                                 <div className="flex flex-col sm:flex-row w-full">
                                     {/* Meal info section */}
                                     <div className="flex flex-row items-center w-full sm:w-[70%]">
-                                        <img 
-                                            src={meal.data.strMealThumb} 
-                                            alt={meal.data.strMeal} 
-                                            className="rounded-xl mr-3 w-14 h-14 sm:w-16 sm:h-16 object-cover flex-shrink-0"
-                                        />
-                                        <div className="flex-1 min-w-0">
+                                        <div className="relative mr-3 w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
+                                            <Skeleton className="absolute w-full h-full rounded-xl" />
+                                            <img 
+                                                src={meal.image}
+                                                className="absolute w-full h-full rounded-xl object-cover"
+                                            />
+                                        </div>
+                                        <div className="flex flex-col h-full justify-around min-w-0">
                                             <CardHeader className="p-0">
-                                                <h2 className="text-base sm:text-lg text-black font-semibold truncate">{meal.data.strMeal}</h2>
+                                                <h2 className="text-base sm:text-lg text-black font-semibold truncate">{meal.name}</h2>
                                             </CardHeader>
-                                            <p className="text-gray-500 text-sm sm:text-base line-clamp-1">{
-                                                meal.data.ingredients && Array.isArray(meal.data.ingredients) && meal.data.ingredients.length > 0
-                                                    ? meal.data.ingredients.slice(0, 3).join(', ') + (meal.data.ingredients.length > 3 ? ", ..." : "")
-                                                    : "No ingredients specified"
-                                            }</p>
+                                            <div className=" flex gap-1">
+                                                <Chip
+                                                    color="warning"
+                                                    className="pl-2"
+                                                    classNames={{ content: "text-xs" }}
+                                                    startContent={<ForkKnife size={14} className="mr-0.5" />}
+                                                    variant="flat"
+                                                    size="sm"
+                                                    >
+                                                        {meal.category}
+                                                </Chip>
+                                                <Chip
+                                                    color="primary"
+                                                    className="pl-2"
+                                                    classNames={{ content: "text-xs" }}
+                                                    startContent={<Flag size={14} className="mr-0.5" />}
+                                                    variant="flat"
+                                                    size="sm"
+                                                    >
+                                                        {meal.area}
+                                                </Chip>
+                                            </div>
                                         </div>
                                     </div>
                                     
@@ -263,10 +331,9 @@ export default function MealsList({ meals, onMealsReorder }) {
             <NewMealModal
                 isOpen={isModalOpen === "new"} 
                 onClose={() => setIsModalOpen(null)}
-                onSubmit={(newMeal) => {
-                    setLocalMeals([...localMeals, newMeal]);
-                    setIsModified(true);
-                }}
+                onSubmit={(newMeal) => handleAddMeal(newMeal)}
+                courses={courses}
+                areas={areas}
             />
 
             {/* Modal per la modifica dei pasti */}
@@ -276,12 +343,19 @@ export default function MealsList({ meals, onMealsReorder }) {
                 mealData={selectedMeal}
                 onSubmit={handleUpdateMeal}
                 onDelete={handleDeleteMeal}
+                courses={courses}
+                areas={areas}
             />
 
             {/* Modal per l'aggiunta di pasti esistenti */}
             <ExistingMealModal 
                 isOpen={isModalOpen === "existing"} 
                 onClose={() => setIsModalOpen(null)}
+                searchMeals={searchMeals}
+                queryResult={queryResult}
+                setQueryResult={setQueryResult}
+                onSearch={handleSearch}
+                onAddMeal={(selectedMeal) => handleAddMeal(selectedMeal)}
             />
 
         </div>

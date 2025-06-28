@@ -26,6 +26,8 @@
     "@heroui/number-input": "^2.0.12",
     "@heroui/progress": "^2.2.18",
     "@heroui/scroll-shadow": "^2.3.15",
+    "@heroui/select": "^2.4.22",
+    "@heroui/skeleton": "^2.2.14",
     "@heroui/snippet": "2.2.23",
     "@heroui/switch": "2.2.20",
     "@heroui/system": "2.4.18",

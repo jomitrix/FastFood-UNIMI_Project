@@ -6,14 +6,17 @@ import { Button } from '@heroui/button';
 import { Plus, Upload } from '@/components/icons/heroicons';
 import { ScrollShadow } from '@heroui/scroll-shadow';
 import { Modal, ModalHeader, ModalContent, ModalBody, ModalFooter } from "@heroui/modal";
+import { Select, SelectItem } from "@heroui/select";
 
-export default function NewMealModal({ isOpen, onClose, onSubmit }) {
+export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], areas = [] }) {
     const [image, setImage] = useState(null);
     const [name, setName] = useState('');
     const [ingredients, setIngredients] = useState([]);
     const [newIngredient, setNewIngredient] = useState('');
-    const [description, setDescription] = useState('');
+    // const [description, setDescription] = useState('');
     const [price, setPrice] = useState(9.99);
+    const [category, setCategory] = useState("Miscellaneous");
+    const [area, setArea] = useState("Unknown");
     const [errors, setErrors] = useState({});
     const newIngredientInputRef = useRef(null);
     const scrollContainerRef = useRef(null);
@@ -26,8 +29,9 @@ export default function NewMealModal({ isOpen, onClose, onSubmit }) {
             setName('');
             setIngredients([]);
             setNewIngredient('');
-            setDescription('');
             setPrice(9.99);
+            setCategory("Miscellaneous");
+            setArea("Unknown");
             setErrors({});
         }
     }, [isOpen]);
@@ -92,14 +96,14 @@ export default function NewMealModal({ isOpen, onClose, onSubmit }) {
 
         // Creazione oggetto meal per la submission
         const newMeal = {
-            data: {
-                strMeal: name,
-                strMealThumb: image || "https://placehold.co/500x500?text=No+Image",
-                ingredients: ingredients,
-            },
-            id: Date.now().toString(), 
+            id: Date.now().toString(),
+            name: name,
+            image: image || "https://placehold.co/500x500?text=No+Image",
             price: price,
-            currency: "€"
+            currency: "€",
+            ingredients: ingredients,
+            category: category,
+            area: area
         };
 
         // Invio del nuovo pasto al componente padre
@@ -124,22 +128,21 @@ export default function NewMealModal({ isOpen, onClose, onSubmit }) {
                     <div className="flex flex-col gap-4">
                         {/* Nome e Immagine del pasto */}
                         <div className="flex gap-4 items-center">
-                            <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border">
-                                { image ? (
-                                    <img 
-                                        src={image}
-                                        alt="Meal"
-                                        className="w-full h-full object-cover rounded-xl"
-                                    />
-                                ) : (
+                            <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border relative">
+                                    {image && (
+                                        <img 
+                                            src={image}
+                                            className="w-full h-full object-cover rounded-xl"
+                                        />
+                                    )}
                                     <Button
-                                        className="bg-[#003c6e] text-white w-full h-full flex items-center justify-center"
+                                        className={`bg-[#003c6e] text-white w-full h-full flex items-center justify-center absolute top-0 left-0 rounded-xl
+                                            ${image ? 'opacity-50 hover:opacity-90' : 'opacity-100'}`}
                                         isIconOnly
                                         onPress={() => fileInputRef.current?.click()}
                                     >
                                         <Upload size={24} />
                                     </Button>
-                                )}
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -174,7 +177,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit }) {
                         </div>
 
                         {/* Descrizione */}
-                        <div className="flex flex-col gap-1">
+                        {/*<div className="flex flex-col gap-1">
                             <Textarea
                                 label="Description"
                                 labelPlacement="outside"
@@ -189,12 +192,56 @@ export default function NewMealModal({ isOpen, onClose, onSubmit }) {
                             <div className="flex justify-end text-xs text-gray-500">
                                 {description.length}/200
                             </div>
-                        </div>
+                        </div>*/}
                             
+                        {/* Categoria e Area */}
+                        <div className="flex flex-col sm:flex-row gap-4 w-full">
+                            <Select
+                                label="Category"
+                                placeholder="Select a category"
+                                variant="faded"
+                                className="w-full"
+                                classNames={{
+                                    trigger: "bg-warning-100",
+                                }}
+                                selectedKeys={[category]}
+                                onSelectionChange={(keys) => {
+                                    const selected = Array.from(keys)[0];
+                                    if (selected) setCategory(selected);
+                                }}
+                            >
+                                {courses.map((course) => (
+                                    <SelectItem key={course} value={course}>
+                                        {course}
+                                    </SelectItem>
+                                ))}
+                            </Select>
+                            <Select
+                                label="Area"
+                                placeholder="Select an area"
+                                variant="faded"
+                                className="w-full"
+                                classNames={{
+                                    trigger: "bg-primary-100",
+                                }}
+                                selectedKeys={[area]}
+                                onSelectionChange={(keys) => {
+                                    const selected = Array.from(keys)[0];
+                                    if (selected) setArea(selected);
+                                }}
+                            >
+                                {areas.map((areaItem) => (
+                                    <SelectItem key={areaItem} value={areaItem}>
+                                        {areaItem}
+                                    </SelectItem>
+                                ))}
+                            </Select>
+                        </div>
+
                         {/* Ingredienti */}
-                        <div className="flex flex-col -mt-6" id="ingredients-container">
+                        <div className="flex flex-col" id="ingredients-container">
                             <p className="text-sm">Ingredients</p>
-                            <div className="max-h-40 overflow-y-auto flex flex-col">
+                            <div className="max-h-[8rem] sm:max-h-40 overflow-y-auto flex flex-col">
                                 {ingredients.length > 0 ? (
                                     <ScrollShadow 
                                         ref={scrollContainerRef} 
@@ -222,7 +269,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit }) {
                                                 size="md"
                                                 onPress={() => removeIngredient(index)}
                                             >
-                                                <Plus className="rotate-[45deg]" size={20} />
+                                                <Plus className="rotate-[45deg]" size={24} />
                                             </Button>
                                         </div>
                                     ))}

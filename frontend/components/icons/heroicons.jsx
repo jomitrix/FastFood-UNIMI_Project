@@ -256,6 +256,7 @@ const Meals = ({ size = 24, width, height, ...props }) => (
         xmlns="http://www.w3.org/2000/svg" 
         fill="currentColor" 
         viewBox="0 0 24 24" 
+        strokeWidth="1.5" 
         width={width || size}
         height={height || size}
         {...props}
@@ -429,7 +430,35 @@ const Upload = ({ size = 24, width, height, ...props }) => (
     </svg>
 );
 
+const Flag = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="currentColor" 
+        viewBox="0 0 24 24" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path d="M4 1C4 0.447716 4.44772 0 5 0C5.55228 0 6 0.447715 6 1V23C6 23.5523 5.55228 24 5 24C4.44772 24 4 23.5523 4 23V1Z" />
+        <path fillRule="evenodd" clipRule="evenodd" d="M11.1707 14H4V2H10C11.3062 2 12.4175 2.83481 12.8293 4H17.7639C19.2507 4 20.2177 5.56463 19.5528 6.89443L18 10L19.5528 13.1056C20.2177 14.4354 19.2507 16 17.7639 16H14C12.6938 16 11.5825 15.1652 11.1707 14ZM6 4H10C10.5523 4 11 4.44772 11 5V12H6V4ZM13 13C13 13.5523 13.4477 14 14 14H17.7639L15.7639 10L17.7639 6H13V13Z" />
+    </svg>
+);
+
+const ForkKnife = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="currentColor" 
+        viewBox="0 0 24 24" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path fillRule="evenodd" clipRule="evenodd" d="M17 2C19.7614 2 22 4.23858 22 7V14C22 14.4589 21.6877 14.8589 21.2425 14.9701L18 15.7808V21C18 21.5523 17.5523 22 17 22C16.4477 22 16 21.5523 16 21V3C16 2.44772 16.4477 2 17 2ZM18 13.7192L20 13.2192V7C20 5.69378 19.1652 4.58254 18 4.17071V13.7192Z" />
+        <path d="M4 3C4 2.44772 3.55228 2 3 2C2.44772 2 2 2.44772 2 3V7C2 9.41896 3.71776 11.4367 6 11.9V21C6 21.5523 6.44772 22 7 22C7.55228 22 8 21.5523 8 21V11.9C10.2822 11.4367 12 9.41896 12 7V3C12 2.44772 11.5523 2 11 2C10.4477 2 10 2.44772 10 3V7C10 8.30622 9.16519 9.41746 8 9.82929V3C8 2.44772 7.55228 2 7 2C6.44772 2 6 2.44772 6 3V9.82929C4.83481 9.41746 4 8.30622 4 7V3Z" />
+    </svg>
+);
+
 export { Eye, EyeClosed, Profile, Login, Logout, Restaurant, Search, Home, Email, Handle,
     Storefront, ChevronRight, Dashboard, Takeaway, Delivery, Hamburger, Orders,
     Meals, Phone, Briefcase, MapPin, MoveUp, MoveDown, Edit, Draggable, Plus,
-    ChefHat, Pizza, Upload };
+    ChefHat, Pizza, Upload, Flag, ForkKnife };

@@ -1,6 +1,7 @@
 'use client';
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { ChevronRight } from "@/components/icons/heroicons";
+import { Skeleton } from "@heroui/skeleton";
 
 export default function OrderList({ orders, statuses, setIsModalOpen, setOrderModalId }) {
     return (
@@ -14,11 +15,13 @@ export default function OrderList({ orders, statuses, setIsModalOpen, setOrderMo
                         onPress={() => {setIsModalOpen(true), setOrderModalId(order.id)}}
                     >
                         <CardBody className="flex-1 flex flex-row items-center p-0">
-                            <img 
-                                src={order.thumbnail} 
-                                alt={order.restaurant} 
-                                className="rounded-xl mr-4 w-16 h-16 object-cover flex-shrink-0"
-                            />
+                            <div className="relative mr-4 flex-shrink-0">
+                                <Skeleton className="rounded-xl w-16 h-16 object-cover" />
+                                <img 
+                                    src={order.thumbnail} 
+                                    className="rounded-xl bg-white w-16 h-16 object-cover absolute top-0 left-0"
+                                />
+                            </div>
                             <div className="p-0">
                                 <CardHeader className="p-0">
                                     <h2 className="text-lg text-black font-semibold">{order.restaurant}</h2>
