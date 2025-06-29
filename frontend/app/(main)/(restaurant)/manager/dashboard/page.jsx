@@ -16,6 +16,8 @@ import { Select, SelectItem } from '@heroui/select';
 import { Tabs, Tab } from '@heroui/tabs';
 import AccountHeader from '@/components/app/account/AccountHeader';
 import { statuses } from '@/utils/lists';
+import { formatCurrency } from '@/utils/format';
+import SkeletonChart from '@/components/app/manager/dashboard/SkeletonChart';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -28,7 +30,7 @@ export default function DashboardPage() {
 
   const currentRange = [...timeRange][0];
 
-  const dashboardData = {
+  const dashboardData = useMemo(() => ({
     totalOrders: 258,
     dailyOrders: 8,
     weeklyOrders: 28,
@@ -89,13 +91,7 @@ export default function DashboardPage() {
     email: "luca.toni@esempio.it",
     username: "La Pizzeria di Luca",
     accountType: "restaurant"
-  };
-
-  const formatCurrency = (amount) =>
-    new Intl.NumberFormat('it-IT', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount);
+  }), []);
 
   const calculatePercentChange = (current, previous) =>
     previous === 0 ? 100 : (((current - previous) / previous) * 100).toFixed(1);
@@ -113,7 +109,7 @@ export default function DashboardPage() {
         ? { ...stat, revenue: stat.channels.website, orders: stat.channels.website }
         : stat
     );
-  }, [currentRange, dashboardData]);
+  }, [currentRange]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -142,11 +138,20 @@ export default function DashboardPage() {
 
     chartInstanceRef.current?.destroy();
 
-    const labels = chartData.map((s) =>
-      currentRange === 'day' ? s.day : currentRange === 'week' ? s.week : s.month
-    );
-    const revenues = chartData.map((s) => s.revenue);
-    const orders = chartData.map((s) => s.orders);
+    let labels, revenues, orders;
+    if (currentRange === 'day') {
+      labels = dashboardData.dailyStats.map((s) => s.day);
+      revenues = dashboardData.dailyStats.map((s) => s.revenue);
+      orders = dashboardData.dailyStats.map((s) => s.orders);
+    } else if (currentRange === 'week') {
+      labels = dashboardData.weeklyStats.map((s) => s.week);
+      revenues = dashboardData.weeklyStats.map((s) => s.revenue);
+      orders = dashboardData.weeklyStats.map((s) => s.orders);
+    } else {
+      labels = dashboardData.monthlyStats.map((s) => s.month);
+      revenues = dashboardData.monthlyStats.map((s) => s.revenue);
+      orders = dashboardData.monthlyStats.map((s) => s.orders);
+    }
 
     chartInstanceRef.current = new window.Chart(chartRef.current, {
       type: 'bar',
@@ -175,7 +180,7 @@ export default function DashboardPage() {
         },
       },
     });
-  }, [scriptsReady, chartData, currentRange]);
+  }, [scriptsReady, currentRange]); 
 
   const renderTrend = (trend) => {
     switch(trend) {
@@ -298,7 +303,7 @@ export default function DashboardPage() {
 
         <Card className="w-full mb-6">
           <CardHeader className="pb-1">
-            <div className="flex flex-col gap-3">
+            <div className="w-full flex flex-col items-between sm:items-start gap-3">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h3 className="text-lg font-semibold">Product Popularity</h3>
                 <Button size="sm" onPress={() => router.push("/manager/menu")} variant="flat">Manage Meals</Button>
@@ -335,7 +340,7 @@ export default function DashboardPage() {
 
         <Card className="w-full">
           <CardHeader className="flex flex-col items-start pb-1">
-            <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="w-full flex items-center sm:justify-start justify-between gap-3 flex-wrap">
               <h3 className="text-lg font-semibold">Recent Orders</h3>
               <Button size="sm" onPress={() => router.push("/manager/orders")} variant="flat">View all</Button>
             </div>
@@ -374,20 +379,6 @@ export default function DashboardPage() {
           </CardBody>
         </Card>
       </div>
-    </div>
-  );
-}
-
-function SkeletonChart() {
-  return (
-    <div className="w-full h-full flex items-end gap-3 animate-pulse">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <div
-          key={i}
-          className="flex-1 bg-gray-300 rounded-md"
-          style={{ height: `${(i + 2) * 10}%` }}
-        />
-      ))}
     </div>
   );
 }

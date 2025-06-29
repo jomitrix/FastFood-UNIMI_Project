@@ -41,7 +41,7 @@ export const statuses = {
       display: "Canceled",
       alternative: "Order Canceled",
       color: "text-gray-500",
-      bgColor: "bg-gray-400",
+      bgColor: "bg-default-400",
       darkBgColor: "bg-danger",
       darkColor: "text-danger",
     }
