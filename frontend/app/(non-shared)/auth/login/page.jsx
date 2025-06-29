@@ -10,6 +10,7 @@ import { Tabs, Tab } from "@heroui/tabs";
 import { Eye, EyeClosed } from "@/components/icons/heroicons";
 import { WaveClean } from "@/components/waves";
 import { useAuth } from '@/contexts/AuthContext';
+import { addToast } from "@heroui/toast";
 
 export default function Login() {
   const router = useRouter();
@@ -52,7 +53,7 @@ export default function Login() {
       const resp = await login(email, password);
 
       if (!resp.success) {
-        alert(resp.error ?? "Server Error");
+        addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger" });
       } else return router.push("/");
     } catch (error) {
       setErrors({ general: "Errore durante il login. Riprova." });

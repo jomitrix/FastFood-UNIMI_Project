@@ -10,6 +10,7 @@ import { Tabs, Tab } from "@heroui/tabs";
 import { Eye, EyeClosed } from "@/components/icons/heroicons";
 import { WaveClean } from "@/components/waves";
 import { useAuth } from '@/contexts/AuthContext';
+import { addToast } from "@heroui/toast";
 
 export default function Register() {
   const router = useRouter();
@@ -63,7 +64,7 @@ export default function Register() {
       const resp = await register(username, email, password, name, surname);
       
       if (!resp.success) {
-        alert(resp.error ?? "Server Error");
+        addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger" });
       } else return router.push("/");
     } catch (error) {
       setErrors({ general: "Error during registration. Please try again." });

@@ -6,7 +6,6 @@ import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
-import { Alert } from "@heroui/alert";
 import { Eye, EyeClosed, Restaurant, Email, 
          Storefront, Phone, MapPin, Briefcase } from "@/components/icons/heroicons";
 import { Chip } from "@heroui/chip";
