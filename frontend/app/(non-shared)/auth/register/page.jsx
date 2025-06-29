@@ -9,9 +9,11 @@ import { Link } from "@heroui/link";
 import { Tabs, Tab } from "@heroui/tabs";
 import { Eye, EyeClosed } from "@/components/icons/heroicons";
 import { WaveClean } from "@/components/waves";
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Register() {
   const router = useRouter();
+  const { register } = useAuth();
 
   const [accountType, setAccountType] = useState("user");
   const [name, setName] = useState("");
@@ -58,9 +60,12 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      router.push("/auth/login");
-    } catch {
+      const resp = await register(username, email, password, name, surname);
+      
+      if (!resp.success) {
+        alert(resp.error ?? "Server Error");
+      } else return router.push("/");
+    } catch (error) {
       setErrors({ general: "Error during registration. Please try again." });
     } finally {
       setIsLoading(false);

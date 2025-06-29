@@ -1,8 +1,9 @@
 'use client';
+import { withAuth } from '@/utils/withAuth';
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+function Home() {
   const router = useRouter();
 
   useEffect(() => {
@@ -11,3 +12,5 @@ export default function Home() {
 
   return;
 }
+
+export default withAuth(Home);

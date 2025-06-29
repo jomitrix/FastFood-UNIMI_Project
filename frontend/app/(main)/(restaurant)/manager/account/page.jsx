@@ -1,4 +1,5 @@
 'use client';
+import { withAuth } from '@/utils/withAuth';
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardBody } from "@heroui/card";
@@ -13,7 +14,7 @@ import { addToast } from "@heroui/toast";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import ConfirmDelete from "@/components/ConfirmDelete";
 
-export default function ProfilePage() {
+function ProfilePage() {
   const router = useRouter();
 
   const [isVisible, setIsVisible] = useState(false);
@@ -538,3 +539,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+export default withAuth(ProfilePage);

@@ -1,4 +1,5 @@
 'use client';
+import { withAuth } from '@/utils/withAuth';
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardBody } from "@heroui/card";
@@ -14,9 +15,11 @@ import { Checkbox } from "@heroui/checkbox";
 import { Select, SelectItem } from "@heroui/select";
 import { courses, areas, allergens } from "@/utils/lists";
 import { card } from "@heroui/theme";
+import { useAuth } from '@/contexts/AuthContext';
 
-export default function ProfilePage() {
+function ProfilePage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible(!isVisible);
@@ -46,10 +49,10 @@ export default function ProfilePage() {
   const mock = mockUser;
 
   // stati locali per rendere i campi editabili
-  const [name, setName] = useState(mock.name);
-  const [surname, setSurname] = useState(mock.surname);
-  const [username, setUsername] = useState(mock.username);
-  const [email, setEmail] = useState(mock.email);
+  const [name, setName] = useState(user.name);
+  const [surname, setSurname] = useState(user.surname);
+  const [username, setUsername] = useState(user.username);
+  const [email, setEmail] = useState(user.email);
 
   // Modify these states to use new Set() instead of arrays
   const [userAllergies, setUserAllergies] = useState(new Set([]));
@@ -931,3 +934,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+export default withAuth(ProfilePage);

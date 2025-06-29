@@ -1,4 +1,5 @@
 'use client';
+import { withAuth } from '@/utils/withAuth';
 import { notFound } from "next/navigation";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -6,7 +7,7 @@ import AccountHeader from "@/components/app/account/AccountHeader";
 import MealsList from "@/components/app/manager/menu/MealsList";
 import meals from "@/utils/meals.json";
 
-export default function MealsPage() {
+function MealsPage() {
   const router = useRouter();
 
   const mockRestaurant = {
@@ -226,3 +227,5 @@ export default function MealsPage() {
     </div>
   );
 }
+
+export default withAuth(MealsPage);
