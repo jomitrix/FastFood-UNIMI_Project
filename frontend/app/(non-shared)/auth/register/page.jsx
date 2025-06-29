@@ -15,6 +15,8 @@ export default function Register() {
 
   const [accountType, setAccountType] = useState("user");
   const [username, setUsername] = useState("");
+  const [name, setName] = useState(""); // nuovo stato
+  const [surname, setSurname] = useState(""); // nuovo stato
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -39,6 +41,8 @@ export default function Register() {
 
     // Validazione
     const newErrors = {};
+    if (!name) newErrors.name = "Name required";
+    if (!surname) newErrors.surname = "Surname required";
     if (!username) newErrors.username = accountType === "restaurant"
       ? "Restaurant Name required"
       : "Username required";
@@ -70,11 +74,11 @@ export default function Register() {
   };
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-[#f5f3f5]">
     <WaveClean/>
 
-    <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center relative  lg:mt-[5rem] pb-[2.5rem] p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#083d77]/20">
+    <section className="mt-5 bg-[#f5f3f5] flex flex-col w-full items-center justify-center p-4">
+      <Card className="w-full max-w-xl bg-background/95 backdrop-blur-sm shadow-xl border border-[#083d77]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
           <h1 className="font-bold text-[#083d77] text-3xl text-center">Register</h1>
           <p className="text-default-500 text-center">Create your account</p>
@@ -97,6 +101,53 @@ export default function Register() {
               <Tab key="restaurant" title="Restaurant"/>
             </Tabs>
 
+            {/* Campo Nome */}
+            <div className="flex flex-wrap sm:flex-nowrap gap-2">
+              <Input
+                type="text"
+                label={
+                  <span>
+                    Nome
+                    <span className="text-danger ml-1">*</span>
+                  </span>
+                }
+                placeholder="Inserisci il tuo nome"
+                value={name}
+                onChange={(e) => {
+                  setName(e.target.value.trim());
+                  if (errors.name) {
+                    setErrors(prev => ({ ...prev, name: undefined }));
+                  }
+                }}
+                isInvalid={!!errors.name}
+                errorMessage={errors.name}
+                variant="bordered"
+                size="lg"
+              />
+              <Input
+                type="text"
+                label={
+                  <span>
+                    Cognome
+                    <span className="text-danger ml-1">*</span>
+                  </span>
+                }
+                placeholder="Inserisci il tuo cognome"
+                value={surname}
+                onChange={(e) => {
+                  setSurname(e.target.value.trim());
+                  if (errors.surname) {
+                    setErrors(prev => ({ ...prev, surname: undefined }));
+                  }
+                }}
+                isInvalid={!!errors.surname}
+                errorMessage={errors.surname}
+                variant="bordered"
+                size="lg"
+              />
+            </div>
+
+            {/* Campo Username/Restaurant Name */}
             <Input
               type="text"
               label={
@@ -141,77 +192,79 @@ export default function Register() {
               size="lg"
             />
             
-            <Input
-              type={isVisible ? "text" : "password"}
-              label={
-                <span>
-                  Password
-                  <span className="text-danger ml-1">*</span>
-                </span>
-              }
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value.trim());
-                if (errors.password) {
-                  setErrors(prev => ({ ...prev, password: undefined }));
+            <div className="flex flex-wrap sm:flex-nowrap gap-2">
+              <Input
+                type={isVisible ? "text" : "password"}
+                label={
+                  <span>
+                    Password
+                    <span className="text-danger ml-1">*</span>
+                  </span>
                 }
-              }}
-              isInvalid={!!errors.password}
-              errorMessage={errors.password}
-              endContent={
-                <button 
-                  className="focus:outline-none" 
-                  type="button" 
-                  onClick={toggleVisibility}
-                  aria-label="toggle password visibility"
-                >
-                  {isVisible ? (
-                    <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                  ) : (
-                    <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                  )}
-                </button>
-              }
-              variant="bordered"
-              size="lg"
-            />
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value.trim());
+                  if (errors.password) {
+                    setErrors(prev => ({ ...prev, password: undefined }));
+                  }
+                }}
+                isInvalid={!!errors.password}
+                errorMessage={errors.password}
+                endContent={
+                  <button 
+                    className="focus:outline-none" 
+                    type="button" 
+                    onClick={toggleVisibility}
+                    aria-label="toggle password visibility"
+                  >
+                    {isVisible ? (
+                      <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                    ) : (
+                      <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                    )}
+                  </button>
+                }
+                variant="bordered"
+                size="lg"
+              />
 
-            <Input
-              type={isConfirmVisible ? "text" : "password"}
-              label={
-                <span>
-                  Confirm Password
-                  <span className="text-danger ml-1">*</span>
-                </span>
-              }
-              placeholder="Repeat your password"
-              value={confirmPassword}
-              onChange={(e) => {
-                setConfirmPassword(e.target.value.trim());
-                if (errors.confirmPassword) {
-                  setErrors(prev => ({ ...prev, confirmPassword: undefined }));
+              <Input
+                type={isConfirmVisible ? "text" : "password"}
+                label={
+                  <span>
+                    Confirm Password
+                    <span className="text-danger ml-1">*</span>
+                  </span>
                 }
-              }}
-              isInvalid={!!errors.confirmPassword}
-              errorMessage={errors.confirmPassword}
-              endContent={
-                <button 
-                  className="focus:outline-none" 
-                  type="button" 
-                  onClick={toggleConfirmVisibility}
-                  aria-label="toggle confirm password visibility"
-                >
-                  {isConfirmVisible ? (
-                    <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                  ) : (
-                    <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                  )}
-                </button>
-              }
-              variant="bordered"
-              size="lg"
-            />
+                placeholder="Repeat your password"
+                value={confirmPassword}
+                onChange={(e) => {
+                  setConfirmPassword(e.target.value.trim());
+                  if (errors.confirmPassword) {
+                    setErrors(prev => ({ ...prev, confirmPassword: undefined }));
+                  }
+                }}
+                isInvalid={!!errors.confirmPassword}
+                errorMessage={errors.confirmPassword}
+                endContent={
+                  <button 
+                    className="focus:outline-none" 
+                    type="button" 
+                    onClick={toggleConfirmVisibility}
+                    aria-label="toggle confirm password visibility"
+                  >
+                    {isConfirmVisible ? (
+                      <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                    ) : (
+                      <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                    )}
+                  </button>
+                }
+                variant="bordered"
+                size="lg"
+              />
+            </div>
 
             <Button
               type="submit"
@@ -234,6 +287,6 @@ export default function Register() {
         </CardBody>
       </Card>
     </section>
-    </>
+    </div>
   );
 }

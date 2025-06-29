@@ -60,10 +60,10 @@ export default function Login() {
   };
 
   return (
-    <>
+    <div className="flex flex-col min-h-screen bg-[#f5f3f5]">
     <WaveClean/>
     
-    <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center mt-[5rem] relative p-4">
+    <section className="mt-10 bg-[#f5f3f5] flex flex-col w-full items-center justify-center p-4">
       <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#083d77]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
           <h1 className="font-bold text-[#083d77] text-3xl text-center">
@@ -175,6 +175,6 @@ export default function Login() {
         </CardBody>
       </Card>
     </section>
-    </>
+    </div>
   );
 }

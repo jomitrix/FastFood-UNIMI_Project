@@ -18,13 +18,16 @@ import AccountHeader from '@/components/app/account/AccountHeader';
 import { statuses } from '@/utils/lists';
 import { formatCurrency } from '@/utils/format';
 import SkeletonChart from '@/components/app/manager/dashboard/SkeletonChart';
+import Chart from 'chart.js/auto';
 
 export default function DashboardPage() {
   const router = useRouter();
 
-  const [timeRange, setTimeRange] = useState(new Set(['month']));
+  const [timeRange, setTimeRange] = useState((['month']));
   const [productTab, setProductTab] = useState('popular');
-  const [scriptsReady, setScriptsReady] = useState(false);
+  const [chartLoaded, setChartLoaded] = useState(false);
+  const [metric, setMetric] = useState('revenue');
+
   const chartRef = useRef(null);
   const chartInstanceRef = useRef(null);
 
@@ -112,84 +115,63 @@ export default function DashboardPage() {
   }, [currentRange]);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const load = (id, src) =>
-      new Promise((resolve) => {
-        if (document.getElementById(id)) return resolve();
-        const s = document.createElement('script');
-        s.id = id;
-        s.src = src;
-        s.async = true;
-        s.onload = () => resolve();
-        document.body.appendChild(s);
-      });
-
-    Promise.all([
-      load('chartjs-cdn', 'https://cdn.jsdelivr.net/npm/chart.js'),
-      load('chartjs-adapter-cdn', 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns'),
-    ]).then(() => setScriptsReady(true));
-
-    return () => chartInstanceRef.current?.destroy();
-  }, []);
-
-  useEffect(() => {
-    if (!scriptsReady || !window.Chart || !chartRef.current) return;
-
+    if (!chartRef.current) return;
     chartInstanceRef.current?.destroy();
+    setChartLoaded(false); // reset per ogni re-render del range
 
-    let labels, revenues, orders;
-    if (currentRange === 'day') {
-      labels = dashboardData.dailyStats.map((s) => s.day);
-      revenues = dashboardData.dailyStats.map((s) => s.revenue);
-      orders = dashboardData.dailyStats.map((s) => s.orders);
-    } else if (currentRange === 'week') {
-      labels = dashboardData.weeklyStats.map((s) => s.week);
-      revenues = dashboardData.weeklyStats.map((s) => s.revenue);
-      orders = dashboardData.weeklyStats.map((s) => s.orders);
-    } else {
-      labels = dashboardData.monthlyStats.map((s) => s.month);
-      revenues = dashboardData.monthlyStats.map((s) => s.revenue);
-      orders = dashboardData.monthlyStats.map((s) => s.orders);
-    }
+    // scegli labels e dati
+    let baseData;
+    if (currentRange === 'day')      baseData = dashboardData.dailyStats;
+    else if (currentRange === 'week') baseData = dashboardData.weeklyStats;
+    else                              baseData = dashboardData.monthlyStats;
 
-    chartInstanceRef.current = new window.Chart(chartRef.current, {
+    // labels: usa la chiave corretta in base al range
+    const labels = baseData.map(s => s.day || s.week || s.month);
+    const data   = baseData.map(s => metric === 'revenue' ? s.revenue : s.orders);
+
+    // colori distinti per le due metriche
+    const colors = {
+      revenue: '#39a9dbB3',
+      orders:  '#e56399b3'
+    };
+
+    chartInstanceRef.current = new Chart(chartRef.current, {
       type: 'bar',
       data: {
         labels,
-        datasets: [
-          {
-            label: 'Revenue',
-            data: revenues,
-            backgroundColor: '#39a9dbB3',
-            borderRadius: 6,
-          },
-          {
-            label: 'Orders',
-            data: orders,
-            backgroundColor: '#e56399b3',
-            borderRadius: 6,
-          },
-        ],
+        datasets: [{
+          label: '',
+          data,
+          backgroundColor: colors[metric],
+          borderRadius: 6,
+        }]
       },
       options: {
         responsive: true,
-        plugins: { legend: { position: 'top' }, tooltip: { enabled: true } },
-        scales: {
-          y: { beginAtZero: true, ticks: { callback: (v) => v } },
+        maintainAspectRatio: false,
+        animation: { onComplete: () => setChartLoaded(true) },
+        plugins: {
+          legend: { display: false },    // toglie la legenda
+          
         },
-      },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { callback: v => v }
+          }
+        }
+      }
     });
-  }, [scriptsReady, currentRange]); 
+  }, [currentRange, metric, dashboardData]); 
 
   const renderTrend = (trend) => {
     switch(trend) {
       case "up":
-        return <Chip color="success" className="text-white">↑</Chip>;
+        return <Chip color="success" className="text-white">↓</Chip>;
       case "down":
-        return <Chip color="danger" className="text-white">↓</Chip>;
+        return <Chip color="danger" className="text-white">↑</Chip>;
       default:
-        return <Chip color="default" className="text-black">→</Chip>;
+        return <Chip color="default" className="text-black" classNames={{content: "text-lg mb-0.5"}}>–</Chip>;
     }
   };
 
@@ -279,24 +261,48 @@ export default function DashboardPage() {
         </div>
 
         <Card className="w-full mb-6">
-          <CardHeader>
-            <div className="flex items-center justify-between flex-wrap gap-2">
+          <CardHeader className='pb-1'>
+            <div className="w-full flex flex-col justify-between flex-wrap gap-3">
               <h3 className="text-lg font-semibold">Sales Trend</h3>
-              <Select
-                size="sm"
-                selectedKeys={timeRange}
-                onSelectionChange={setTimeRange}
-              >
-                <SelectItem key="day">Day</SelectItem>
-                <SelectItem key="week">Week</SelectItem>
-                <SelectItem key="month">Month</SelectItem>
-              </Select>
+              <div className="flex gap-2">
+                  <Select
+                    size="sm"
+                    className='w-32'
+                    selectedKeys={timeRange}
+                    onSelectionChange={setTimeRange}
+                  >
+                    <SelectItem key="day">Day</SelectItem>
+                    <SelectItem key="week">Week</SelectItem>
+                    <SelectItem key="month">Month</SelectItem>
+                  </Select>
+                  {/* metric selector */}
+                  <Select
+                    size="sm"
+                    className='w-32'
+                    selectedKeys={new Set([metric])}
+                    onSelectionChange={(keys) => setMetric([...keys][0])}
+                  >
+                    <SelectItem key="revenue">Revenue</SelectItem>
+                    <SelectItem key="orders">Orders</SelectItem>
+                  </Select>
+              </div>
             </div>
           </CardHeader>
-          <CardBody className="w-full">
-            <div className="w-full flex justify-center items-end min-h-40 md:h-60 lg:h-80">
-              {!scriptsReady && <SkeletonChart />}
-              {scriptsReady && <canvas ref={chartRef} className="w-full h-full" />}
+          <CardBody className="w-full pt-1">
+            <div className="w-full flex justify-center items-end min-h-40 md:h-60 lg:h-80 relative overflow-x-hidden">
+              {/* 1) Canvas sempre montato */}
+              <canvas
+                ref={chartRef}
+                className="w-full h-full"
+                style={{ visibility: chartLoaded ? 'visible' : 'hidden' }}
+              />
+
+              {/* 2) Skeleton sopra, invisibile quando chartLoaded */}
+              {!chartLoaded && (
+                <div className="absolute inset-0 flex justify-center items-center">
+                  <SkeletonChart className="w-full" />
+                </div>
+              )}
             </div>
           </CardBody>
         </Card>

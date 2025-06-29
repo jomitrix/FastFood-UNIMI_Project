@@ -74,7 +74,7 @@ export default function OrderRestaurant({ orders }) {
           <Dropdown
             placement="bottom-end"
           >
-            <DropdownTrigger className="hidden sm:flex">
+            <DropdownTrigger className="flex">
               <Button variant="faded" endContent={<ChevronRight size={18} className="rotate-[90deg]" />}>
                 Status
               </Button>
@@ -98,7 +98,17 @@ export default function OrderRestaurant({ orders }) {
       </div>
 
       {/* Tabella */}
-      <Table key={page} isHeaderSticky bottomContentPlacement="outside">
+      <Table
+        key={page}
+        isHeaderSticky
+        bottomContentPlacement="outside"
+        classNames={{
+          
+          wrapper: `min-h-[${4 * pageSize}rem] overflow-y-auto`,
+        }}
+      >
+
+
         <TableHeader>
           <TableColumn>ID</TableColumn>
           <TableColumn>Customer</TableColumn>
@@ -140,9 +150,9 @@ export default function OrderRestaurant({ orders }) {
       </Table>
 
       {/* Pagination + Total Orders */}
-      <div className="mt-4 flex justify-between w-full">
-        <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">
+      <div className="mt-4 flex justify-center w-full relative">
+        <div className="absolute left-0 top-2 w-full">
+          <span className="absolute left-0 text-default-400 text-small">
             Total orders {filteredOrders.length}
           </span>
         </div>

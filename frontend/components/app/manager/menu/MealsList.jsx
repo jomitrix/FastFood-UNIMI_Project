@@ -202,7 +202,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                                         </div>
                                         <div className="flex flex-col h-full justify-around min-w-0">
                                             <CardHeader className="p-0">
-                                                <h2 className="text-base sm:text-lg text-black font-semibold truncate">{meal.name}</h2>
+                                                <h2 className="text-base sm:text-lg text-black font-semibold truncate"><span className="font-normal">{index+1}. </span>{meal.name}</h2>
                                             </CardHeader>
                                             <div className="flex flex-wrap gap-1">
                                                 <Chip
