@@ -2,11 +2,21 @@
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { ChevronRight } from "@/components/icons/heroicons";
 import { Skeleton } from "@heroui/skeleton";
+import { Checkbox } from "@heroui/checkbox";
 
-export default function OrderList({ orders, statuses, setIsModalOpen, setOrderModalId }) {
+export default function OrderList({ hidePastOrders, setHidePastOrders, orders, statuses, setIsModalOpen, setOrderModalId }) {
     return (
         <div className="w-full mt-4 sm:mt-6 flex flex-col items-center justify-center w-full h-full">
             <div className="w-full max-w-3xl flex flex-col gap-3">
+                {/* Filtro ordini passati */}
+                <div className="w-full flex-row items-right mb-2">
+                    <Checkbox
+                        isSelected={hidePastOrders}
+                        onValueChange={setHidePastOrders}
+                    >
+                        Hide past orders
+                    </Checkbox>
+                </div>
                 {orders.map(order => (
                     <Card 
                         isPressable

@@ -6,24 +6,37 @@ import { Divider } from "@heroui/divider";
 import { ScrollShadow } from "@heroui/scroll-shadow";
 import { Takeaway, Delivery } from "@/components/icons/heroicons";
 import OrderList from "@/components/app/orders/OrderList";
+import { Checkbox } from "@heroui/checkbox";
 
 export default function OrderUser({orders, statuses}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderModalId, setOrderModalId] = useState(null);
   const [order, setOrder] = useState(null);
+  // Stato per la checkbox filtro ordini passati
+  const [hidePastOrders, setHidePastOrders] = useState(false);
+
+  // Filtra gli ordini in base alla checkbox
+  const filteredOrders = useMemo(() => {
+    if (!hidePastOrders) return orders;
+    return orders.filter(
+      o => o.status !== "canceled" && o.status !== "completed"
+    );
+  }, [orders, hidePastOrders]);
 
   useMemo(() => {
     if (orderModalId) {
       const orderData = orders.find(order => order.id === orderModalId);
       setOrder(orderData);
     }
-  }, [orderModalId]);
+  }, [orderModalId, orders]);
 
   return (
     <>
       <div className="w-full lg:w-2/3 xl:w-1/2 flex flex-col justify-center items-center p-4 pb-12">
         <OrderList
-          orders={orders}
+          hidePastOrders={hidePastOrders}
+          setHidePastOrders={setHidePastOrders}
+          orders={filteredOrders}
           statuses={statuses}
           setIsModalOpen={setIsModalOpen}
           setOrderModalId={setOrderModalId}
