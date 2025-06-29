@@ -1,4 +1,5 @@
 'use client';
+import { withAuth } from '@/utils/withAuth';
 // import { notFound } from "next/navigation";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -6,7 +7,7 @@ import AccountHeader from "@/components/app/account/AccountHeader";
 import Restaurant from "./Restaurant";
 import { statuses } from "@/utils/lists";
 
-export default function OrderPage() {
+function OrderPage() {
   const router = useRouter();
 
   // dati mock
@@ -297,3 +298,5 @@ export default function OrderPage() {
     </div>
   );
 }
+
+export default withAuth(OrderPage);

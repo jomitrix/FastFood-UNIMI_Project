@@ -1,4 +1,5 @@
 'use client';
+import { withAuth } from '@/utils/withAuth';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardBody } from '@heroui/card';
@@ -20,7 +21,7 @@ import { formatCurrency } from '@/utils/format';
 import SkeletonChart from '@/components/app/manager/dashboard/SkeletonChart';
 import Chart from 'chart.js/auto';
 
-export default function DashboardPage() {
+function DashboardPage() {
   const router = useRouter();
 
   const [timeRange, setTimeRange] = useState((['month']));
@@ -392,3 +393,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+export default withAuth(DashboardPage);
