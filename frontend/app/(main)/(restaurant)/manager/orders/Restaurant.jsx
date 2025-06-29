@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/table";
 import { Input } from "@heroui/input";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/dropdown";
-import { Search, ChevronRight, Points } from "@/components/icons/heroicons";
+import { Search, ChevronRight, Points, Funnel } from "@/components/icons/heroicons";
 import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
 import { Pagination } from "@heroui/pagination";
@@ -76,7 +76,7 @@ export default function OrderRestaurant({ orders }) {
             placement="bottom-end"
           >
             <DropdownTrigger className="flex">
-              <Button variant="faded" endContent={<ChevronRight size={18} className="rotate-[90deg]" />}>
+              <Button variant="faded" startContent={<Funnel size={22} />} endContent={<ChevronRight size={18} className="rotate-[90deg]" />}>
                 Status
               </Button>
             </DropdownTrigger>
@@ -159,7 +159,6 @@ export default function OrderRestaurant({ orders }) {
                     >
                       <div className="flex items-center justify-between">
                         <span>View Details</span>
-                        <ChevronRight size={18} />
                       </div>
                     </DropdownItem>
                     <DropdownItem
@@ -168,7 +167,6 @@ export default function OrderRestaurant({ orders }) {
                     >
                       <div className="flex items-center justify-between">
                         <span>Manage Order</span>
-                        <ChevronRight size={18} />
                       </div>
                     </DropdownItem>
                   </DropdownMenu>

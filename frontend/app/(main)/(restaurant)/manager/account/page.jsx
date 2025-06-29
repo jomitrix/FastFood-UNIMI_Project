@@ -90,6 +90,8 @@ export default function ProfilePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
+    if (!name) newErrors.name = "Name required";
+    if (!surname) newErrors.surname = "Surname required";
     if (!username) newErrors.username = "Restaurant Name required";
     if (!email) newErrors.email = "Email required";
     else if (invalidEmail) newErrors.email = "Invalid email";
@@ -245,6 +247,77 @@ export default function ProfilePage() {
                   <h3 className="text-lg font-bold pt-2">
                     Manager Information
                   </h3>
+                  <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
+                    <Input
+                      value={name}
+                      aria-label="name"
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        setIsUserChanged(true);
+                        setErrors((prev) => ({ ...prev, name: undefined }));
+                      }}
+                      label={
+                        <span>
+                          Name
+                          <span className="text-danger ml-1">*</span>
+                        </span>
+                      }
+                      isInvalid={!!errors.name}
+                      errorMessage={errors.name}
+                      type="text"
+                      placeholder="Name"
+                      labelPlacement="outside"
+                      radius="sm"
+                      size="lg"
+                    />
+                    <Input
+                      value={surname}
+                      onChange={(e) => {
+                        setSurname(e.target.value);
+                        setIsUserChanged(true);
+                        setErrors((prev) => ({ ...prev, surname: undefined }));
+                      }}
+                      isInvalid={!!errors.surname}
+                      errorMessage={errors.surname}
+                      type="text"
+                      label={
+                        <span>
+                          Surname
+                          <span className="text-danger ml-1">*</span>
+                        </span>
+                      }
+                      placeholder="Surname"
+                      labelPlacement="outside"
+                      radius="sm"
+                      size="lg"
+                    />
+                  </div>
+
+                  <Input
+                    value={email}
+                    isDisabled
+                    classNames={{input: "cursor-not-allowed pointer-events-auto",}}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setIsUserChanged(true);
+                      setErrors((prev) => ({ ...prev, email: undefined }));
+                    }}
+                    isInvalid={!!errors.email || invalidEmail}
+                    errorMessage={errors.email || "Invalid email"}
+                    type="email"
+                    label={
+                      <span>
+                        Email
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Email"
+                    labelPlacement="outside"
+                    endContent={<Email className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
+
                   <Input
                     value={iva}
                     onChange={(e) => {
@@ -264,63 +337,6 @@ export default function ProfilePage() {
                     placeholder="Example: 01234567890"
                     labelPlacement="outside"
                     endContent={<Briefcase className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    radius="sm"
-                    size="lg"
-                  />
-                  <div className="flex gap-4">
-                    <Input
-                      value={name}
-                      onChange={(e) => {
-                        setName(e.target.value);
-                        setIsUserChanged(true);
-                        setErrors((prev) => ({ ...prev, name: undefined }));
-                      }}
-                      isInvalid={!!errors.name}
-                      errorMessage={errors.name}
-                      type="text"
-                      label="Name"
-                      placeholder="Name"
-                      labelPlacement="outside"
-                      radius="sm"
-                      size="lg"
-                    />
-                    <Input
-                      value={surname}
-                      onChange={(e) => {
-                        setSurname(e.target.value);
-                        setIsUserChanged(true);
-                        setErrors((prev) => ({ ...prev, surname: undefined }));
-                      }}
-                      isInvalid={!!errors.surname}
-                      errorMessage={errors.surname}
-                      type="text"
-                      label="Surname"
-                      placeholder="Surname"
-                      labelPlacement="outside"
-                      radius="sm"
-                      size="lg"
-                    />
-                  </div>
-
-                  <Input
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, email: undefined }));
-                    }}
-                    isInvalid={!!errors.email || invalidEmail}
-                    errorMessage={errors.email || "Invalid email"}
-                    type="email"
-                    label={
-                      <span>
-                        Email
-                        <span className="text-danger ml-1">*</span>
-                      </span>
-                    }
-                    placeholder="Email"
-                    labelPlacement="outside"
-                    endContent={<Email className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
                     radius="sm"
                     size="lg"
                   />

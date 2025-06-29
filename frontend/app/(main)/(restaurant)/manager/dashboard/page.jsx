@@ -314,7 +314,7 @@ export default function DashboardPage() {
             <div className="w-full flex flex-col items-between sm:items-start gap-3">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h3 className="text-lg font-semibold">Product Popularity</h3>
-                <Button size="sm" onPress={() => router.push("/manager/menu")} variant="flat">Manage Meals</Button>
+                <Button size="sm" onPress={() => router.push("/manager/menu")} className="bg-trasparent" variant="flat">Manage Meals</Button>
               </div>
               <Tabs selectedKey={productTab} onSelectionChange={setProductTab}>
                 <Tab key="popular" title="Best Sellers" />
@@ -352,7 +352,7 @@ export default function DashboardPage() {
           <CardHeader className="flex flex-col items-start pb-1">
             <div className="w-full flex items-center sm:justify-start justify-between gap-3 flex-wrap">
               <h3 className="text-lg font-semibold">Recent Orders</h3>
-              <Button size="sm" onPress={() => router.push("/manager/orders")} variant="flat">View all</Button>
+              <Button size="sm" onPress={() => router.push("/manager/orders")} className="bg-trasparent" variant="flat">View all</Button>
             </div>
           </CardHeader>
           <CardBody className="pt-1">

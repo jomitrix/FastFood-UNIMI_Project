@@ -109,6 +109,8 @@ export default function ProfilePage() {
     }
     
     const newErrors = {};
+    if (!name) newErrors.name = "Name required";
+    if (!surname) newErrors.surname = "Surname required";
     if (!username) newErrors.username = "Username required";
     if (!email) newErrors.email = "Email required";
     else if (invalidEmail) newErrors.email = "Invalid email";
@@ -283,9 +285,10 @@ export default function ProfilePage() {
 
             <form onSubmit={handleSubmit}>
               <CardBody className="flex flex-col gap-4">
-                <div className="flex gap-4">
+                <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
                   <Input
                     value={name}
+                    aria-label="name"
                     onChange={(e) => {
                       setName(e.target.value);
                       setIsUserChanged(true);
@@ -294,7 +297,12 @@ export default function ProfilePage() {
                     isInvalid={!!errors.name}
                     errorMessage={errors.name}
                     type="text"
-                    label="Name"
+                    label={
+                      <span>
+                        Name
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
                     placeholder="Name"
                     labelPlacement="outside"
                     radius="sm"
@@ -310,7 +318,12 @@ export default function ProfilePage() {
                     isInvalid={!!errors.surname}
                     errorMessage={errors.surname}
                     type="text"
-                    label="Surname"
+                    label={
+                      <span>
+                        Surname
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
                     placeholder="Surname"
                     labelPlacement="outside"
                     radius="sm"
@@ -343,11 +356,8 @@ export default function ProfilePage() {
 
                 <Input
                   value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    setIsUserChanged(true);
-                    setErrors((prev) => ({ ...prev, email: undefined }));
-                  }}
+                  isDisabled
+                  classNames={{input: "cursor-not-allowed pointer-events-auto",}}
                   isInvalid={!!errors.email || invalidEmail}
                   errorMessage={errors.email || "Invalid email"}
                   type="email"
@@ -670,7 +680,7 @@ export default function ProfilePage() {
 
               {/* form aggiunta spedizione */}
               <form onSubmit={handleAddDeliveryAddress} className="flex flex-col gap-4">
-                <div className="flex gap-2">
+                <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
                   <Input
                     label="Name"
                     labelPlacement="outside"
@@ -679,7 +689,7 @@ export default function ProfilePage() {
                     onChange={(e) => setNewShippingName(e.target.value)}
                     radius="sm"
                     size="lg"
-                    className="w-1/2"
+                    className="w-full md:w-1/2"
                   />
                   <Input
                     label="Surname"
@@ -689,7 +699,7 @@ export default function ProfilePage() {
                     onChange={(e) => setNewShippingSurname(e.target.value)}
                     radius="sm"
                     size="lg"
-                    className="w-1/2"
+                    className="w-full md:w-1/2"
                   />
                 </div>
                 <Input
@@ -785,7 +795,7 @@ export default function ProfilePage() {
                   radius="sm"
                   size="lg"
                 />
-                <div className="flex flex-row gap-4 flex-wrap md:flex-nowrap">
+                <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
                   <Input
                     label="Card Holder"
                     labelPlacement="outside"
