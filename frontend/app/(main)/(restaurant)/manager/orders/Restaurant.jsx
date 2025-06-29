@@ -3,7 +3,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from "@heroui/table";
 import { Input } from "@heroui/input";
 import { Dropdown, DropdownTrigger, DropdownMenu, DropdownItem } from "@heroui/dropdown";
-import { Search, ChevronRight } from "@/components/icons/heroicons";
+import { Search, ChevronRight, Points } from "@/components/icons/heroicons";
 import { Button } from "@heroui/button";
 import { Chip } from "@heroui/chip";
 import { Pagination } from "@heroui/pagination";
@@ -22,6 +22,7 @@ export default function OrderRestaurant({ orders }) {
     // tutti gli status selezionati inizialmente
     () => new Set(statusOptions.map(opt => opt.uid))
   );
+  const [isModalOpen, setIsModalOpen] = useState([null, null]); // [isOpen, orderId,]
   const [page, setPage] = useState(1);
   const pageSize = 10;
 
@@ -103,8 +104,7 @@ export default function OrderRestaurant({ orders }) {
         isHeaderSticky
         bottomContentPlacement="outside"
         classNames={{
-          
-          wrapper: `min-h-[${4 * pageSize}rem] overflow-y-auto`,
+          wrapper: `min-h-[40rem] overflow-y-auto`,
         }}
       >
 
@@ -116,7 +116,7 @@ export default function OrderRestaurant({ orders }) {
           <TableColumn>Payment</TableColumn>
           <TableColumn>Status</TableColumn>
           <TableColumn>Date</TableColumn>
-          <TableColumn className="w-1/12">Action</TableColumn>
+          <TableColumn className="w-[4%]">Action</TableColumn>
         </TableHeader>
 
         <TableBody items={paginatedOrders}>
@@ -137,12 +137,42 @@ export default function OrderRestaurant({ orders }) {
               </TableCell>
               <TableCell>{order.orderDate}</TableCell>
               <TableCell>
-                <Button 
-                  className="bg-[#083d77] text-white hover:bg-[#083d77]/90"
-                  onPress={() => alert(`Mock: Manage order ${order.id}`)}
+                <Dropdown
+                  placement="bottom-end"
+                  className="-mt-8"
                 >
-                  Manage
-                </Button>
+                  <DropdownTrigger className="flex">
+                    <Button 
+                      isIconOnly
+                      variant="flat"
+                      className="bg-trasparent"
+                    >
+                      <Points size={28} />
+                    </Button>
+                  </DropdownTrigger>
+                  <DropdownMenu
+                    closeOnSelect={false}
+                  >
+                    <DropdownItem
+                      className="flex items-center gap-2"
+                      onPress={() => setIsModalOpen(["details", order.id])}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>View Details</span>
+                        <ChevronRight size={18} />
+                      </div>
+                    </DropdownItem>
+                    <DropdownItem
+                      className="flex items-center gap-2"
+                      onPress={() => setIsModalOpen(["details", order.id])}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span>Manage Order</span>
+                        <ChevronRight size={18} />
+                      </div>
+                    </DropdownItem>
+                  </DropdownMenu>
+                </Dropdown>
               </TableCell>
             </TableRow>
           )}

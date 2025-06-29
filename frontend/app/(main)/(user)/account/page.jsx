@@ -5,7 +5,7 @@ import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Divider } from "@heroui/divider";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
-import { Eye, EyeClosed, Profile, Email, Handle } from "@/components/icons/heroicons";
+import { Eye, EyeClosed, Profile, Email, Handle, CreditCard } from "@/components/icons/heroicons";
 import { Chip } from "@heroui/chip";
 import { addToast } from "@heroui/toast";
 import AccountHeader from "@/components/app/account/AccountHeader";
@@ -13,6 +13,7 @@ import ConfirmDelete from "@/components/ConfirmDelete";
 import { Checkbox } from "@heroui/checkbox";
 import { Select, SelectItem } from "@heroui/select";
 import { courses, areas, allergens } from "@/utils/lists";
+import { card } from "@heroui/theme";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -56,6 +57,26 @@ export default function ProfilePage() {
   const [preferredAreas, setPreferredAreas] = useState(new Set([]));
   const [offersOptIn, setOffersOptIn] = useState(false);
 
+  // Stato per indirizzo di fatturazione
+  const [billingAddress, setBillingAddress] = useState("");
+  const [billingAddressError, setBillingAddressError] = useState("");
+
+  // Stato per indirizzi di spedizione (lista)
+  const [deliveryAddresses, setDeliveryAddresses] = useState([]);
+  const [newShippingName, setNewShippingName] = useState("");
+  const [newShippingSurname, setNewShippingSurname] = useState("");
+  const [newDeliveryAddress, setNewDeliveryAddress] = useState("");
+  const [deliveryAddressError, setDeliveryAddressError] = useState("");
+
+  // Stato per metodo di pagamento (solo carta)
+  const [cardName, setCardName] = useState("");
+  const [cardHolder, setCardHolder] = useState("");
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCVC, setCardCVC] = useState("");
+  const [cardError, setCardError] = useState("");
+  const [savedCards, setSavedCards] = useState([]);
+
   useEffect(() => {
     // esegui solo in ambiente client
     if (typeof window === "undefined") return;
@@ -71,6 +92,15 @@ export default function ProfilePage() {
     if (email === "") return false;
     return validateEmail(email) ? false : true;
   }, [email]);
+
+  // Regex validazione indirizzo
+  const validateAddress = (address) => 
+    address.match(/^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u);
+
+  // Regex validazione carta (base)
+  const validateCardNumber = (num) => num.replace(/\s/g, '').match(/^\d{16}$/);
+  const validateCardExpiry = (exp) => exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
+  const validateCardCVC = (cvc) => cvc.match(/^\d{3,4}$/);
 
   const handleSubmit = (e) => {
     // Check if e exists and has preventDefault method before calling it
@@ -141,6 +171,91 @@ export default function ProfilePage() {
     router.push("/auth/login");
   };
 
+  // Handler aggiunta indirizzo spedizione
+  const handleAddDeliveryAddress = (e) => {
+    e.preventDefault();
+    if (!newShippingName || !newShippingSurname || !newDeliveryAddress) {
+      setDeliveryAddressError("All fields required");
+      return;
+    }
+    if (!validateAddress(newDeliveryAddress)) {
+      setDeliveryAddressError("Invalid address");
+      return;
+    }
+    setDeliveryAddresses([
+      ...deliveryAddresses,
+      {
+        name: newShippingName,
+        surname: newShippingSurname,
+        address: newDeliveryAddress,
+      }
+    ]);
+    setNewShippingName("");
+    setNewShippingSurname("");
+    setNewDeliveryAddress("");
+    setDeliveryAddressError("");
+  };
+
+  const handleRemoveDeliveryAddress = (idx) => {
+    setDeliveryAddresses(deliveryAddresses.filter((_, i) => i !== idx));
+  };
+
+  // Handler salvataggio indirizzo di fatturazione
+  const handleSaveBillingAddress = (e) => {
+    if (!billingAddress) {
+      setBillingAddressError("Billing address required");
+      return;
+    }
+    if (!validateAddress(billingAddress)) {
+      setBillingAddressError("Invalid address");
+      return;
+    }
+    setBillingAddressError("");
+    addToast({
+      title: "Success",
+      description: "Billing address saved!",
+      color: "success",
+      timeout: 5000,
+    });
+  };
+
+  const invalidBillingAddress = useMemo(
+    () => billingAddress !== "" && !validateAddress(billingAddress),
+    [billingAddress]
+  );
+  const invalidNewDeliveryAddress = useMemo(
+    () => newDeliveryAddress !== "" && !validateAddress(newDeliveryAddress),
+    [newDeliveryAddress]
+  );
+
+  const handleAddCard = (e) => {
+    e.preventDefault();
+    if (
+      !cardName ||
+      !cardHolder ||
+      !validateCardNumber(cardNumber) ||
+      !validateCardExpiry(cardExpiry) ||
+      !validateCardCVC(cardCVC)
+    ) {
+      return;
+    }
+    setSavedCards((prev) => [
+      ...prev,
+      {
+        cardName,
+        cardHolder,
+        last4: cardNumber.slice(-4),
+        exp: cardExpiry,
+      },
+    ]);
+    addToast({ title: "Success", description: "Carta salvata!", color: "success" });
+    setCardName("");
+    setCardHolder("");
+    setCardNumber("");
+    setCardExpiry("");
+    setCardCVC("");
+  };
+
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
@@ -149,401 +264,659 @@ export default function ProfilePage() {
       />
 
       <div className="w-full lg:w-2/3 xl:w-1/2 flex flex-col justify-center items-center p-4 pb-10">
-          <div className="w-full mt-4 sm:mt-6 gap-2 flex flex-col gap-5 sm:gap-8">
-            <Card className="w-full p-4 sm:p-8">
-              <CardHeader className="w-full font-bold text-2xl flex justify-between">
-                <div>Account Info</div>
-                <Chip
-                  color="primary"
-                  startContent={<Profile size={18} />}
-                  variant="flat"
-                >
-                  User
-                </Chip>
-              </CardHeader>
+        <div className="w-full mt-4 sm:mt-6 gap-2 flex flex-col gap-5 sm:gap-8">
+          <Card className="w-full p-4 sm:p-8">
+            <CardHeader className="w-full font-bold text-2xl flex justify-between">
+              <div>Account Info</div>
+              <Chip
+                color="primary"
+                startContent={<Profile size={18} />}
+                variant="flat"
+              >
+                User
+              </Chip>
+            </CardHeader>
+
+            <div className="w-full flex flex-col justify-center items-center my-4">
+              <Divider className="w-[90%] flex bg-black/10" />
+            </div>
+
+            <form onSubmit={handleSubmit}>
+              <CardBody className="flex flex-col gap-4">
+                <div className="flex gap-4">
+                  <Input
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      setIsUserChanged(true);
+                      setErrors((prev) => ({ ...prev, name: undefined }));
+                    }}
+                    isInvalid={!!errors.name}
+                    errorMessage={errors.name}
+                    type="text"
+                    label="Name"
+                    placeholder="Name"
+                    labelPlacement="outside"
+                    radius="sm"
+                    size="lg"
+                  />
+                  <Input
+                    value={surname}
+                    onChange={(e) => {
+                      setSurname(e.target.value);
+                      setIsUserChanged(true);
+                      setErrors((prev) => ({ ...prev, surname: undefined }));
+                    }}
+                    isInvalid={!!errors.surname}
+                    errorMessage={errors.surname}
+                    type="text"
+                    label="Surname"
+                    placeholder="Surname"
+                    labelPlacement="outside"
+                    radius="sm"
+                    size="lg"
+                  />
+                </div>
+
+                <Input
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                    setIsUserChanged(true);
+                    setErrors((prev) => ({ ...prev, username: undefined }));
+                  }}
+                  isInvalid={!!errors.username}
+                  errorMessage={errors.username}
+                  type="text"
+                  label={
+                    <span>
+                      Username
+                      <span className="text-danger ml-1">*</span>
+                    </span>
+                  }
+                  placeholder="Username"
+                  labelPlacement="outside"
+                  endContent={<Handle className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                  radius="sm"
+                  size="lg"
+                />
+
+                <Input
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setIsUserChanged(true);
+                    setErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
+                  isInvalid={!!errors.email || invalidEmail}
+                  errorMessage={errors.email || "Invalid email"}
+                  type="email"
+                  label={
+                    <span>
+                      Email
+                      <span className="text-danger ml-1">*</span>
+                    </span>
+                  }
+                  placeholder="Email"
+                  labelPlacement="outside"
+                  endContent={<Email className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                  radius="sm"
+                  size="lg"
+                />
+              </CardBody>
 
               <div className="w-full flex flex-col justify-center items-center my-4">
                 <Divider className="w-[90%] flex bg-black/10" />
               </div>
 
-              <form onSubmit={handleSubmit}>
-                <CardBody className="flex flex-col gap-4">
-                  <div className="flex gap-4">
-                    <Input
-                      value={name}
-                      onChange={(e) => {
-                        setName(e.target.value);
-                        setIsUserChanged(true);
-                        setErrors((prev) => ({ ...prev, name: undefined }));
-                      }}
-                      isInvalid={!!errors.name}
-                      errorMessage={errors.name}
-                      type="text"
-                      label="Name"
-                      placeholder="Name"
-                      labelPlacement="outside"
-                      radius="sm"
-                      size="lg"
-                    />
-                    <Input
-                      value={surname}
-                      onChange={(e) => {
-                        setSurname(e.target.value);
-                        setIsUserChanged(true);
-                        setErrors((prev) => ({ ...prev, surname: undefined }));
-                      }}
-                      isInvalid={!!errors.surname}
-                      errorMessage={errors.surname}
-                      type="text"
-                      label="Surname"
-                      placeholder="Surname"
-                      labelPlacement="outside"
-                      radius="sm"
-                      size="lg"
-                    />
+              <CardBody className="flex flex-col gap-4">
+                <Input
+                  type={isNewVisible ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => {
+                    setNewPassword(e.target.value);
+                    setIsUserChanged(true);
+                    setErrors((prev) => ({ ...prev, 
+                      newPassword: undefined,
+                      confirmNewPassword: undefined
+                     }));
+                  }}
+                  isInvalid={!!errors.newPassword}
+                  errorMessage={errors.newPassword}
+                  label="New Password"
+                  placeholder="New Password"
+                  labelPlacement="outside"
+                  radius="sm"
+                  size="lg"
+                  endContent={
+                    <button
+                      className="focus:outline-none"
+                      type="button"
+                      onClick={toggleNewVisibility}
+                      aria-label="toggle password visibility"
+                    >
+                      {isNewVisible ? (
+                        <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                      ) : (
+                        <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                      )}
+                    </button>
+                  }
+                />
+
+                <Input
+                  type={isConfNewVisible ? "text" : "password"}
+                  value={confirmNewPassword}
+                  onChange={(e) => {
+                    setConfirmNewPassword(e.target.value);
+                    setIsUserChanged(true);
+                    setErrors((prev) => ({
+                      ...prev,
+                      confirmNewPassword: undefined
+                    }));
+                  }}
+                  isInvalid={!!errors.confirmNewPassword}
+                  errorMessage={errors.confirmNewPassword}
+                  label="Confirm New Password"
+                  placeholder="Confirm New Password"
+                  labelPlacement="outside"
+                  radius="sm"
+                  size="lg"
+                  endContent={
+                    <button
+                      className="focus:outline-none"
+                      type="button"
+                      onClick={toggleConfNewVisibility}
+                      aria-label="toggle password visibility"
+                    >
+                      {isConfNewVisible ? (
+                        <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                      ) : (
+                        <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                      )}
+                    </button>
+                  }
+                />
+              </CardBody>
+
+              {isUserChanged && (
+                <>
+                  <div className="w-full flex flex-col justify-center items-center my-4">
+                    <Divider className="w-[90%] flex bg-black/10" />
                   </div>
 
-                  <Input
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, username: undefined }));
-                    }}
-                    isInvalid={!!errors.username}
-                    errorMessage={errors.username}
-                    type="text"
-                    label={
-                      <span>
-                        Username
-                        <span className="text-danger ml-1">*</span>
-                      </span>
-                    }
-                    placeholder="Username"
-                    labelPlacement="outside"
-                    endContent={<Handle className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    radius="sm"
-                    size="lg"
-                  />
-
-                  <Input
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, email: undefined }));
-                    }}
-                    isInvalid={!!errors.email || invalidEmail}
-                    errorMessage={errors.email || "Invalid email"}
-                    type="email"
-                    label={
-                      <span>
-                        Email
-                        <span className="text-danger ml-1">*</span>
-                      </span>
-                    }
-                    placeholder="Email"
-                    labelPlacement="outside"
-                    endContent={<Email className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    radius="sm"
-                    size="lg"
-                  />
-                </CardBody>
-
-                <div className="w-full flex flex-col justify-center items-center my-4">
-                  <Divider className="w-[90%] flex bg-black/10" />
-                </div>
-
-                <CardBody className="flex flex-col gap-4">
-                  <Input
-                    type={isNewVisible ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => {
-                      setNewPassword(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, 
-                        newPassword: undefined,
-                        confirmNewPassword: undefined
-                       }));
-                    }}
-                    isInvalid={!!errors.newPassword}
-                    errorMessage={errors.newPassword}
-                    label="New Password"
-                    placeholder="New Password"
-                    labelPlacement="outside"
-                    radius="sm"
-                    size="lg"
-                    endContent={
-                      <button
-                        className="focus:outline-none"
-                        type="button"
-                        onClick={toggleNewVisibility}
-                        aria-label="toggle password visibility"
+                  <CardBody className="flex flex-col gap-4 items-center">
+                    <p className="font-semibold text-center">
+                      Enter your current password to make changes
+                    </p>
+                    <div className="w-full lg:w-1/2 flex flex-col gap-4">
+                      <Input
+                        type={isVisible ? "text" : "password"}
+                        value={currentPassword}
+                        onChange={(e) => {
+                          setCurrentPassword(e.target.value);
+                          setErrors((prev) => ({ ...prev, currentPassword: undefined }));
+                        }}
+                        isInvalid={!!errors.currentPassword}
+                        errorMessage={errors.currentPassword}
+                        className="w-full p-0"
+                        label={
+                          <span>
+                            Current Password
+                            <span className="text-danger ml-1">*</span>
+                          </span>
+                        }
+                        radius="sm"
+                        size="lg"
+                        endContent={
+                          <button
+                            className="focus:outline-none"
+                            type="button"
+                            onClick={toggleVisibility}
+                            aria-label="toggle password visibility"
+                          >
+                            {isVisible ? (
+                              <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                            ) : (
+                              <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
+                            )}
+                          </button>
+                        }
+                      />
+                      <Button
+                        type="submit"
+                        color="primary"
+                        size="lg"
+                        radius="sm"
+                        className="w-full"
                       >
-                        {isNewVisible ? (
-                          <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                        ) : (
-                          <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                        )}
-                      </button>
-                    }
-                  />
-
-                  <Input
-                    type={isConfNewVisible ? "text" : "password"}
-                    value={confirmNewPassword}
-                    onChange={(e) => {
-                      setConfirmNewPassword(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({
-                        ...prev,
-                        confirmNewPassword: undefined
-                      }));
-                    }}
-                    isInvalid={!!errors.confirmNewPassword}
-                    errorMessage={errors.confirmNewPassword}
-                    label="Confirm New Password"
-                    placeholder="Confirm New Password"
-                    labelPlacement="outside"
-                    radius="sm"
-                    size="lg"
-                    endContent={
-                      <button
-                        className="focus:outline-none"
-                        type="button"
-                        onClick={toggleConfNewVisibility}
-                        aria-label="toggle password visibility"
-                      >
-                        {isConfNewVisible ? (
-                          <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                        ) : (
-                          <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                        )}
-                      </button>
-                    }
-                  />
-                </CardBody>
-
-                {isUserChanged && (
-                  <>
-                    <div className="w-full flex flex-col justify-center items-center my-4">
-                      <Divider className="w-[90%] flex bg-black/10" />
+                        Apply Changes
+                      </Button>
                     </div>
+                  </CardBody>
+                </>
+              )}
+            </form>
+          </Card>
 
-                    <CardBody className="flex flex-col gap-4 items-center">
-                      <p className="font-semibold text-center">
-                        Enter your current password to make changes
-                      </p>
-                      <div className="w-full lg:w-1/2 flex flex-col gap-4">
-                        <Input
-                          type={isVisible ? "text" : "password"}
-                          value={currentPassword}
-                          onChange={(e) => {
-                            setCurrentPassword(e.target.value);
-                            setErrors((prev) => ({ ...prev, currentPassword: undefined }));
-                          }}
-                          isInvalid={!!errors.currentPassword}
-                          errorMessage={errors.currentPassword}
-                          className="w-full p-0"
-                          label={
-                            <span>
-                              Current Password
-                              <span className="text-danger ml-1">*</span>
-                            </span>
-                          }
-                          radius="sm"
-                          size="lg"
-                          endContent={
-                            <button
-                              className="focus:outline-none"
-                              type="button"
-                              onClick={toggleVisibility}
-                              aria-label="toggle password visibility"
-                            >
-                              {isVisible ? (
-                                <EyeClosed className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                              ) : (
-                                <Eye className="text-2xl text-default-400 pointer-events-none flex-shrink-0" />
-                              )}
-                            </button>
-                          }
-                        />
-                        <Button
-                          type="submit"
-                          color="primary"
-                          size="lg"
-                          radius="sm"
-                          className="w-full"
-                        >
-                          Apply Changes
-                        </Button>
-                      </div>
-                    </CardBody>
-                  </>
-                )}
-              </form>
-            </Card>
+          <Card className="w-full p-4 sm:p-8">
+            <CardHeader className="font-bold text-2xl">
+              Preferences
+            </CardHeader>
 
-            <Card className="w-full p-4 sm:p-8">
-              <CardHeader className="font-bold text-2xl">
-                Preferences
-              </CardHeader>
+            <div className="w-full flex flex-col justify-center items-center my-3">
+              <Divider className="w-[90%] flex bg-black/10" />
+            </div>
 
-              <div className="w-full flex flex-col justify-center items-center my-3">
-                <Divider className="w-[90%] flex bg-black/10" />
+            <CardBody className="flex flex-col gap-6">
+              <div>
+                <Select
+                  items={allergens.map(item => ({ value: item, label: item }))}
+                  label="Allergens"
+                  labelPlacement="outside"
+                  placeholder="Select allergens"
+                  selectionMode="multiple"
+                  selectedKeys={userAllergies}
+                  onSelectionChange={setUserAllergies}
+                  className="w-full"
+                  radius="sm"
+                  size="lg"
+                >
+                  {(item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  )}
+                </Select>
+                <p className="text-sm text-gray-500 mt-1">Select any allergens we should be aware of</p>
               </div>
 
-              <CardBody className="flex flex-col gap-6">
-                <div>
-                  <Select
-                    items={allergens.map(item => ({ value: item, label: item }))}
-                    label="Allergens"
+              <div>
+                <Select
+                  items={courses.map(item => ({ value: item, label: item }))}
+                  label="Preferred Food Categories"
+                  labelPlacement="outside"
+                  placeholder="Select preferred categories"
+                  selectionMode="multiple"
+                  selectedKeys={preferredCourses}
+                  onSelectionChange={setPreferredCourses}
+                  className="w-full"
+                  radius="sm"
+                  size="lg"
+                >
+                  {(item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  )}
+                </Select>
+                <p className="text-sm text-gray-500 mt-1">Select your favorite food categories</p>
+              </div>
+
+              <div>
+                <Select
+                  items={areas.map(item => ({ value: item, label: item }))}
+                  label="Preferred Cuisines"
+                  labelPlacement="outside"
+                  placeholder="Select preferred cuisines"
+                  selectionMode="multiple"
+                  selectedKeys={preferredAreas}
+                  onSelectionChange={setPreferredAreas}
+                  className="w-full"
+                  radius="sm"
+                  size="lg"
+                >
+                  {(item) => (
+                    <SelectItem key={item.value} value={item.value}>
+                      {item.label}
+                    </SelectItem>
+                  )}
+                </Select>
+                <p className="text-sm text-gray-500 mt-1">Select your favorite cuisines</p>
+              </div>
+
+              <div className="flex flex-col mt-2 w-full">
+                <Checkbox
+                  isSelected={offersOptIn}
+                  onValueChange={setOffersOptIn}
+                  className="w-full"
+                  size="sm"
+                >
+                  <span className="h-full text-medium break-words">Subscribe to special offers and promotions</span>
+                </Checkbox>
+                <p className="text-sm text-gray-500 mt-1 ml-6">
+                  You'll see resturant food in your home that matches your preferences.
+                </p>
+              </div>
+
+              <Button
+                color="primary"
+                size="lg"
+                radius="sm"
+                className="self-start mt-2"
+                onPress={handleSubmit}
+              >
+                Save Preferences
+              </Button>
+            </CardBody>
+          </Card>
+
+          {/* --- CARD UNICA FATTURAZIONE + SPEDIZIONE --- */}
+          <Card className="w-full p-4 sm:p-8">
+            <CardHeader className="font-bold text-2xl">
+              Billing & Delivery Addresses
+            </CardHeader>
+            <div className="w-full flex flex-col justify-center items-center my-3">
+              <Divider className="w-[90%] flex bg-black/10" />
+            </div>
+            <CardBody className="flex flex-col gap-3">
+              {/* ────── FATTURAZIONE ────── */}
+              <Input
+                type="text"
+                label="Billing Address"
+                labelPlacement="outside"
+                placeholder="Example: Via Roma 1, Roma, 00100, Italy"
+                value={billingAddress}
+                onChange={(e) => {
+                  setBillingAddress(e.target.value);
+                  setBillingAddressError("");
+                }}
+                isInvalid={invalidBillingAddress}
+                errorMessage={invalidBillingAddress && "Invalid billing address"}
+                radius="sm"
+                size="lg"
+                className="w-full"
+              />
+              <Button
+                onPress={handleSaveBillingAddress}
+                color="primary"
+                size="lg"
+                radius="sm"
+                className="self-start"
+                isDisabled={invalidBillingAddress || billingAddress === ""}
+              >
+                Save Billing Address
+              </Button>
+
+              <Divider className="w-[90%] self-center bg-black/10" />
+
+              {/* ────── SPEDIZIONE ────── */}
+              {deliveryAddresses.length === 0 && (
+                <p className="text-gray-500 pt-5">No delivery address saved.</p>
+              )}
+              <div className="flex flex-col mb-5 gap-2">
+                {deliveryAddresses.map((addr, idx) => (
+                  <div
+                    key={idx}
+                    className="flex flex-col gap-2 sm:flex-row sm:items-center border p-2 rounded-sm bg-gray-50"
+                  >
+                    <div className="flex-1">
+                      <div className="font-semibold">
+                        {addr.name} {addr.surname}
+                      </div>
+                      <div className="text-sm">{addr.address}</div>
+                    </div>
+                    <Button
+                      color="danger"
+                      size="sm"
+                      radius="sm"
+                      onPress={() => handleRemoveDeliveryAddress(idx)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              {/* form aggiunta spedizione */}
+              <form onSubmit={handleAddDeliveryAddress} className="flex flex-col gap-4">
+                <div className="flex gap-2">
+                  <Input
+                    label="Name"
                     labelPlacement="outside"
-                    placeholder="Select allergens"
-                    selectionMode="multiple"
-                    selectedKeys={userAllergies}
-                    onSelectionChange={setUserAllergies}
-                    className="w-full"
+                    placeholder="Name"
+                    value={newShippingName}
+                    onChange={(e) => setNewShippingName(e.target.value)}
                     radius="sm"
                     size="lg"
-                  >
-                    {(item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    )}
-                  </Select>
-                  <p className="text-sm text-gray-500 mt-1">Select any allergens we should be aware of</p>
-                </div>
-
-                <div>
-                  <Select
-                    items={courses.map(item => ({ value: item, label: item }))}
-                    label="Preferred Food Categories"
+                    className="w-1/2"
+                  />
+                  <Input
+                    label="Surname"
                     labelPlacement="outside"
-                    placeholder="Select preferred categories"
-                    selectionMode="multiple"
-                    selectedKeys={preferredCourses}
-                    onSelectionChange={setPreferredCourses}
-                    className="w-full"
+                    placeholder="Surname"
+                    value={newShippingSurname}
+                    onChange={(e) => setNewShippingSurname(e.target.value)}
                     radius="sm"
                     size="lg"
-                  >
-                    {(item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    )}
-                  </Select>
-                  <p className="text-sm text-gray-500 mt-1">Select your favorite food categories</p>
+                    className="w-1/2"
+                  />
                 </div>
-
-                <div>
-                  <Select
-                    items={areas.map(item => ({ value: item, label: item }))}
-                    label="Preferred Cuisines"
-                    labelPlacement="outside"
-                    placeholder="Select preferred cuisines"
-                    selectionMode="multiple"
-                    selectedKeys={preferredAreas}
-                    onSelectionChange={setPreferredAreas}
-                    className="w-full"
-                    radius="sm"
-                    size="lg"
-                  >
-                    {(item) => (
-                      <SelectItem key={item.value} value={item.value}>
-                        {item.label}
-                      </SelectItem>
-                    )}
-                  </Select>
-                  <p className="text-sm text-gray-500 mt-1">Select your favorite cuisines</p>
-                </div>
-
-                <div className="mt-2 w-full">
-                  <Checkbox
-                    isSelected={offersOptIn}
-                    onValueChange={setOffersOptIn}
-                    className="w-full"
-                    size="lg"
-                  >
-                    <span className="h-full text-medium break-words">Subscribe to special offers and promotions</span>
-                  </Checkbox>
-                  <p className="text-sm text-gray-500 mt-1 ml-8">
-                    You'll see resturant food in your home that matches your preferences.
-                  </p>
-                </div>
-
+                <Input
+                  label="Delivery Address"
+                  placeholder="Example: Via Roma 1, Roma, 00100, Italy"
+                  value={newDeliveryAddress}
+                  onChange={(e) => {
+                    setNewDeliveryAddress(e.target.value);
+                    setDeliveryAddressError("");
+                  }}
+                  isInvalid={invalidNewDeliveryAddress}
+                  errorMessage={
+                    invalidNewDeliveryAddress && "Invalid delivery address"
+                  }
+                  labelPlacement="outside"
+                  radius="sm"
+                  size="lg"
+                />
                 <Button
+                  type="submit"
                   color="primary"
                   size="lg"
                   radius="sm"
-                  className="w-1/2 mt-2 self-center break-words whitespace-normal"
-                  onPress={handleSubmit}
+                  className="self-start"
+                  isDisabled={
+                    invalidNewDeliveryAddress ||
+                    !newShippingName ||
+                    !newShippingSurname ||
+                    !newDeliveryAddress
+                  }
                 >
-                  Save Preferences
+                  Add Delivery Address
                 </Button>
-              </CardBody>
-            </Card>
+              </form>
+            </CardBody>
+          </Card>
 
-            <Card className="w-full p-4 sm:p-8">
-              <CardHeader className="font-bold text-2xl">
-                Delete Account
-              </CardHeader>
-
-              <div className="w-full flex flex-col justify-center items-center my-3">
-                <Divider className="w-[90%] flex bg-black/10" />
+          {/* --- CARD METODO DI PAGAMENTO: lista + form --- */}
+          <Card className="w-full p-4 sm:p-8">
+            <CardHeader className="font-bold text-2xl flex items-center gap-2">
+              Payment Methods
+            </CardHeader>
+            <div className="w-full flex flex-col justify-center items-center my-3">
+              <Divider className="w-[90%] flex bg-black/10" />
+            </div>
+            <CardBody className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                {savedCards.length === 0 ? (
+                  <p className="text-gray-500">No cards saved.</p>
+                ) : (
+                  savedCards.map(({ cardName, cardHolder, last4, exp }, idx) => (
+                    <div
+                      key={idx}
+                      className="flex flex-col gap-2 sm:flex-row sm:items-center border p-2 rounded-md bg-gray-50"
+                    >
+                      <div className="flex-1">
+                        <div className="font-semibold">
+                          {cardName}
+                        </div>
+                        <div className="text-sm">
+                          Holder: {cardHolder}
+                        </div>
+                        <div className="text-sm">•••• •••• •••• {last4} – {exp}</div>
+                      </div>
+                      <Button
+                        color="danger"
+                        size="sm"
+                        radius="sm"
+                        onPress={() =>
+                          setSavedCards((prev) => prev.filter((_, i) => i !== idx))
+                        }
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  ))
+                )}
               </div>
+              
 
-              <CardBody
-                as="form"
-                onSubmit={checkDelete}
-                className="flex flex-col gap-4"
-              >
-                <p>
-                  To delete your account, type "DELETE" in the box below.
-                  <br />
-                  Once submitted, you will no longer be able to log in,
-                  access your data, or restore your account.
-                </p>
+              <Divider className="w-[90%] self-center bg-black/10" />
 
-                <div className="lg:w-1/2 flex flex-col gap-4">
+              {/* ────── FORM AGGIUNTA CARTA ────── */}
+              <form onSubmit={handleAddCard} className="flex flex-col gap-4">
+                <Input
+                  label="Card Name"
+                  labelPlacement="outside"
+                  placeholder="Card Name"
+                  value={cardName}
+                  onChange={(e) => setCardName(e.target.value)}
+                  isInvalid={cardName !== "" && cardName.length < 2}
+                  errorMessage="Invalid card name"
+                  radius="sm"
+                  size="lg"
+                />
+                <div className="flex flex-row gap-4 flex-wrap md:flex-nowrap">
                   <Input
-                    type="text"
-                    label='Type "DELETE"'
-                    placeholder="DELETE"
-                    value={deleteInput}
-                    onChange={(e) => {
-                      setDeleteInput(e.target.value);
-                      if (deleteError) setDeleteError("");
-                    }}
-                    isInvalid={!!deleteError}
-                    errorMessage={deleteError}
+                    label="Card Holder"
                     labelPlacement="outside"
+                    placeholder="Card Holder"
+                    value={cardHolder}
+                    onChange={(e) => setCardHolder(e.target.value)}
+                    isInvalid={cardHolder !== "" && cardHolder.length < 2}
+                    errorMessage="Invalid card holder"
                     radius="sm"
-                    className="w-full"
                     size="lg"
                   />
-
-                  <Button
-                    type="submit"
-                    color="danger"
+                  <Input
+                    label="Card Number"
+                    labelPlacement="outside"  
+                    placeholder="Example: 1234 5678 9012 3456"
+                    value={cardNumber}
+                    onChange={(e) => setCardNumber(e.target.value.replace(/[^\d ]/g, ""))}
+                    isInvalid={cardNumber !== "" && !validateCardNumber(cardNumber)}
+                    errorMessage="Invalid card number"
+                    endContent={<CreditCard className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    maxLength={19}
+                    radius="sm"
                     size="lg"
-                    className="w-full break-words whitespace-normal"
-                  >
-                    Delete Permanently
-                  </Button>
+                  />
                 </div>
-              </CardBody>
-            </Card>
-          </div>
+                <div className="flex gap-2">
+                  <Input
+                    label="Expires"
+                    labelPlacement="outside"
+                    placeholder="MM/YY"
+                    value={cardExpiry}
+                    onChange={(e) => setCardExpiry(e.target.value.replace(/[^\d/]/g, ""))}
+                    isInvalid={cardExpiry !== "" && !validateCardExpiry(cardExpiry)}
+                    errorMessage="MM/YY Format"
+                    maxLength={5}
+                    radius="sm"
+                    size="lg"
+                    className="w-1/2"
+                  />
+                  <Input
+                    label="CVC"
+                    labelPlacement="outside"
+                    placeholder="123"
+                    value={cardCVC}
+                    onChange={(e) => setCardCVC(e.target.value.replace(/[^\d]/g, ""))}
+                    isInvalid={cardCVC !== "" && !validateCardCVC(cardCVC)}
+                    errorMessage="3-4 digits"
+                    maxLength={4}
+                    radius="sm"
+                    size="lg"
+                    className="w-1/2"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  color="primary"
+                  size="lg"
+                  radius="sm"
+                  className="self-start"
+                  isDisabled={
+                    !cardName ||
+                    !cardHolder ||
+                    !validateCardNumber(cardNumber) ||
+                    !validateCardExpiry(cardExpiry) ||
+                    !validateCardCVC(cardCVC)
+                  }
+                >
+                  Aggiungi Carta
+                </Button>
+              </form>
+            </CardBody>
+          </Card>
 
-          <ConfirmDelete
-            type="your account"
-            isModalOpen={isDeleteModalOpen}
-            setIsModalOpen={setIsDeleteModalOpen}
-            onDelete={handleDelete}
-          />
+          <Card className="w-full p-4 sm:p-8">
+            <CardHeader className="font-bold text-2xl">
+              Delete Account
+            </CardHeader>
+
+            <div className="w-full flex flex-col justify-center items-center my-3">
+              <Divider className="w-[90%] flex bg-black/10" />
+            </div>
+
+            <CardBody
+              as="form"
+              onSubmit={checkDelete}
+              className="flex flex-col gap-4"
+            >
+              <p>
+                To delete your account, type "DELETE" in the box below.
+                <br />
+                Once submitted, you will no longer be able to log in,
+                access your data, or restore your account.
+              </p>
+
+              <div className="lg:w-1/2 flex flex-col gap-4">
+                <Input
+                  type="text"
+                  label='Type "DELETE"'
+                  placeholder="DELETE"
+                  value={deleteInput}
+                  onChange={(e) => {
+                    setDeleteInput(e.target.value);
+                    if (deleteError) setDeleteError("");
+                  }}
+                  isInvalid={!!deleteError}
+                  errorMessage={deleteError}
+                  labelPlacement="outside"
+                  radius="sm"
+                  className="w-full"
+                  size="lg"
+                />
+
+                <Button
+                  type="submit"
+                  color="danger"
+                  size="lg"
+                  className="w-full break-words whitespace-normal"
+                >
+                  Delete Permanently
+                </Button>
+              </div>
+            </CardBody>
+          </Card>
+        </div>
+
+        <ConfirmDelete
+          type="your account"
+          isModalOpen={isDeleteModalOpen}
+          setIsModalOpen={setIsDeleteModalOpen}
+          onDelete={handleDelete}
+        />
       </div>
     </div>
   );

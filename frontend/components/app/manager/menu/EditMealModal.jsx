@@ -226,6 +226,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                             {/* Categoria e Area */}
                             <div className="flex flex-col sm:flex-row gap-4 w-full">
                                 <Select
+                                    disallowEmptySelection
                                     label="Category"
                                     placeholder="Select a category"
                                     variant="faded"
@@ -243,6 +244,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                     ))}
                                 </Select>
                                 <Select
+                                    disallowEmptySelection
                                     label="Area"
                                     placeholder="Select an area"
                                     variant="faded"

@@ -473,7 +473,41 @@ const ExclShield = ({ size = 24, width, height, ...props }) => (
     </svg>
 );
 
+const Points = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        strokeWidth="1.5" 
+        stroke="currentColor" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+    </svg>
+);
+
+const CreditCard = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        strokeWidth="1.5" 
+        stroke="currentColor" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+            d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 0 0 2.25-2.25V6.75A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25v10.5A2.25 2.25 0 0 0 4.5 19.5Z" 
+        />
+    </svg>
+);
+
 export { Eye, EyeClosed, Profile, Login, Logout, Restaurant, Search, Home, Email, Handle,
     Storefront, ChevronRight, Dashboard, Takeaway, Delivery, Hamburger, Orders,
     Meals, Phone, Briefcase, MapPin, MoveUp, MoveDown, Edit, Draggable, Plus,
-    ChefHat, Pizza, Upload, Flag, ForkKnife, ExclShield };
+    ChefHat, Pizza, Upload, Flag, ForkKnife, ExclShield, Points, CreditCard };

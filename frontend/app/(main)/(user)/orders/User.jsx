@@ -4,16 +4,18 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@herou
 import { Progress } from "@heroui/progress";
 import { Divider } from "@heroui/divider";
 import { ScrollShadow } from "@heroui/scroll-shadow";
-import { Takeaway, Delivery } from "@/components/icons/heroicons";
+import { Takeaway, Delivery, ChevronRight } from "@/components/icons/heroicons";
 import OrderList from "@/components/app/orders/OrderList";
-import { Checkbox } from "@heroui/checkbox";
+import { InputOtp } from "@heroui/input-otp"
+import { Button } from "@heroui/button";
 
 export default function OrderUser({orders, statuses}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderModalId, setOrderModalId] = useState(null);
   const [order, setOrder] = useState(null);
-  // Stato per la checkbox filtro ordini passati
   const [hidePastOrders, setHidePastOrders] = useState(false);
+  const [code, setCode] = useState("");
+  const [codeError, setCodeError] = useState(false);
 
   // Filtra gli ordini in base alla checkbox
   const filteredOrders = useMemo(() => {
@@ -29,6 +31,18 @@ export default function OrderUser({orders, statuses}) {
       setOrder(orderData);
     }
   }, [orderModalId, orders]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Se il codice corrisponde a quello dal dal ristoratore/rider
+    // aggiorna lo stato dell'ordine in completato
+    if (code !== "001") {
+      setCodeError(true);
+    }
+
+    setIsModalOpen(true);
+    return;
+  };
 
   return (
     <>
@@ -109,6 +123,44 @@ export default function OrderUser({orders, statuses}) {
                   </p>
                 )}
                 
+                { ["out", "ready"].includes(order.status) && (
+                  <form
+                    className="w-full flex -mb-2 items-center justify-center gap-1"
+                    onSubmit={handleSubmit}
+                  >
+                    <InputOtp
+                      length={3}
+                      type="number"
+                      size="sm"
+                      value={code}
+
+                      isInvalid={codeError}
+                      validationBehavior={false}
+                      radius="lg"
+                      placeholder="Codice dal ristorante"
+                      onChange={(e) => {
+                        setCode(e.target.value);
+                        if (codeError) {
+                          setCodeError(false);
+                        }
+                      }}
+                      classNames={{
+                        base: "text-black",
+                        errorMessage: "hidden",
+                        helperWrapper: "hidden"
+                      }}
+                    />
+
+                    <Button
+                      type="submit"
+                      isIconOnly
+                      size="sm"
+                      className="h-8 w-8 min-w-8 rounded-lg bg-purple-400 hover:bg-purple-500 active:scale-[.97]"
+                    >
+                      <ChevronRight size={20} />
+                    </Button>
+                  </form>
+                )}
                 {!["completed", "canceled"].includes(order.status) && (
                   <Progress
                     className="mt-4"
@@ -184,7 +236,7 @@ export default function OrderUser({orders, statuses}) {
                       <span>{order.deliveryFee.toFixed(2)}{order.currency}</span>
                     </div>
                   )}
-                </div>
+              </div>
             </ModalFooter>
           </ModalContent>
         </Modal>

@@ -11,13 +11,13 @@ export default function NotFoundPage() {
         maxWidth="full"
     >
         <NavbarBrand className="gap-2">
-            <Link href="/home">
+            <Link href="/">
                 <img src="/images/logo.png" alt="🍔 Fast Food" className="w-32" />
             </Link>
         </NavbarBrand>
 
         <NavbarContent justify="end" className="flex">
-            <Button as={Link} color="primary" href="/home" className="bg-black font-semibold rounded-full">
+            <Button as={Link} color="primary" href="/" className="bg-black font-semibold rounded-full">
                 <Home className="w-5 h-5 mr-1" />
                 Back to Home
             </Button>

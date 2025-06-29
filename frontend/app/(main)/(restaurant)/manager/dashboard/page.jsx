@@ -266,6 +266,7 @@ export default function DashboardPage() {
               <h3 className="text-lg font-semibold">Sales Trend</h3>
               <div className="flex gap-2">
                   <Select
+                    disallowEmptySelection
                     size="sm"
                     className='w-32'
                     selectedKeys={timeRange}
@@ -277,6 +278,7 @@ export default function DashboardPage() {
                   </Select>
                   {/* metric selector */}
                   <Select
+                    disallowEmptySelection
                     size="sm"
                     className='w-32'
                     selectedKeys={new Set([metric])}
@@ -321,7 +323,9 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardBody className="pt-1">
-            <Table aria-label={productTab === "popular" ? "Most popular products" : "Least sold products"}>
+            <Table
+              classNames={{ wrapper: "min-h-[18rem] sm:min-h-full overflow-y-auto" }} 
+              aria-label={productTab === "popular" ? "Most popular products" : "Least sold products"}>
               <TableHeader>
                 <TableColumn>Product</TableColumn>
                 <TableColumn>Quantity</TableColumn>

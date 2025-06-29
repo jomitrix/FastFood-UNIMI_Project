@@ -62,7 +62,7 @@ export default function Layout({ children }) {
                   <Hamburger size={32} className="flex flex-shrink-0"/>
               </Button>
             )}
-            <Link className="flex flex-shrink-0" href="/home">
+            <Link className="flex flex-shrink-0" href="/">
               <img src="/images/logo.png" alt="🍔 Fast Food" className="w-32" />
             </Link>
           </NavbarBrand>

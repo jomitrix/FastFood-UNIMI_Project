@@ -52,7 +52,7 @@ export default function Login() {
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Controlla account type e se è effettuato l'onboarding in caso push /onboarding/user o restaurant
-      accountType === "user" ? router.push("/home") : router.push("/manager/account");
+      accountType === "user" ? router.push("/") : router.push("/manager/account");
     } catch (error) {
       setErrors({ general: "Errore durante il login. Riprova." });
     } finally {
