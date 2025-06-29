@@ -51,6 +51,7 @@ export default function Login() {
       // Simula chiamata API
       await new Promise((resolve) => setTimeout(resolve, 1000));
 
+      // Controlla account type e se è effettuato l'onboarding in caso push /onboarding/user o restaurant
       accountType === "user" ? router.push("/home") : router.push("/manager/account");
     } catch (error) {
       setErrors({ general: "Errore durante il login. Riprova." });
@@ -64,12 +65,13 @@ export default function Login() {
     <WaveClean/>
     
     <section className="mt-10 bg-[#f5f3f5] flex flex-col w-full items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#083d77]/20">
-        <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#083d77] text-3xl text-center">
-            Welcome
+      <Card className="w-full max-w-md bg-white"
+        classNames={{ base: "border-0 shadow-0", body: "border-0  shadow-0"  }}>
+        <CardHeader className="flex flex-col gap-3 px-6 pt-12 pb-0">
+          <h1 className="font-semibold text-[#083d77] text-4xl text-center">
+            Login
           </h1>
-          <p className="text-default-500 text-center">Login to your account</p>
+          <p className="w-2/3 text-center leading-6 text-lg font-sm">Enter your details to get sign in to your account</p>
         </CardHeader>
 
         <CardBody className="px-6 py-6">
@@ -80,23 +82,29 @@ export default function Login() {
               </div>
             )}
 
-            <Tabs
-              className="items-center justify-center mb-2"
-              selectedKey={accountType}
-              onSelectionChange={(value) => setAccountType(value)}
-            >
-              <Tab key="user" title="User" />
-              <Tab key="restaurant" title="Restaurant" />
-            </Tabs>
+            <div className="flex flex-col gap-2.5">
+              <p className="font-medium">
+                Account Type
+              </p>
+              <Tabs
+                className="items-center  mb-2"
+                selectedKey={accountType}
+                onSelectionChange={(value) => setAccountType(value)}
+                classNames={{ tabContent: "font-medium"}}
+              >
+                <Tab key="user" title="User" />
+                <Tab key="restaurant" title="Restaurant" />
+              </Tabs>
+            </div>
 
             <Input
               type="email"
               label={
-                <span>
+                <span className="font-medium">
                   Email
-                  <span className="text-danger ml-1">*</span>
                 </span>
               }
+              labelPlacement="outside"
               placeholder="Enter your email"
               value={email}
               onChange={(e) => {
@@ -114,11 +122,11 @@ export default function Login() {
             <Input
               type={isVisible ? "text" : "password"}
               label={
-                <span>
+                <span className="font-medium">
                   Password
-                  <span className="text-danger ml-1">*</span>
                 </span>
               }
+              labelPlacement="outside"
               placeholder="Enter your password"
               value={password}
               onChange={(e) => {
@@ -155,7 +163,7 @@ export default function Login() {
               type="submit"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2 bg-[#083d77] text-white"
+              className="w-full mt-2 bg-[#083d77] text-white font-semibold"
             >
               {isLoading ? "Logging in..." : "Log in"}
             </Button>
