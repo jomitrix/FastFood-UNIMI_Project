@@ -153,17 +153,6 @@ export default function ProfilePage() {
 
       <div className="w-full lg:w-2/3 xl:w-1/2 flex flex-col justify-center items-center p-4 pb-10">
           <div className="w-full mt-4 sm:mt-6 gap-2 flex flex-col gap-5 sm:gap-8">
-            
-            { ((!iva || invalidIva) || !address || invalidAddress || !phone || invalidPhone) && (
-              <Alert color="danger" title={`Warning`} className="text-sm text-left"
-                classNames={{
-                  title: "font-bold text-lg",
-                }}>
-                <span>To make your restaurant findable, you <b>must fill in all the mandatory fields</b> that are not required during registration.</span>
-                <span>You are therefore requested to fill in the fields "<b>Phone</b>" "<b>Address</b>" and "<b>VAT Number</b>"</span>
-              </Alert>
-            )}
-            
             <Card className="w-full p-4 sm:p-8">
               <CardHeader className="w-full font-bold text-2xl flex justify-between">
                 <div>Account Info</div>
