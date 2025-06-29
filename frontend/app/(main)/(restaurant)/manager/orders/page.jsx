@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import Restaurant from "./Restaurant";
+import { statuses } from "@/utils/lists";
 
 export default function OrderPage() {
   const router = useRouter();
@@ -161,49 +162,6 @@ export default function OrderPage() {
     },
   ];
 
-  const statuses = {
-    "ordered": {
-      display: "Ordered",
-      alternative: "Waiting for confirmation",
-      color: "text-yellow-700",
-      darkBgColor: "bg-yellow-500",
-      darkColor: "text-yellow-500",
-    },
-    "preparing": {
-      display: "In preparation",
-      alternative: "Preparing your order",
-      color: "text-blue-500",
-      darkBgColor: "bg-blue-400",
-      darkColor: "text-blue-400",
-    },
-    "out": {
-      display: "Out for delivery",
-      color: "text-purple-500",
-      darkBgColor: "bg-purple-400",
-      darkColor: "text-purple-400",
-    },
-    "ready": {
-      display: "Ready for pickup",
-      color: "text-purple-500",
-      darkBgColor: "bg-purple-400",
-      darkColor: "text-purple-400",
-    },
-    "completed": {
-      display: "Completed",
-      alternative: "Order Completed",
-      color: "text-gray-500",
-      darkBgColor: "bg-success",
-      darkColor: "text-success",
-    },
-    "canceled": {
-      display: "Canceled",
-      alternative: "Order Canceled",
-      color: "text-gray-500",
-      darkBgColor: "bg-danger",
-      darkColor: "text-danger",
-    }
-  }
-
   useEffect(() => {
     // Controllo se l'utente è autenticato
     if (typeof window === "undefined") return;
@@ -219,7 +177,7 @@ export default function OrderPage() {
   }*/
 
   return (
-    <div className="w-full flex flex-col min-h-screen items-center bg-[#f6f6f6]">
+    <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
         title={"Order Management"}
         subtitle={"Manage orders for your restaurant."}

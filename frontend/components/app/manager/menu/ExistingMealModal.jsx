@@ -79,7 +79,7 @@ export default function ExistingModal({ isOpen, onClose, searchMeals, setQueryRe
                                 queryResult.map((meal) => (
                                     <div 
                                         key={meal.idMeal} 
-                                        className={`p-3 rounded-lg flex flex-shrink-0 relative items-center gap-3 cursor-pointer border ${selectedMealId === meal.idMeal ? 'border-[#003c6e] bg-[#003c6e]/5' : 'border-gray-200 hover:bg-gray-50'}`}
+                                        className={`p-3 rounded-lg flex flex-shrink-0 relative items-center gap-3 cursor-pointer border ${selectedMealId === meal.idMeal ? 'border-[#083d77] bg-[#083d77]/5' : 'border-gray-200 hover:bg-gray-50'}`}
                                         onClick={() => setSelectedMealId(meal.idMeal)}
                                     >   
                                         <Skeleton className="h-14 w-14 rounded-md object-cover" />
@@ -110,7 +110,7 @@ export default function ExistingModal({ isOpen, onClose, searchMeals, setQueryRe
                         Cancel
                     </Button>
                     <Button 
-                        className="bg-[#003c6e] text-white"
+                        className="bg-[#083d77] text-white"
                         onPress={handleAddMeal}
                         isDisabled={!selectedMealId}
                     >

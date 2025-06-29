@@ -3,13 +3,14 @@ import { usePathname } from "next/navigation";
 import { useManager } from "@/contexts/ManagerContext";
 import { useEffect } from "react";
 import { Link } from "@heroui/link";
-import { Profile, Orders, Meals } from "@/components/icons/heroicons";
+import { Profile, Orders, Meals, Dashboard } from "@/components/icons/heroicons";
 
 
 export default function HamburgerMenu({ children }) {
   const pathname = usePathname();
   const { isManHambMenuOpen, setIsManHambMenuOpen, handleToggleManager } = useManager();
   const menuItems = [
+    { name: "Dashboard", small: "Dashboard", icon: Dashboard, href: "/manager/dashboard" },
     { name: "Manage Orders", small: "Orders", icon: Orders, href: "/manager/orders" },
     { name: "Account Info", small: "Account", icon: Profile, href: "/manager/account" },
     { name: "Manage Menu", small: "Menu", icon: Meals, href: "/manager/menu" },
@@ -99,7 +100,7 @@ export default function HamburgerMenu({ children }) {
             <Link
               key={item.name}
               href={item.href}
-              className="flex flex-col items-center justify-center text-black/90 hover:text-black px-2 py-1 transition-all duration-200"
+              className={`flex flex-col w-[${parseInt(100 / menuItems.length)}%] items-center justify-center text-black/90 hover:text-black px-2 py-1 transition-all duration-200`}
             >
               <IconComponent
                 size={24}

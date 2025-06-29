@@ -3,7 +3,7 @@ import { WaveClean } from "@/components/waves";
 
 export default function NotFoundComponent() {
   return (
-    <div className="w-full flex flex-col min-h-screen bg-[#f6f6f6]">
+    <div className="w-full flex flex-col min-h-screen bg-[#f5f3f5]">
       <div className="w-full bg-[#ff8844] flex items-center justify-center pb-5 md:pb-0 lg:pb-10">
         <div className="w-full flex flex-col md:flex-row text-center md:text-left items-center lg:w-3/5 p-5 lg:p-0 gap-10">
           <img src="/images/404.png" alt="Burger" className="w-[50%] md:w-1/2" />

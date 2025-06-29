@@ -74,9 +74,9 @@ export default function Register() {
     <WaveClean/>
 
     <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center relative  lg:mt-[5rem] pb-[2.5rem] p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003c6e]/20">
+      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#083d77]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#003c6e] text-3xl text-center">Register</h1>
+          <h1 className="font-bold text-[#083d77] text-3xl text-center">Register</h1>
           <p className="text-default-500 text-center">Create your account</p>
         </CardHeader>
         
@@ -217,7 +217,7 @@ export default function Register() {
               type="submit"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2 bg-[#003c6e] text-white"
+              className="w-full mt-2 bg-[#083d77] text-white"
             >
               {isLoading ? "Registering..." : "Register"}
             </Button>
@@ -225,7 +225,7 @@ export default function Register() {
             <div className="flex flex-col gap-2 mt-4 text-center">
               <p className="text-sm text-default-500">
                 Already have an account?{" "}
-                <Link href="/auth/login" className="text-[#003c6e] font-medium">
+                <Link href="/auth/login" className="text-[#083d77] font-medium">
                   Login
                 </Link>
               </p>

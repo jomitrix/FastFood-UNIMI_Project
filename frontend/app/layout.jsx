@@ -13,7 +13,7 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html suppressHydrationWarning lang="en" className={`${fontSans.className} bg-[#f6f6f6]`}>
+    <html suppressHydrationWarning lang="en" className={`${fontSans.className} bg-[#f5f3f5]`}>
       <head />
       <body
         className={`${fontSans.variable} ${fontMono.variable} font-sans min-h-screen bg-background text-foreground antialiased`}

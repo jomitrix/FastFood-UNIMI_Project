@@ -11,7 +11,7 @@ import { Skeleton } from "@heroui/skeleton";
 import NewMealModal from "./NewMealModal";
 import ExistingMealModal from "./ExistingMealModal";
 import EditMealModal from "./EditMealModal";
-import { areas, courses, allergens } from "@/public/utils/lists.js";
+import { areas, courses, allergens } from "@/utils/lists";
 
 export default function MealsList({ meals, searchMeals, onMealsReorder }) {
     const [isMoveable, setIsMoveable] = useState(false);
@@ -151,7 +151,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                         <DropdownTrigger>
                             <Button
                                 
-                                className="bg-[#003c6e] text-white text-sm sm:text-base"
+                                className="bg-[#083d77] text-white text-sm sm:text-base"
                                 size="sm"
                             >
                                 <span className="inline">Add a Meal</span>
@@ -165,7 +165,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                             key="new"
                             isPressable
                             description="Create a new meal"
-                            startContent={<ChefHat size={23} className="text-[#003c6e]"/>}
+                            startContent={<ChefHat size={23} className="text-[#083d77]"/>}
                             onPress={() => setIsModalOpen("new")}
                         >
                             New Meal
@@ -174,7 +174,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                             key="existing"
                             isPressable
                             description="Select an existing one"
-                            startContent={<Pizza size={23} className="text-[#003c6e]"/>}
+                            startContent={<Pizza size={23} className="text-[#083d77]"/>}
                             onPress={() => setIsModalOpen("existing")}
                         >
                             Existing Meal
@@ -275,7 +275,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                                                     setIsModalOpen("edit");
                                                 }}
                                             >
-                                                <Edit className="text-[#003c6e]" size={22}/>
+                                                <Edit className="text-[#083d77]" size={22}/>
                                             </Button>
                                         )}
                                     </div>

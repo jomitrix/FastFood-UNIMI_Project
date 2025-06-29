@@ -164,7 +164,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                         />
                                     )}
                                     <Button
-                                        className={`bg-[#003c6e] text-white w-full h-full flex items-center justify-center absolute top-0 left-0 rounded-xl
+                                        className={`bg-[#083d77] text-white w-full h-full flex items-center justify-center absolute top-0 left-0 rounded-xl
                                             ${image ? 'opacity-50 hover:opacity-90' : 'opacity-100'}`}
                                         isIconOnly
                                         onPress={() => fileInputRef.current?.click()}
@@ -333,7 +333,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                     <Button 
                                         isIconOnly 
                                         isPressable
-                                        className="bg-[#003c6e] text-white" 
+                                        className="bg-[#083d77] text-white" 
                                         size="md"
                                         onPress={addIngredient}
                                     >
@@ -397,7 +397,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                 Cancel
                             </Button>
                             <Button 
-                                className="bg-[#003c6e] text-white"
+                                className="bg-[#083d77] text-white"
                                 onPress={handleSubmitEditMeal}
                             >
                                 Save

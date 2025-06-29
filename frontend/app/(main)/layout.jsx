@@ -79,7 +79,7 @@ export default function Layout({ children }) {
             </NavbarItem>
             <NavbarItem isActive={pathname.startsWith("/manager")}>
               <Link
-                href="/manager/account"
+                href="/manager/dashboard"
                 className={`text-black ${pathname.startsWith("/manager") ? "font-semibold rounded-full px-3 py-1 bg-black/5" : ""}`}
               >
                 TEMP: Restaurant
@@ -97,7 +97,7 @@ export default function Layout({ children }) {
                 </Button>
               ) : (
                 ! (pathname.startsWith("/account") || (pathname.startsWith("/manager")) ) ? (
-                  <Button as={Link} color="primary" href="/account" className="bg-black font-semibold rounded-full">
+                  <Button as={Link} color="primary" href={`${pathname.startsWith("/account") ? "/account" : "/manager/dashboard"}`} className="bg-black font-semibold rounded-full">
                     {accountType !== "restaurant" ? (
                       <>
                         <Profile className="w-5 h-5 mr-1" />
@@ -111,7 +111,7 @@ export default function Layout({ children }) {
                     )}
                   </Button>
                 ) : (
-                  <Button onPress={handleLogout} className="bg-[#003c6e] text-white font-semibold rounded-full">
+                  <Button onPress={handleLogout} className="bg-[#083d77] text-white font-semibold rounded-full">
                     <Logout className="w-5 h-5 mr-1" />
                     Logout
                   </Button>

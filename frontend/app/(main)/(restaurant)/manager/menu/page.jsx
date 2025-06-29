@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import MealsList from "@/components/app/manager/menu/MealsList";
-import meals from "@/public/utils/meals.json";
+import meals from "@/utils/meals.json";
 
 export default function MealsPage() {
   const router = useRouter();
@@ -210,7 +210,7 @@ export default function MealsPage() {
   }
 
   return (
-    <div className="w-full flex flex-col min-h-screen items-center bg-[#f6f6f6]">
+    <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
         accountType={mock.accountType}
         title="Menu Management"

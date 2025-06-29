@@ -36,7 +36,7 @@ export default function OrderList({ orders, statuses, setIsModalOpen, setOrderMo
                             </div>
                         </CardBody>
 
-                        <ChevronRight className="m-1 text-[#003c6e] flex flex-shrink-0" size={24}/>
+                        <ChevronRight className="m-1 text-[#083d77] flex flex-shrink-0" size={24}/>
                     </Card>
                 ))}
             </div>

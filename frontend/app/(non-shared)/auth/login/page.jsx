@@ -64,9 +64,9 @@ export default function Login() {
     <WaveClean/>
     
     <section className="bg-gradient-to-b from-background to-background/60 flex flex-col items-center mt-[5rem] relative p-4">
-      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#003c6e]/20">
+      <Card className="w-full max-w-md bg-background/95 backdrop-blur-sm shadow-xl border border-[#083d77]/20">
         <CardHeader className="flex flex-col gap-1 px-6 pt-6 pb-0">
-          <h1 className="font-bold text-[#003c6e] text-3xl text-center">
+          <h1 className="font-bold text-[#083d77] text-3xl text-center">
             Welcome
           </h1>
           <p className="text-default-500 text-center">Login to your account</p>
@@ -147,7 +147,7 @@ export default function Login() {
               size="lg"
             />
 
-            {/*<Link href="/auth/forgot-password" className="ml-1 text-sm text-[#003c6e]">
+            {/*<Link href="/auth/forgot-password" className="ml-1 text-sm text-[#083d77]">
               Password dimenticata?
             </Link>*/}
 
@@ -155,7 +155,7 @@ export default function Login() {
               type="submit"
               size="lg"
               isLoading={isLoading}
-              className="w-full mt-2 bg-[#003c6e] text-white"
+              className="w-full mt-2 bg-[#083d77] text-white"
             >
               {isLoading ? "Logging in..." : "Log in"}
             </Button>
@@ -165,7 +165,7 @@ export default function Login() {
                 Don't have an account?{" "}
                 <Link
                   href="/auth/register"
-                  className="text-[#003c6e] font-medium"
+                  className="text-[#083d77] font-medium"
                 >
                   Sign up
                 </Link>

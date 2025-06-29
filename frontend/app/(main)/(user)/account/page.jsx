@@ -12,7 +12,7 @@ import AccountHeader from "@/components/app/account/AccountHeader";
 import ConfirmDelete from "@/components/ConfirmDelete";
 import { Checkbox } from "@heroui/checkbox";
 import { Select, SelectItem } from "@heroui/select";
-import { courses, areas, allergens } from "@/public/utils/lists";
+import { courses, areas, allergens } from "@/utils/lists";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -142,7 +142,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="w-full flex flex-col min-h-screen items-center bg-[#f6f6f6]">
+    <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
         accountType={mock.accountType}
         title={`Welcome, ${mock.name}`}

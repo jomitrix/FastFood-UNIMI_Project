@@ -227,7 +227,7 @@ export default function OrderPage() {
   }, [router]);
 
   return (
-    <div className="w-full flex flex-col min-h-screen items-center bg-[#f6f6f6]">
+    <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
         accountType={mockUser.accountType}
         title="Order History"
