@@ -9,7 +9,9 @@ import { Button } from "@heroui/button";
 import { Eye, EyeClosed, Restaurant, Email, 
          Storefront, Phone, MapPin, Briefcase } from "@/components/icons/heroicons";
 import { Chip } from "@heroui/chip";
+import { RadioGroup, Radio } from "@heroui/radio";
 import { addToast } from "@heroui/toast";
+import { weekDays } from "@/utils/lists";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import ConfirmDelete from "@/components/ConfirmDelete";
 
@@ -32,7 +34,6 @@ function ProfilePage() {
   const [deleteError, setDeleteError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // dati iniziali del ristorante
   const restaurantData = {
     name: "Luca",
     surname: "Toni",
@@ -41,7 +42,6 @@ function ProfilePage() {
     accountType: "restaurant"
   };
 
-  // stati locali per rendere i campi editabili
   const [name, setName] = useState(restaurantData.name);
   const [surname, setSurname] = useState(restaurantData.surname);
   const [restaurantName, setRestaurantName] = useState(restaurantData.username);
@@ -50,14 +50,21 @@ function ProfilePage() {
   const [address, setAddress] = useState(restaurantData.address || "");
   const [iva, setIva] = useState(restaurantData.iva || "");
 
-  useEffect(() => {
-    // esegui solo in ambiente client
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("token");
-    if (/*!*/token) {
-      router.push("/auth/login");
-    }
-  }, [router]);
+  const [openingHours, setOpeningHours] = useState(
+    weekDays.map(() => ({ open: "09:00", close: "22:00", closed: false }))
+  );
+  const [serviceMode, setServiceMode] = useState("all");
+
+  const [stagedHours, setStagedHours] = useState(openingHours);
+  const [stagedServiceMode, setStagedServiceMode] = useState(serviceMode);
+
+  const hasHourErrors = useMemo(
+    () =>
+      stagedHours.some(
+        (h) => !h.closed && (h.open === "" || h.close === "" || h.open >= h.close)
+      ),
+    [stagedHours]
+  );
 
   const validateEmail = (email) =>
     email.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
@@ -90,7 +97,7 @@ function ProfilePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!restaurantName) newErrors.restaurantName = "Restaurant Name required"; // era username
+    if (!restaurantName) newErrors.restaurantName = "Restaurant Name required";
     if (!name) newErrors.name = "Name required";
     if (!surname) newErrors.surname = "Surname required";
     if (!email) newErrors.email = "Email required";
@@ -110,16 +117,19 @@ function ProfilePage() {
 
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
+      addToast({
+        title: "Error",
+        description: "Please fix the errors before saving.",
+        color: "danger",
+        timeout: 4000,
+      });
       return;
     }
 
-    // invia la richiesta di aggiornamento...
-    
     setIsUserChanged(false);
     setCurrentPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
-    
     addToast({
       title: "Success",
       description: "Changes saved successfully!",
@@ -135,14 +145,57 @@ function ProfilePage() {
       setDeleteError('You must type "DELETE" to confirm');
       return;
     }
-    
     setIsDeleteModalOpen(true);
   };
 
   const handleDelete = (e) => {
-    // Simula cancellazione account e logout
-    /*localStorage.removeItem("token");*/
     router.push("/auth/login");
+  };
+
+  const onHourChange = (idx, field, value) =>
+    setStagedHours((prev) => {
+      const clone = [...prev];
+      clone[idx] = { ...clone[idx], [field]: value };
+      return clone;
+    });
+
+  const toggleClosed = (idx) =>
+    setStagedHours((prev) => {
+      const clone = [...prev];
+      clone[idx] = { ...clone[idx], closed: !clone[idx].closed };
+      return clone;
+    });
+
+  const copyMondayToWeek = () =>
+    setStagedHours((prev) => {
+      const monday = prev[0];
+      return prev.map((h, i) => (i === 0 ? h : { ...h, ...monday }));
+    });
+
+  const handleSaveHoursAndService = () => {
+    if (hasHourErrors) {
+      addToast({
+        title: "Error",
+        description:
+          "Please check that the closing time is always after the opening time.",
+        timeout: 4000,  
+        color: "danger",
+      });
+      return;
+    }
+    setOpeningHours(stagedHours);
+    setServiceMode(stagedServiceMode);
+    addToast({
+      title: "Success",
+      description: "Opening hours and service mode updated successfully.",
+      timeout: 5000,
+      color: "success",
+    });
+  };
+
+  const handleCancelHoursAndService = () => {
+    setStagedHours(openingHours);
+    setStagedServiceMode(serviceMode);
   };
 
   return (
@@ -175,7 +228,7 @@ function ProfilePage() {
               <form onSubmit={handleSubmit}>
                 <CardBody className="flex flex-col gap-4">
                   <h3 className="text-lg font-bold pt-2">
-                    Resturant Details
+                    Restaurant Details
                   </h3>
                   <Input
                     value={restaurantName}
@@ -477,6 +530,112 @@ function ProfilePage() {
             </Card>
 
             <Card className="w-full p-4 sm:p-8">
+              <CardHeader className="font-bold text-2xl flex justify-between">
+                <span>Opening hours & Service</span>
+              </CardHeader>
+
+              <div className="w-full my-3 flex justify-center">
+                <Divider className="w-[90%] bg-black/10" />
+              </div>
+
+              <CardBody className="flex flex-col gap-6">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <h3 className="text-lg font-bold">Opening hours</h3>
+                  <Button size="sm" variant="flat" onPress={copyMondayToWeek}>
+                    Set Monday to all
+                  </Button>
+                </div>
+
+                {weekDays.map((day, idx) => {
+                  const { open, close, closed } = stagedHours[idx];
+                  const invalid = !closed && open >= close;
+                  return (
+                    <div
+                      key={day}
+                      className="flex flex-col md:flex-row items-center gap-3 w-full"
+                    >
+                      <div className="w-24 font-medium">{day}</div>
+
+                      <div className="flex flex-row gap-2 grow w-full md:w-auto">
+                        <Input
+                          type="time"
+                          label="Open"
+                          value={open}
+                          disabled={closed}
+                          isInvalid={invalid}
+                          onChange={(e) => onHourChange(idx, "open", e.target.value)}
+                          size="sm"
+                          radius="sm"
+                          className="min-w-0 flex-1"
+                        />
+                        <Input
+                          type="time"
+                          label="Close"
+                          value={close}
+                          disabled={closed}
+                          isInvalid={invalid}
+                          onChange={(e) => onHourChange(idx, "close", e.target.value)}
+                          size="sm"
+                          radius="sm"
+                          className="min-w-0 flex-1"
+                        />
+                      </div>
+
+                      <div className="w-full md:w-32 flex-shrink-0">
+                        <Button
+                          size="sm"
+                          variant={closed ? "flat" : "light"}
+                          color={closed ? "secondary" : "default"}
+                          onPress={() => toggleClosed(idx)}
+                          type="button"
+                          className="w-full"
+                        >
+                          {closed ? "Closed" : "Set closed"}
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <h3 className="text-lg font-bold pt-4">Service mode</h3>
+                <RadioGroup
+                  name="serviceMode"
+                  value={stagedServiceMode}
+                  onValueChange={setStagedServiceMode}
+                  orientation="horizontal"
+                  className="gap-6"
+                >
+                  <Radio value="all">All</Radio>
+                  <Radio value="delivery">Delivery</Radio>
+                  <Radio value="takeaway">Take-away</Radio>
+                </RadioGroup>
+
+                <div className="self-end flex gap-2">
+                  <Button
+                    size="lg"
+                    radius="sm"
+                    variant="flat"
+                    onPress={handleCancelHoursAndService}
+                    type="button"
+
+                  >
+                    Undo Changes
+                  </Button>
+                  <Button
+                    color="primary"
+                    size="lg"
+                    radius="sm"
+                    onPress={handleSaveHoursAndService}
+                    isDisabled={hasHourErrors}
+                    type="button"
+                  >
+                    Save
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+
+            <Card className="w-full p-4 sm:p-8">
               <CardHeader className="font-bold text-2xl">
                 Delete Account
               </CardHeader>
@@ -529,7 +688,7 @@ function ProfilePage() {
           </div>
 
           <ConfirmDelete
-            type="your Resturant account"
+            type="your Restaurant account"
             isModalOpen={isDeleteModalOpen}
             setIsModalOpen={setIsDeleteModalOpen}
             onDelete={handleDelete}

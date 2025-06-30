@@ -2,23 +2,25 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from '@/contexts/AuthContext';
+import { withAuth } from "@/utils/withAuth";
 
-export default function RootLayout({ children }) {
+
+function UserLayout({ children }) {
     const router = useRouter();
     const pathname = usePathname();
     const { user } = useAuth();
-        
+
     useEffect(() => {
-        if (user !== null && user?.role !== "user") {
-        router.push(`/manager${pathname}`);
+        if (user?.role !== "user") {
+            router.replace(`/manager${pathname}`);
         }
-    }, [user]);
+    }, [user, pathname, router]);
 
     return (
-        user?.role === "user" && (
-            <main>
-                {children}
-            </main>
-        )
+        <main>
+            {children}
+        </main>
     );
 }
+
+export default withAuth(UserLayout);

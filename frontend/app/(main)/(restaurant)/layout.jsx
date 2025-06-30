@@ -2,22 +2,23 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from '@/contexts/AuthContext';
+import { withAuth } from "@/utils/withAuth";
 
-export default function RootLayout({ children }) {
+function ResturantLayout({ children }) {
     const router = useRouter();
     const { user } = useAuth();
-        
+
     useEffect(() => {
-        if (user !== null && user?.role !== "restaurant") {
-            router.push("/");
+        if (user?.role !== "restaurant") {
+            router.replace("/");
         }
-    }, [user]);
+    }, [user, router]);
 
     return (
-        user?.role === "restaurant" && (
-            <main>
-                {children}
-            </main>
-        )
+        <main>
+            {children}
+        </main>
     );
 }
+
+export default withAuth(ResturantLayout);

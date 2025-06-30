@@ -4,6 +4,11 @@ import FilterSidebar from '@/components/app/search/FilterSidebar';
 import RestaurantCard from '@/components/app/search/RestaurantCard';
 import HorizontalScroller from '@/components/app/search/HorizontalScroller';
 
+import { useState } from 'react';
+import { Button } from '@heroui/button';
+import { Tabs, Tab } from '@heroui/tabs';
+import { MapPin, Takeaway, Delivery } from '@/components/icons/heroicons';
+
 const sample = [
   { img: '/sushi.jpg', name: 'Sushi Feltre', rating: 4.4, time: '10-25 min', badge: '-15% • minimo 20 €' },
   { img: '/pizza.jpg', name: 'Pizzeria Monfalcone', rating: 4.5, time: '25-40 min', badge: 'Consegna gratuita' },
@@ -11,15 +16,49 @@ const sample = [
 ];
 
 export default function Home() {
+  const [orderType, setOrderType] = useState("takeaway");
+
   return (
-    <>
+    <div className='bg-[#f5f3f5]'>
       {/* Header fisso */}
-      <header className="sticky top-0 z-50 bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between">
-          <h1 className="font-bold text-sm sm:text-base">
-            Via Riccardo Pitteri, 56, 20134 Milano
-          </h1>
-          {/* Qui potresti mettere il toggle Consegna/Ritiro */}
+      <header className="sticky w-full top-16 z-50 bg-[#ff8844] shadow-sm">
+        <div className="w-full pt-5 sm:pt-0 px-4 gap-3 sm:h-9 flex flex-wrap sm:flex-nowrap items-center justify-center">
+          <div className='w-full sm:w-1/3 flex justify-center h-8 sm:h-9 items-center gap-2 sm:gap-4'>
+            <Button 
+              startContent={<MapPin size={20} className="text-[#083d77]" />}
+              className="font-semibold bg-[#ECEAE7] h-full w-full rounded-full p-t text-sm">
+              Via Roma 56, 20134, Milano
+            </Button>
+          </div>
+
+          <div className='w-full sm:w-1/6 h-8 sm:h-auto'>
+            <Tabs
+              color="white"
+              radius="full"
+              size='sm'
+              className="h-full flex justify-center items-center w-full"
+              classNames={{
+                  tabList: "bg-[#ECEAE7] w-full",
+                  tabContent: "text-black",
+                  tab: "data-[selected=true]:font-bold"
+              }}
+              selectedKey={orderType}
+              onSelectionChange={(key) => setOrderType(String(key))}
+            >
+                <Tab key="takeaway" title={
+                  <div className='flex justify-center items-center gap-2'>
+                    <Takeaway size={16} className="text-[#083d77]" />
+                    <span>Takeaway</span>
+                  </div>}
+                />
+                <Tab key="delivery" title={
+                  <div className='flex justify-center items-center gap-2'>
+                    <Delivery size={16} className="text-[#083d77]" />
+                    <span>Delivery</span>
+                  </div>}
+                />
+            </Tabs>
+          </div>
         </div>
         <CategoryNav />
       </header>
@@ -76,6 +115,6 @@ export default function Home() {
           </div>
         </div>
       </main>
-    </>
+    </div>
   );
 }

@@ -111,3 +111,8 @@ export const allergens = [
         "Shellfish",
         "Sesame",
 ];
+
+export const weekDays = [
+    "Monday","Tuesday","Wednesday",
+    "Thursday","Friday","Saturday","Sunday"
+  ];

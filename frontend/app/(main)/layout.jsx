@@ -19,18 +19,27 @@ import { useAuth } from '@/contexts/AuthContext';
 
 export default function Layout({ children }) {
   const router = useRouter();
-  const { user, logout } = useAuth();
-
   const pathname = usePathname();
-  
+  const { user, isAuthenticated, checkAuthStatus, logout } = useAuth();
   const [isLogged, setIsLogged] = useState(null);
   const [accountType, setAccountType] = useState(null);
   const [isManHambMenuOpen, setIsManHambMenuOpen] = useState(false);
 
   useEffect(() => {
-    setIsLogged(user !== null);
-    setAccountType(user?.role);
-  }, [user]);
+        checkAuthStatus();
+    }, [checkAuthStatus]);
+
+  useEffect(() => {
+    if (user || isAuthenticated) {
+      setIsLogged(true);
+      setAccountType(user?.role || null);
+    } else {
+      setIsLogged(false);
+      setAccountType(null);
+    }
+
+    console.log(isLogged + "    " + accountType)
+  }, [user, isAuthenticated]);
 
   const handleToggleManager = () => {
     // Toggle the hamburger menu (manager)
