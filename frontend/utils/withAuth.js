@@ -31,8 +31,10 @@ export function withAuth(PageComponent) {
         // finché non so che va tutto bene, non renderizzo nulla
         if (loading) {
             return (
-                <div className="flex items-center justify-center min-h-screen">
-                    <Spinner size="lg" color='white' />
+                <div className="flex items-center justify-center bg-[#f5f3f5] min-h-screen">
+                    <Spinner className='w-100 h-100' variant="dots" classNames={{
+                        dots: 'bg-[#083d77]',
+                    }} />
                 </div>
             );
         }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Input } from "@heroui/input";
@@ -165,7 +165,10 @@ export default function Register() {
                 placeholder={accountType === "restaurant" ? "Enter the restaurant name" : "Enter your username"}
                 value={username}
                 onChange={(e) => {
-                  setUsername(e.target.value.trim());
+                  const value = accountType === "restaurant"
+                    ? e.target.value
+                    : e.target.value.replace(/\s/g, "");
+                  setUsername(value);
                   if (errors.username) setErrors(prev => ({ ...prev, username: undefined }));
                 }}
                 isInvalid={!!errors.username}

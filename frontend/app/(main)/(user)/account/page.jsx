@@ -14,7 +14,6 @@ import ConfirmDelete from "@/components/ConfirmDelete";
 import { Checkbox } from "@heroui/checkbox";
 import { Select, SelectItem } from "@heroui/select";
 import { courses, areas, allergens } from "@/utils/lists";
-import { card } from "@heroui/theme";
 import { useAuth } from '@/contexts/AuthContext';
 
 function ProfilePage() {
@@ -49,10 +48,10 @@ function ProfilePage() {
   const mock = mockUser;
 
   // stati locali per rendere i campi editabili
-  const [name, setName] = useState(user.name);
-  const [surname, setSurname] = useState(user.surname);
-  const [username, setUsername] = useState(user.username);
-  const [email, setEmail] = useState(user.email);
+  const [name, setName] = useState(user?.name);
+  const [surname, setSurname] = useState(user?.surname);
+  const [username, setUsername] = useState(user?.username);
+  const [email, setEmail] = useState(user?.email);
 
   // Modify these states to use new Set() instead of arrays
   const [userAllergies, setUserAllergies] = useState(new Set([]));
@@ -80,19 +79,10 @@ function ProfilePage() {
   const [cardError, setCardError] = useState("");
   const [savedCards, setSavedCards] = useState([]);
 
-  useEffect(() => {
-    // esegui solo in ambiente client
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("token");
-    if (/*!*/token) {
-      router.push("/auth/login");
-    }
-  }, [router]);
-
   const validateEmail = (email) =>
     email.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
   const invalidEmail = useMemo(() => {
-    if (email === "") return false;
+    if (email === ("" || undefined)) return false;
     return validateEmail(email) ? false : true;
   }, [email]);
 
@@ -264,8 +254,8 @@ function ProfilePage() {
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
-        accountType={mock.accountType}
-        title={`Welcome, ${mock.name}`}
+        accountType={user?.role}
+        title={`Welcome, ${name}`}
       />
 
       <div className="w-full lg:w-2/3 xl:w-1/2 flex flex-col justify-center items-center p-4 pb-10">

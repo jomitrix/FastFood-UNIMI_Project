@@ -150,7 +150,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                     <Dropdown placement="bottom-end">
                         <DropdownTrigger>
                             <Button
-                                
+                                variant="flat"
                                 className="bg-[#083d77] text-white text-sm sm:text-base"
                                 size="sm"
                             >
