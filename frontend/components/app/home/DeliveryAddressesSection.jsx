@@ -1,0 +1,134 @@
+'use client';
+import { useState, useMemo, useEffect } from "react";
+import { Input } from "@heroui/input";
+import { Button } from "@heroui/button";
+import { MapPin } from "@/components/icons/heroicons";
+import { addToast } from "@heroui/toast";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/modal";
+import { ScrollShadow } from "@heroui/scroll-shadow";
+
+export default function DeliveryAddressesSection({
+  addresses = [],
+  isOpen,
+  setIsModalOpen,
+  onSave, // <- callback to Home
+}) {
+  // Start with existing addresses if provided
+  const [entries, setEntries] = useState(() =>
+    addresses.length ? addresses.map((a) => ({ address: a })) : [{ address: "" }]
+  );
+  const [errors, setErrors] = useState([]);
+
+  // keep local state in sync if parent passes a fresh list
+  useEffect(() => {
+    setEntries(addresses.length ? addresses.map((a) => ({ address: a })) : [{ address: "" }]);
+  }, [addresses, isOpen]);
+
+  const validateAddress = (addr) =>
+    addr.match(
+      /^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u
+    );
+
+  const invalidAddress = useMemo(
+    () => entries.map((e) => (e.address === "" ? false : !validateAddress(e.address))),
+    [entries]
+  );
+
+  const handleChange = (i, val) => {
+    const next = [...entries];
+    next[i].address = val;
+    setEntries(next);
+    const errs = [...errors];
+    delete errs[i]?.address;
+    setErrors(errs);
+  };
+
+  const addEntry = () => {
+    setEntries([...entries, { address: "" }]);
+    setErrors([...errors, {}]);
+  };
+
+  const removeEntry = (i) => {
+    setEntries(entries.filter((_, idx) => idx !== i));
+    setErrors(errors.filter((_, idx) => idx !== i));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const newErr = entries.map((ent) => {
+      const err = {};
+      if (!ent.address) err.address = "Address is required";
+      else if (!validateAddress(ent.address)) err.address = "Invalid address format";
+      return err;
+    });
+    setErrors(newErr);
+    if (newErr.some((o) => Object.keys(o).length)) return;
+
+    const cleaned = entries.map((e) => e.address.trim());
+    // pass list back to page.jsx
+    onSave?.(cleaned);
+
+    addToast({
+      title: "Success",
+      description: "Delivery addresses saved successfully!",
+      color: "success",
+      timeout: 5000,
+    });
+
+    setIsModalOpen(false);
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={() => setIsModalOpen(false)}>
+      <ModalContent className="max-w-lg  rounded-b-none sm:rounded-xl m-0">
+        <form onSubmit={handleSubmit}>
+        <ModalHeader className="flex items-center justify-between">
+          <span className="text-xl font-bold">Delivery Addresses</span>
+        </ModalHeader>
+        <ModalBody as={ScrollShadow} className="space-y-6 py-2">
+            {entries.map((ent, i) => (
+              <div key={i} className="flex gap-1 items-end">
+                <Input
+                  label={<span>{`Address ${i+1} `}<span className="text-danger">*</span></span>}
+                  labelPlacement="outside"
+                  placeholder="Example: Via Roma 1, Roma, 00100, Italy"
+                  value={ent.address}
+                  onChange={(e) => handleChange(i, e.target.value)}
+                  isInvalid={!!errors[i]?.address || invalidAddress[i]}
+                  errorMessage={errors[i]?.address || "Format: Road, City, ZIP, Country"}
+                  endContent={<MapPin className="text-2xl text-default-500" />}
+                  size="sm"
+                />
+                {entries.length > 1 && (
+                  <div className="text-right">
+                    <Button
+                      type="button"
+                      color="danger"
+                      size="sm"
+                      onPress={() => removeEntry(i)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
+            <div className="flex flex-col sm:flex-row sm:justify-between gap-3">
+              <Button color="primary" size="md" onPress={addEntry} className=" w-full sm:w-auto">
+                + Add Address
+              </Button>
+            </div>
+        </ModalBody>
+        <ModalFooter className="flex justify-end">
+          <Button variant="ghost" onPress={() => setIsModalOpen(false)}>
+            Annulla
+          </Button>
+          <Button variant="flat" type="submit" className="bg-[#083d77] text-white">
+            Salva
+          </Button>
+        </ModalFooter>
+        </form>
+      </ModalContent>
+    </Modal>
+  );
+}

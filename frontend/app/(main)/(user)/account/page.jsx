@@ -174,7 +174,7 @@ function ProfilePage() {
       return;
     }
     if (!validateAddress(newDeliveryAddress)) {
-      setDeliveryAddressError("Invalid address");
+      setDeliveryAddressError("Format: Road, City, ZIP, Country");
       return;
     }
     setDeliveryAddresses([
@@ -202,7 +202,7 @@ function ProfilePage() {
       return;
     }
     if (!validateAddress(billingAddress)) {
-      setBillingAddressError("Invalid address");
+      setBillingAddressError("Format: Road, City, ZIP, Country");
       return;
     }
     setBillingAddressError("");

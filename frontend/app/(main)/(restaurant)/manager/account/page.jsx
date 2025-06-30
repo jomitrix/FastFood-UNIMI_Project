@@ -98,7 +98,7 @@ function ProfilePage() {
     if (!phone) newErrors.phone = "Phone number required";
     else if (invalidPhone) newErrors.phone = "Invalid phone number";
     if (!address) newErrors.address = "Address required";
-    else if (invalidAddress) newErrors.address = "Invalid address";
+    else if (invalidAddress) newErrors.address = "Format: Road, City, ZIP, Country";
     if (!iva) newErrors.iva = "VAT Number required";
     else if (invalidIva) newErrors.iva = "Invalid VAT Number";
     if (newPassword && newPassword.length < 6)
@@ -229,7 +229,7 @@ function ProfilePage() {
                       setErrors((prev) => ({ ...prev, address: undefined }));
                     }}
                     isInvalid={!!errors.address || invalidAddress}
-                    errorMessage={errors.address || "Invalid address"}
+                    errorMessage={errors.address || "Format: Road, City, ZIP, Country"}
                     type="text"
                     label={
                       <span>
