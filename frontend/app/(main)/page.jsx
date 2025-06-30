@@ -19,21 +19,42 @@ export default function Home() {
 
   // Gli indirizzi ora sono gestiti nello stato del componente
   const [addresses, setAddresses] = useState([
-    "Via Tiburtina 1361, Roma, 00131, Italy",
-    "Piazzale Loreto 9, Milano, 20131, Italy",
-    "Via Dante 20, Poggibonsi, 53036, Italy",
+    {
+      id: 1,
+      address: "Via Tiburtina 1361, Roma, 00131, Italy"
+    },
+    {
+      id: 2,
+      address: "Piazzale Loreto 9, Milano, 20131, Italy"
+    },
+    {
+      id: 3,
+      address: "Via Dante 20, Poggibonsi, 53036, Italy"
+    },
   ]);
   const [addressQuery, setAddressQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState("");
 
   // Memoizzazione del filtro per performance migliori
   const filtered = useMemo(
     () =>
       addressQuery
-        ? addresses.filter((addr) => addr.toLowerCase().includes(addressQuery.toLowerCase()))
+        ? addresses.filter((addr) =>
+            addr.address.toLowerCase().includes(addressQuery.toLowerCase())
+          )
         : addresses,
     [addressQuery, addresses]
   );
+
+  // Funzione per gestire la selezione di un indirizzo
+  const handleSelect = (addr) => {
+    setSelectedAddress(addr);
+    setAddressQuery(addr.address);
+  };
+
+  // Il bottone è abilitato solo se l'indirizzo selezionato è valido
+  const isAddressValid = !!selectedAddress;
 
   return (
     <div className="w-full flex flex-col min-h-screen bg-[#f5f3f5]">
@@ -52,13 +73,18 @@ export default function Home() {
                 <div className="w-full flex items-center relative">
                   <Autocomplete
                     inputValue={addressQuery}
+                    selectorIcon={null}
                     defaultItems={addresses}
                     value={addressQuery}
-                    onInputChange={value => setAddressQuery(value)}
+                    onInputChange={value => {
+                      setAddressQuery(value);
+                      setSelectedAddress(""); // reset se si digita manualmente
+                    }}
                     placeholder="Insert delivery address"
                     radius="lg"
                     size="md"
                     className="w-full"
+                    selectorButtonProps={ { className: "hidden" }}
                     openOnFocus
                     inputProps={{
                       classNames: {
@@ -70,12 +96,13 @@ export default function Home() {
                     <AutocompleteSection title="Your Addresses">
                       {filtered.map(addr => (
                         <AutocompleteItem
-                          key={addr}
-                          value={addr}
-                          textValue={addr}
-                          onPress={() => setAddressQuery(addr)}
+                          key={addr.id}
+                          value={addr.address}
+                          textValue={addr.address}
+                          onPress={() => handleSelect(addr)}
+                          className={selectedAddress?.id === addr.id ? "bg-[#ffe0c2]" : ""}
                         >
-                          {addr}
+                          {addr.address}
                         </AutocompleteItem>
                       ))}
                       <AutocompleteItem
@@ -94,7 +121,8 @@ export default function Home() {
                     className="bg-[#083d77] text-white font-medium -ml-[5.25rem] sm:-ml-[6.5rem] w-0 px-0 sm:w-[6rem] h-[2rem] sm:h-[2.5rem]"
                     startContent={<Search className="text-white flex-shrink-0 m-0" />}
                     radius="md"
-                    onPress={() => router.push("/search")}
+                    isDisabled={!isAddressValid}
+                    onPress={() => router.push(`/search?addressId=${selectedAddress.id}`)}
                   >
                     <span className="hidden sm:block">Search</span>
                   </Button>
@@ -121,10 +149,18 @@ export default function Home() {
         <WaveClean className="h-10 sm:h-20"/>
       </div>
       <DeliveryAddressesSection
-        addresses={addresses}
+        addresses={addresses.map(a => a.address)} // passa solo le stringhe degli indirizzi
         isOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
-        onSave={setAddresses}
+        onSave={(newAddresses) => {
+          // Ricostruisci la lista con id univoci
+          setAddresses(
+            newAddresses.map((address, idx) => ({
+              id: addresses[idx]?.id || Date.now() + idx, // mantieni id se esiste, altrimenti genera
+              address,
+            }))
+          );
+        }}
       />
     </div>
   );
