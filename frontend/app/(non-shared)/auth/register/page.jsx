@@ -20,6 +20,7 @@ export default function Register() {
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [username, setUsername] = useState("");
+  const [restaurantName, setRestaurantName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -45,9 +46,11 @@ export default function Register() {
     const newErrors = {};
     if (!name) newErrors.name = "Name required";
     if (!surname) newErrors.surname = "Surname required";
-    if (!username) newErrors.username = accountType === "restaurant"
-      ? "Restaurant Name required"
-      : "Username required";
+    if (accountType === "restaurant") {
+      if (!restaurantName) newErrors.restaurantName = "Restaurant Name required";
+    } else {
+      if (!username) newErrors.username = "Username required";
+    }
     if (!email) newErrors.email = "Email required";
     else if (!validateEmail(email)) newErrors.email = "Invalid email";
     if (!password) newErrors.password = "Password required";
@@ -61,8 +64,14 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const resp = await register(username, email, password, name, surname);
-      
+      const resp = await register(
+        accountType === "restaurant" ? restaurantName : username,
+        email,
+        password,
+        name,
+        surname
+      );
+
       if (!resp.success) {
         addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger" });
       } else return router.push("/");
@@ -153,29 +162,47 @@ export default function Register() {
                 />
               </div>
 
-              <Input
-                type="text"
-                label={
-                  <span className="font-medium">
-                    {accountType === "restaurant" ? "Restaurant Name" : "Username"}{" "}
-                    <span className="text-danger">*</span>
-                  </span>
-                }
-                labelPlacement="outside"
-                placeholder={accountType === "restaurant" ? "Enter the restaurant name" : "Enter your username"}
-                value={username}
-                onChange={(e) => {
-                  const value = accountType === "restaurant"
-                    ? e.target.value
-                    : e.target.value.replace(/\s/g, "");
-                  setUsername(value);
-                  if (errors.username) setErrors(prev => ({ ...prev, username: undefined }));
-                }}
-                isInvalid={!!errors.username}
-                errorMessage={errors.username}
-                variant="bordered"
-                size="lg"
-              />
+              {accountType === "restaurant" ? (
+                <Input
+                  type="text"
+                  label={
+                    <span className="font-medium">
+                      Restaurant Name <span className="text-danger">*</span>
+                    </span>
+                  }
+                  labelPlacement="outside"
+                  placeholder="Enter the restaurant name"
+                  value={restaurantName}
+                  onChange={(e) => {
+                    setRestaurantName(e.target.value);
+                    if (errors.restaurantName) setErrors(prev => ({ ...prev, restaurantName: undefined }));
+                  }}
+                  isInvalid={!!errors.restaurantName}
+                  errorMessage={errors.restaurantName}
+                  variant="bordered"
+                  size="lg"
+                />
+              ) : (
+                <Input
+                  type="text"
+                  label={
+                    <span className="font-medium">
+                      Username <span className="text-danger">*</span>
+                    </span>
+                  }
+                  labelPlacement="outside"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(e) => {
+                    setUsername(e.target.value.replace(/\s/g, ""));
+                    if (errors.username) setErrors(prev => ({ ...prev, username: undefined }));
+                  }}
+                  isInvalid={!!errors.username}
+                  errorMessage={errors.username}
+                  variant="bordered"
+                  size="lg"
+                />
+              )}
 
               <Input
                 type="email"

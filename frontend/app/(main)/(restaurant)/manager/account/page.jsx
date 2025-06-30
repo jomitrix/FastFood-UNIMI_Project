@@ -44,7 +44,7 @@ function ProfilePage() {
   // stati locali per rendere i campi editabili
   const [name, setName] = useState(restaurantData.name);
   const [surname, setSurname] = useState(restaurantData.surname);
-  const [username, setUsername] = useState(restaurantData.username);
+  const [restaurantName, setRestaurantName] = useState(restaurantData.username);
   const [email, setEmail] = useState(restaurantData.email);
   const [phone, setPhone] = useState(restaurantData.phone || "");
   const [address, setAddress] = useState(restaurantData.address || "");
@@ -90,9 +90,9 @@ function ProfilePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
+    if (!restaurantName) newErrors.restaurantName = "Restaurant Name required"; // era username
     if (!name) newErrors.name = "Name required";
     if (!surname) newErrors.surname = "Surname required";
-    if (!username) newErrors.username = "Restaurant Name required";
     if (!email) newErrors.email = "Email required";
     else if (invalidEmail) newErrors.email = "Invalid email";
     if (!phone) newErrors.phone = "Phone number required";
@@ -178,14 +178,14 @@ function ProfilePage() {
                     Resturant Details
                   </h3>
                   <Input
-                    value={username}
+                    value={restaurantName}
                     onChange={(e) => {
-                      setUsername(e.target.value);
+                      setRestaurantName(e.target.value);
                       setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, username: undefined }));
+                      setErrors((prev) => ({ ...prev, restaurantName: undefined }));
                     }}
-                    isInvalid={!!errors.username}
-                    errorMessage={errors.username}
+                    isInvalid={!!errors.restaurantName}
+                    errorMessage={errors.restaurantName}
                     type="text"
                     label={
                       <span>
