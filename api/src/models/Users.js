@@ -15,7 +15,18 @@ const UserSchema = new mongoose.Schema({
         preferredFoodTypes: { type: [String], default: [] },
         preferredCuisines: { type: [String], default: [] },
         specialOffersFeed: { type: Boolean, default: true },
-    }
+    },
+
+    billingAddress: { type: String, default: "" },
+
+    delivery: {
+        type: [{
+            name: { type: String, trim: true, default: "" },
+            surname: { type: String, trim: true, default: "" },
+            address: { type: String, trim: true, default: "" },
+        }],
+        default: [],
+    },
 }, { timestamps: true });
 
 UserSchema.index({ deletedAt: 1 }, { expireAfterSeconds: 1 * 24 * 60 * 60 }); // 1 day

@@ -8,9 +8,8 @@ export const ApiService = {
     return Cookies.get(storageKey) || null;
   },
 
-  saveToken(token) {
-    console.log('Saving token:', token);
-    Cookies.set(storageKey, token, {
+  async saveToken(token) {
+    return await Cookies.set(storageKey, token, {
       expires: 7,
       secure: true,
       sameSite: 'Strict',
@@ -72,6 +71,22 @@ export const ApiService = {
     const url = `${baseUrl}${path}`;
     const opts = {
       method: 'PUT',
+      // credentials: 'include',
+      headers: useAuth
+        ? this._buildHeaders(true, headers)
+        : { 'Content-Type': 'application/json', ...headers },
+      body: body != null ? JSON.stringify(body) : undefined,
+    };
+    const res = await fetch(url, opts);
+    const text = await res.text();
+    try { return JSON.parse(text); }
+    catch { return text; }
+  },
+
+  async patch(path, { headers = {}, body = null, useAuth = true } = {}) {
+    const url = `${baseUrl}${path}`;
+    const opts = {
+      method: 'PATCH',
       // credentials: 'include',
       headers: useAuth
         ? this._buildHeaders(true, headers)

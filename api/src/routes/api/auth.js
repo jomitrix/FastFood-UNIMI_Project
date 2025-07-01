@@ -14,13 +14,13 @@ router.post("/login", validate(validator.loginSchema), async (req, res, next) =>
     try {
         const { email, password } = req.body;
 
-        const user = await Users.findOne({ email });
-        if (!user) return res.status(400).send({ status: "error", error: "Credenziali non valide" });
+        const user = await Users.findOne({ email }).lean();
+        if (!user) return res.status(400).send({ status: "error", error: "Invalid credentials" });
 
         let validUser = await bcrypt.compare(password, user.password);
-        if (!validUser) return res.status(400).send({ status: "error", error: "Credenziali non valide" });
+        if (!validUser) return res.status(400).send({ status: "error", error: "Invalid credentials" });
 
-        if (user.deleted) return res.status(400).send({ status: "error", error: "Utente in fase di eliminazione" });
+        if (user.deleted) return res.status(400).send({ status: "error", error: "User is being deleted" });
 
         let token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);
 
@@ -35,10 +35,10 @@ router.post("/register", validate(validator.registerSchema), async (req, res, ne
         const betterEmail = email.toLowerCase();
 
         const emailExists = await Users.findOne({ email: betterEmail });
-        if (emailExists) return res.status(400).send({ status: "error", error: "Questa email è già registrata" });
+        if (emailExists) return res.status(400).send({ status: "error", error: "Email already in use" });
 
         const usernameExists = await Users.findOne({ username });
-        if (usernameExists) return res.status(400).send({ status: "error", error: "Username già utilizzato" });
+        if (usernameExists) return res.status(400).send({ status: "error", error: "Username already taken" });
 
         let hashedPassword = await bcrypt.hash(password, 10);
 

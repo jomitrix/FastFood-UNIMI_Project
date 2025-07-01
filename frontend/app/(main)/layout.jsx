@@ -52,8 +52,8 @@ export default function Layout({ children }) {
     setIsManHambMenuOpen
   }
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/auth/login");
   }
 

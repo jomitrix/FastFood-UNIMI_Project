@@ -1,5 +1,4 @@
-// services/authService.js
-import { ApiService } from './apiService';
+import { ApiService } from '@/services/apiService';
 
 export const AuthService = {
     login(email, password) {
@@ -28,8 +27,8 @@ export const AuthService = {
         return Promise.resolve();
     },
 
-    storeToken(token) {
-        return ApiService.saveToken(token);
+    async storeToken(token) {
+        return await ApiService.saveToken(token);
     },
 
     getToken() {
