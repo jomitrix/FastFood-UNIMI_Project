@@ -191,20 +191,14 @@ function ProfilePage() {
       setDeliveryAddressError("Format: Road, City, ZIP, Country");
       return;
     }
-    setDeliveryAddresses([
-      ...deliveryAddresses,
-      {
-        name: newShippingName,
-        surname: newShippingSurname,
-        address: newDeliveryAddress,
-      }
-    ]);
 
     const data = await UserService.editDelivery(newShippingName, newShippingSurname, newDeliveryAddress);
 
     if (!data || data.status !== "success") {
       return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
     }
+
+    setDeliveryAddresses(data.delivery);
 
     setNewShippingName("");
     setNewShippingSurname("");
@@ -268,15 +262,6 @@ function ProfilePage() {
     ) {
       return;
     }
-    setSavedCards((prev) => [
-      ...prev,
-      {
-        cardName,
-        cardHolder,
-        last4: cardNumber.slice(-4),
-        exp: cardExpiry,
-      },
-    ]);
 
     const data = await UserService.editCards(
       cardName,
@@ -289,6 +274,8 @@ function ProfilePage() {
     if (!data || data.status !== "success") {
       return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
     }
+
+    setSavedCards(data.cards);
 
     addToast({ title: "Success", description: "Carta salvata!", color: "success" });
     setCardName("");
