@@ -27,6 +27,17 @@ const UserSchema = new mongoose.Schema({
         }],
         default: [],
     },
+
+    cards: {
+        type: [{
+            name: { type: String, trim: true, default: "" },
+            holder: { type: String, trim: true, default: "" },
+            number: { type: String, trim: true, default: "" },
+            expiry: { type: String, trim: true, default: "" },
+            cvv: { type: String, trim: true, default: "" },
+        }],
+        default: [],
+    }
 }, { timestamps: true });
 
 UserSchema.index({ deletedAt: 1 }, { expireAfterSeconds: 1 * 24 * 60 * 60 }); // 1 day

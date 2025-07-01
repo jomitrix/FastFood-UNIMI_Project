@@ -27,5 +27,19 @@ export const UserService = {
 
     deleteDelivery(deliveryId) {
         return ApiService.delete(`/user/delivery/${deliveryId}/delete`);
+    },
+
+    editCards(name, holder, number, expiry, cvv) {
+        return ApiService.patch('/user/cards/edit', {
+            body: { name, holder, number, expiry, cvv }
+        });
+    },
+
+    deleteCard(cardId) {
+        return ApiService.delete(`/user/cards/${cardId}/delete`);
+    },
+
+    deleteAccount() {
+        return ApiService.delete('/user/account/delete');
     }
 };
