@@ -49,8 +49,6 @@ router.patch("/preferences/edit", authStrict, validate(validator.preferencesEdit
     try {
         const { allergens, preferredFoodTypes, preferredCuisines, specialOffersFeed } = req.body;
 
-        console.log(specialOffersFeed);
-
         const updateFields = {};
         if (allergens) updateFields["preferences.allergens"] = allergens;
         if (preferredFoodTypes) updateFields["preferences.preferredFoodTypes"] = preferredFoodTypes;
