@@ -9,7 +9,7 @@ export default function HorizontalScroller({ title, children }) {
 
   return (
     <section className="mb-10">
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">{title}</h2>
         <div className="space-x-2 hidden sm:block">
           <button onClick={() => scroll(-1)}>
@@ -21,7 +21,7 @@ export default function HorizontalScroller({ title, children }) {
         </div>
       </div>
 
-      <div ref={ref} className="flex space-x-4 overflow-x-auto scrollbar-hide pb-2">
+      <div ref={ref} className="flex space-x-4 overflow-x-auto scrollbar-hide py-4">
         {children}
       </div>
     </section>

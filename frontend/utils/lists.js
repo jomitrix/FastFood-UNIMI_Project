@@ -54,6 +54,7 @@ export const courses = [
     { name: "Chicken", icon: "https://wp-cdn.typhur.com/wp-content/uploads/2024/02/roasted-chicken-500x500.jpg" },
     { name: "Dessert", icon: "https://www.cookingclassy.com/wp-content/uploads/2022/08/tiramisu-17-500x500.jpg" },
     { name: "First Course", icon: "https://www.ristoranteselmi22.it/wp-content/uploads/2023/09/gnocchi-patate-gamberi.jpg" },
+    { name: "Fish", icon: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Finsanelygoodrecipes.com%2Fwp-content%2Fuploads%2F2022%2F08%2FVegan-Salmon-Sushi-Sashimi-and-Maki-Rolls-500x500.jpg&f=1&nofb=1&ipt=1ebee3d6b29ce405c08a21a7ce3a7ec2875ed77bfe967b9dc537ffbe3dcb51ad" },
     { name: "Goat", icon: "https://lh4.googleusercontent.com/proxy/q0nQT627YtxIWzNJzM-BY47BH0speCRfgsawxxlUefKlZBLFX6mPbz7qSJAkNk8EtpLVrRB0Uw1SOLLT0xAkz46xfhnQkCT5DQmlWLsBlBok7jYvU0EBRdRn_g2afOJzplqy4hThuf5B22HIrNF0DQQ" },
     { name: "Lamb", icon: "https://urbanfarmandkitchen.com/wp-content/uploads/2023/12/pulled-lamb-12-500x500.jpg" },
     { name: "Main Course", icon: "https://garlicsaltandlime.com/wp-content/uploads/2025/05/Air-Fryer-Salmon-Bites-15-500x500.jpg" },
@@ -68,12 +69,15 @@ export const courses = [
 ];
 
 export const areas = [
+        "African",
         "American",
+        "Asian",
         "British",
         "Canadian",
         "Chinese",
         "Croatian",
         "Dutch",
+        "European",
         "Egyptian",
         "Filipino",
         "French",

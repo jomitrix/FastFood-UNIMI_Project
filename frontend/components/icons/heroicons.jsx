@@ -560,8 +560,23 @@ const CheckMark = ({ size = 24, width, height, ...props }) => (
     </svg>
 );
 
+const Time = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        strokeWidth="1.5" 
+        stroke="currentColor" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+    </svg>
+);
+
 export { Eye, EyeClosed, Profile, Login, Logout, Restaurant, Search, Home, Email, Handle,
     Storefront, ChevronRight, Dashboard, Takeaway, Delivery, Hamburger, Orders,
     Meals, Phone, Briefcase, MapPin, MoveUp, MoveDown, Edit, Draggable, Plus,
     ChefHat, Pizza, Upload, Flag, ForkKnife, ExclShield, Points, CreditCard,
-    Funnel, Star, CheckMark };
+    Funnel, Star, CheckMark, Time };

@@ -57,17 +57,17 @@ export default function CategoryNav({ onCategoriesChange }) {
   };
 
   return (
-    <div className="relative w-full shadow-lg shadow-black/[20%]">
+    <div className="relative flex items-center justify-center w-full shadow-lg shadow-black/[20%]">
       {showLeftArrow && (
-        <button 
-          onClick={() => scroll('left')} 
-          className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full shadow-md p-2 z-10"
+        <button
+          onClick={() => scroll("left")}
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full shadow-md p-2 z-10"
           aria-label="Left scroll"
         >
           <ChevronRight className="text-gray-700 rotate-180" />
         </button>
       )}
-      
+
       <ScrollShadow
         ref={scrollContainerRef}
         hideScrollBar={true}
@@ -98,11 +98,11 @@ export default function CategoryNav({ onCategoriesChange }) {
           );
         })}
       </ScrollShadow>
-      
+
       {showRightArrow && (
-        <button 
-          onClick={() => scroll('right')} 
-          className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 rounded-full shadow-md p-2 z-10"
+        <button
+          onClick={() => scroll("right")}
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full shadow-md p-2 z-10"
           aria-label="Right scroll"
         >
           <ChevronRight className="text-gray-700" />

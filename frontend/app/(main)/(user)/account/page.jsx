@@ -38,27 +38,30 @@ function ProfilePage() {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // stati locali per rendere i campi editabili
-  const [name, setName] = useState(user.name);
-  const [surname, setSurname] = useState(user.surname);
-  const [username, setUsername] = useState(user.username);
-  const [email, setEmail] = useState(user.email);
+  const [name, setName] = useState(user?.name);
+  const [surname, setSurname] = useState(user?.surname);
+  const [username, setUsername] = useState(user?.username);
+  const [email, setEmail] = useState(user?.email);
 
   // Modify these states to use new Set() instead of arrays
-  const [userAllergies, setUserAllergies] = useState(user.preferences.allergens || new Set([]));
-  const [preferredCourses, setPreferredCourses] = useState(user.preferences.preferredFoodTypes || new Set([]));
-  const [preferredAreas, setPreferredAreas] = useState(user.preferences.preferredCuisines || new Set([]));
-  const [offersOptIn, setOffersOptIn] = useState(user.preferences.specialOffersFeed ?? true);
+  const [userAllergies, setUserAllergies] = useState(user?.preferences.allergens || new Set([]));
+  const [preferredCourses, setPreferredCourses] = useState(user?.preferences.preferredFoodTypes || new Set([]));
+  const [preferredAreas, setPreferredAreas] = useState(user?.preferences.preferredCuisines || new Set([]));
+  const [offersOptIn, setOffersOptIn] = useState(user?.preferences.specialOffersFeed ?? true);
 
   // Stato per indirizzo di fatturazione
-  const [billingAddress, setBillingAddress] = useState(user.billingAddress || "");
+  const [billingAddress, setBillingAddress] = useState(user?.billingAddress || "");
   const [billingAddressError, setBillingAddressError] = useState("");
+  const [isBillingChanged, setIsBillingChanged] = useState(false);
 
   // Stato per indirizzi di spedizione (lista)
-  const [deliveryAddresses, setDeliveryAddresses] = useState(user.delivery || []);
+  const [deliveryAddresses, setDeliveryAddresses] = useState(user?.delivery || []);
   const [newShippingName, setNewShippingName] = useState("");
   const [newShippingSurname, setNewShippingSurname] = useState("");
   const [newDeliveryAddress, setNewDeliveryAddress] = useState("");
   const [deliveryAddressError, setDeliveryAddressError] = useState("");
+  const [isAddingDeliveryAddress, setIsAddingDeliveryAddress] = useState(false);
+  const [isAddingCard, setIsAddingCard] = useState(false);
 
   // Stato per metodo di pagamento (solo carta)
   const [cardName, setCardName] = useState("");
@@ -67,7 +70,7 @@ function ProfilePage() {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCVC, setCardCVC] = useState("");
   const [cardError, setCardError] = useState("");
-  const [savedCards, setSavedCards] = useState(user.cards || []);
+  const [savedCards, setSavedCards] = useState(user?.cards || []);
 
   const validateEmail = (email) =>
     email.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
@@ -207,6 +210,7 @@ function ProfilePage() {
     setNewShippingSurname("");
     setNewDeliveryAddress("");
     setDeliveryAddressError("");
+    setIsAddingDeliveryAddress(false);
   };
 
   const handleRemoveDeliveryAddress = async (id) => {
@@ -234,6 +238,7 @@ function ProfilePage() {
       return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
     }
 
+    setIsBillingChanged(false);
     setBillingAddressError("");
     addToast({
       title: "Success",
@@ -291,6 +296,7 @@ function ProfilePage() {
     setCardNumber("");
     setCardExpiry("");
     setCardCVC("");
+    setIsAddingCard(false);
   };
 
   const handleRemoveCard = async (id) => {
@@ -674,6 +680,7 @@ function ProfilePage() {
                 value={billingAddress}
                 onChange={(e) => {
                   setBillingAddress(e.target.value);
+                  setIsBillingChanged(e.target.value !== user?.billingAddress);
                   setBillingAddressError("");
                 }}
                 isInvalid={invalidBillingAddress}
@@ -688,7 +695,7 @@ function ProfilePage() {
                 size="lg"
                 radius="sm"
                 className="self-start"
-                isDisabled={invalidBillingAddress || billingAddress === ""}
+                isDisabled={invalidBillingAddress || !isBillingChanged}
               >
                 Save Billing Address
               </Button>
@@ -724,61 +731,89 @@ function ProfilePage() {
               </div>
 
               {/* form aggiunta spedizione */}
-              <form onSubmit={handleAddDeliveryAddress} className="flex flex-col gap-4">
-                <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
-                  <Input
-                    label="Name"
-                    labelPlacement="outside"
-                    placeholder="Name"
-                    value={newShippingName}
-                    onChange={(e) => setNewShippingName(e.target.value)}
-                    radius="sm"
-                    size="lg"
-                    className="w-full md:w-1/2"
-                  />
-                  <Input
-                    label="Surname"
-                    labelPlacement="outside"
-                    placeholder="Surname"
-                    value={newShippingSurname}
-                    onChange={(e) => setNewShippingSurname(e.target.value)}
-                    radius="sm"
-                    size="lg"
-                    className="w-full md:w-1/2"
-                  />
-                </div>
-                <Input
-                  label="Delivery Address"
-                  placeholder="Example: Via Roma 1, Roma, 00100, Italy"
-                  value={newDeliveryAddress}
-                  onChange={(e) => {
-                    setNewDeliveryAddress(e.target.value);
-                    setDeliveryAddressError("");
-                  }}
-                  isInvalid={invalidNewDeliveryAddress}
-                  errorMessage={
-                    invalidNewDeliveryAddress && "Invalid delivery address"
-                  }
-                  labelPlacement="outside"
-                  radius="sm"
-                  size="lg"
-                />
+              {!isAddingDeliveryAddress && (
                 <Button
-                  type="submit"
+                  onPress={() => setIsAddingDeliveryAddress(true)}
                   color="primary"
                   size="lg"
                   radius="sm"
                   className="self-start"
-                  isDisabled={
-                    invalidNewDeliveryAddress ||
-                    !newShippingName ||
-                    !newShippingSurname ||
-                    !newDeliveryAddress
-                  }
                 >
                   Add Delivery Address
                 </Button>
-              </form>
+              )}
+              {isAddingDeliveryAddress && (
+                <form onSubmit={handleAddDeliveryAddress} className="flex flex-col gap-4">
+                  <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
+                    <Input
+                      label="Name"
+                      labelPlacement="outside"
+                      placeholder="Name"
+                      value={newShippingName}
+                      onChange={(e) => setNewShippingName(e.target.value)}
+                      radius="sm"
+                      size="lg"
+                      className="w-full md:w-1/2"
+                    />
+                    <Input
+                      label="Surname"
+                      labelPlacement="outside"
+                      placeholder="Surname"
+                      value={newShippingSurname}
+                      onChange={(e) => setNewShippingSurname(e.target.value)}
+                      radius="sm"
+                      size="lg"
+                      className="w-full md:w-1/2"
+                    />
+                  </div>
+                  <Input
+                    label="Delivery Address"
+                    placeholder="Example: Via Roma 1, Roma, 00100, Italy"
+                    value={newDeliveryAddress}
+                    onChange={(e) => {
+                      setNewDeliveryAddress(e.target.value);
+                      setDeliveryAddressError("");
+                    }}
+                    isInvalid={invalidNewDeliveryAddress}
+                    errorMessage={
+                      invalidNewDeliveryAddress && "Invalid delivery address"
+                    }
+                    labelPlacement="outside"
+                    radius="sm"
+                    size="lg"
+                  />
+                  <div className="flex gap-2 self-start">
+                    <Button
+                      type="submit"
+                      color="primary"
+                      size="lg"
+                      radius="sm"
+                      isDisabled={
+                        invalidNewDeliveryAddress ||
+                        !newShippingName ||
+                        !newShippingSurname ||
+                        !newDeliveryAddress
+                      }
+                    >
+                      Save Address
+                    </Button>
+                    <Button
+                      color="default"
+                      size="lg"
+                      radius="sm"
+                      onPress={() => {
+                        setIsAddingDeliveryAddress(false);
+                        setNewShippingName("");
+                        setNewShippingSurname("");
+                        setNewDeliveryAddress("");
+                        setDeliveryAddressError("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              )}
             </CardBody>
           </Card>
 
@@ -802,12 +837,12 @@ function ProfilePage() {
                     >
                       <div className="flex-1">
                         <div className="font-semibold">
-                          {card.name}
+                          {card.cardName}
                         </div>
                         <div className="text-sm">
-                          Holder: {card.holder}
+                          Holder: {card.cardHolder}
                         </div>
-                        <div className="text-sm">•••• •••• •••• {card.number.slice(-4)} – {card.expiry}</div>
+                        <div className="text-sm">•••• •••• •••• {card.last4} – {card.exp}</div>
                       </div>
                       <Button
                         color="danger"
@@ -826,89 +861,118 @@ function ProfilePage() {
               <Divider className="w-[90%] self-center bg-black/10" />
 
               {/* ────── FORM AGGIUNTA CARTA ────── */}
-              <form onSubmit={handleAddCard} className="flex flex-col gap-4">
-                <Input
-                  label="Card Name"
-                  labelPlacement="outside"
-                  placeholder="Card Name"
-                  value={cardName}
-                  onChange={(e) => setCardName(e.target.value)}
-                  isInvalid={cardName !== "" && cardName.length < 2}
-                  errorMessage="Invalid card name"
-                  radius="sm"
-                  size="lg"
-                />
-                <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
-                  <Input
-                    label="Card Holder"
-                    labelPlacement="outside"
-                    placeholder="Card Holder"
-                    value={cardHolder}
-                    onChange={(e) => setCardHolder(e.target.value)}
-                    isInvalid={cardHolder !== "" && cardHolder.length < 2}
-                    errorMessage="Invalid card holder"
-                    radius="sm"
-                    size="lg"
-                  />
-                  <Input
-                    label="Card Number"
-                    labelPlacement="outside"
-                    placeholder="Example: 1234 5678 9012 3456"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value.replace(/[^\d ]/g, ""))}
-                    isInvalid={cardNumber !== "" && !validateCardNumber(cardNumber)}
-                    errorMessage="Invalid card number"
-                    endContent={<CreditCard className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    maxLength={19}
-                    radius="sm"
-                    size="lg"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Input
-                    label="Expires"
-                    labelPlacement="outside"
-                    placeholder="MM/YY"
-                    value={cardExpiry}
-                    onChange={(e) => setCardExpiry(e.target.value.replace(/[^\d/]/g, ""))}
-                    isInvalid={cardExpiry !== "" && !validateCardExpiry(cardExpiry)}
-                    errorMessage="MM/YY Format"
-                    maxLength={5}
-                    radius="sm"
-                    size="lg"
-                    className="w-1/2"
-                  />
-                  <Input
-                    label="CVC"
-                    labelPlacement="outside"
-                    placeholder="123"
-                    value={cardCVC}
-                    onChange={(e) => setCardCVC(e.target.value.replace(/[^\d]/g, ""))}
-                    isInvalid={cardCVC !== "" && !validateCardCVC(cardCVC)}
-                    errorMessage="3-4 digits"
-                    maxLength={4}
-                    radius="sm"
-                    size="lg"
-                    className="w-1/2"
-                  />
-                </div>
+              {!isAddingCard && (
                 <Button
-                  type="submit"
+                  onPress={() => setIsAddingCard(true)}
                   color="primary"
                   size="lg"
                   radius="sm"
                   className="self-start"
-                  isDisabled={
-                    !cardName ||
-                    !cardHolder ||
-                    !validateCardNumber(cardNumber) ||
-                    !validateCardExpiry(cardExpiry) ||
-                    !validateCardCVC(cardCVC)
-                  }
                 >
-                  Aggiungi Carta
+                  Add Card
                 </Button>
-              </form>
+              )}
+              {isAddingCard && (
+                <form onSubmit={handleAddCard} className="flex flex-col gap-4">
+                  <Input
+                    label="Card Name"
+                    labelPlacement="outside"
+                    placeholder="Card Name"
+                    value={cardName}
+                    onChange={(e) => setCardName(e.target.value)}
+                    isInvalid={cardName !== "" && cardName.length < 2}
+                    errorMessage="Invalid card name"
+                    radius="sm"
+                    size="lg"
+                  />
+                  <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
+                    <Input
+                      label="Card Holder"
+                      labelPlacement="outside"
+                      placeholder="Card Holder"
+                      value={cardHolder}
+                      onChange={(e) => setCardHolder(e.target.value)}
+                      isInvalid={cardHolder !== "" && cardHolder.length < 2}
+                      errorMessage="Invalid card holder"
+                      radius="sm"
+                      size="lg"
+                    />
+                    <Input
+                      label="Card Number"
+                      labelPlacement="outside"
+                      placeholder="Example: 1234 5678 9012 3456"
+                      value={cardNumber}
+                      onChange={(e) => setCardNumber(e.target.value.replace(/[^\d ]/g, ""))}
+                      isInvalid={cardNumber !== "" && !validateCardNumber(cardNumber)}
+                      errorMessage="Invalid card number"
+                      endContent={<CreditCard className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                      maxLength={19}
+                      radius="sm"
+                      size="lg"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Input
+                      label="Expires"
+                      labelPlacement="outside"
+                      placeholder="MM/YY"
+                      value={cardExpiry}
+                      onChange={(e) => setCardExpiry(e.target.value.replace(/[^\d/]/g, ""))}
+                      isInvalid={cardExpiry !== "" && !validateCardExpiry(cardExpiry)}
+                      errorMessage="MM/YY Format"
+                      maxLength={5}
+                      radius="sm"
+                      size="lg"
+                      className="w-1/2"
+                    />
+                    <Input
+                      label="CVC"
+                      labelPlacement="outside"
+                      placeholder="123"
+                      value={cardCVC}
+                      onChange={(e) => setCardCVC(e.target.value.replace(/[^\d]/g, ""))}
+                      isInvalid={cardCVC !== "" && !validateCardCVC(cardCVC)}
+                      errorMessage="3-4 digits"
+                      maxLength={4}
+                      radius="sm"
+                      size="lg"
+                      className="w-1/2"
+                    />
+                  </div>
+                  <div className="flex gap-2 self-start">
+                    <Button
+                      type="submit"
+                      color="primary"
+                      size="lg"
+                      radius="sm"
+                      isDisabled={
+                        !cardName ||
+                        !cardHolder ||
+                        !validateCardNumber(cardNumber) ||
+                        !validateCardExpiry(cardExpiry) ||
+                        !validateCardCVC(cardCVC)
+                      }
+                    >
+                      Save Card
+                    </Button>
+                    <Button
+                      color="default"
+                      size="lg"
+                      radius="sm"
+                      onPress={() => {
+                        setIsAddingCard(false);
+                        setCardName("");
+                        setCardHolder("");
+                        setCardNumber("");
+                        setCardExpiry("");
+                        setCardCVC("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              )}
             </CardBody>
           </Card>
 

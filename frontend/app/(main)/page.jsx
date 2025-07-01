@@ -11,6 +11,8 @@ import {
 import { Search, Meals, Login } from "@/components/icons/heroicons";
 import { WaveClean } from "@/components/waves";
 import { useAuth } from "@/contexts/AuthContext";
+import HorizontalScroller from "@/components/app/search/HorizontalScroller";
+import RestaurantCard from "@/components/app/search/RestaurantCard";
 import DeliveryAddressesSection from "../../components/app/home/DeliveryAddressesSection";
 
 export default function Home() {
@@ -32,9 +34,38 @@ export default function Home() {
       address: "Via Dante 20, Poggibonsi, 53036, Italy"
     },
   ]);
+
+  const mockTastesRest = [
+    {
+      img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
+      restaurantname: "Sushi Feltre",
+      minDeliveryTime: 10,
+      maxDeliveryTime: 20,
+      courses: ["Fish", "Starter", "Main Course", "First Course"],
+      area: ["Japanese", "Chinese", "Asian"],
+      allergens: ["Milk", "Egg", "Peanut"],
+      rating: 4.5,
+      isOpenNow: true,
+      orderType: "both",
+    },
+    {
+      img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
+      restaurantname: "Pizzeria da Mario",
+      minDeliveryTime: 20,
+      maxDeliveryTime: 40,
+      courses: ["Pizza", "Italian"],
+      area: ["Italian"],
+      allergens: ["Gluten", "Milk"],
+      rating: 4.8,
+      isOpenNow: false,
+      orderType: "delivery",
+    }
+  ];
+
   const [addressQuery, setAddressQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState("");
+  const userOptedIn = user?.preferences.specialOffersFeed;
 
   // Memoizzazione del filtro per performance migliori
   const filtered = useMemo(
@@ -58,7 +89,7 @@ export default function Home() {
 
   return (
     <div className="w-full flex flex-col min-h-screen bg-[#f5f3f5]">
-      <div className="w-full bg-[#ff8844] flex items-center justify-center pb-5 md:pb-0 lg:pb-10">
+      <div className="w-full bg-[#ff8844] flex items-center justify-center pb-2 md:pb-0">
         <div className="w-full flex flex-col md:flex-row text-center md:text-left items-center lg:w-3/5 p-5 lg:p-0 gap-10">
           <img src="/images/burger.png" alt="Burger" className="w-[50%] md:w-1/2" />
           <div className="flex flex-col w-[90%] md:w-1/2 -mt-8 md:mt-0 md:w-1/2 gap-2 md:gap-3 lg:gap-5 items-center md:items-start ">
@@ -163,6 +194,24 @@ export default function Home() {
       <div className="w-full">
         <WaveClean className="h-10 sm:h-20"/>
       </div>
+      
+      {/* Sezione per i ristoranti consigliati in base ai gusti (da vedere solo in opt-in) 
+      Li mostra in base alla vicinanza degli indirizzi inseriti, quando cliccato rimanda
+      all'ordine con quell'indirizzo*/}
+      { userOptedIn && (
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <HorizontalScroller title="Based on your tastes">
+            {mockTastesRest.map((r) => (
+              <RestaurantCard
+                key={r.restaurantname}
+                {...r}
+                className="w-72 shrink-0"
+                />
+            ))}
+          </HorizontalScroller>
+        </div>
+      ) }
+
       <DeliveryAddressesSection
         addresses={addresses.map(a => a.address)}
         isOpen={isModalOpen}

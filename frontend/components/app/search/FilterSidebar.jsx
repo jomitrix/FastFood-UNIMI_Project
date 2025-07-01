@@ -4,37 +4,31 @@ import { Funnel, XCircle } from '@/components/icons/heroicons';
 import { Badge } from '@heroui/badge';
 import { Checkbox } from '@heroui/checkbox';
 import { Accordion, AccordionItem } from '@heroui/accordion';
-import { RadioGroup, Radio } from '@heroui/radio';
 import { areas, allergens } from "@/utils/lists";
 import { Button } from '@heroui/button';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/modal";
 
 export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, setIsDrawerOpen, isMobile = false }) {
-  // Stati per i vari filtri
   const [isOpenNow, setIsOpenNow] = useState(false);
   const [selectedAllergens, setSelectedAllergens] = useState([]);
   const [selectedCuisines, setSelectedCuisines] = useState([]);
   
-  // Memorizzo l'oggetto dei filtri attivi per evitare ricreazioni ad ogni render
   const activeFilters = useMemo(() => ({
     isOpenNow,
     selectedAllergens,
     selectedCuisines
   }), [isOpenNow, selectedAllergens, selectedCuisines]);
 
-  // Invia i filtri al componente padre quando cambiano
   useEffect(() => {
     if (onFiltersChange) {
       onFiltersChange(activeFilters);
     }
   }, [activeFilters, onFiltersChange]);
 
-  // Conteggio dei filtri attivi
   const activeFilterCount = Object.values(activeFilters).filter(value => 
     value === true || (Array.isArray(value) && value.length > 0)
   ).length;
 
-  // Gestione delle allergie selezionate
   const handleAllergenChange = (allergen) => {
     setSelectedAllergens(prev => {
       if (prev.includes(allergen)) {
@@ -45,7 +39,6 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
     });
   };
 
-  // Gestione delle cuisine selezionate
   const handleCuisineChange = (cuisine) => {
     setSelectedCuisines(prev => {
       if (prev.includes(cuisine)) {
@@ -56,29 +49,26 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
     });
   };
 
-  // Resetta tutti i filtri
   const resetFilters = () => {
     setIsOpenNow(false);
     setSelectedAllergens([]);
     setSelectedCuisines([]);
   };
 
-  // Se è in modalità mobile, mostriamo un Modal
   if (isMobile) {
     return (
       <Modal 
         isOpen={isDrawerOpen} 
         onOpenChange={setIsDrawerOpen}
         placement="bottom"
-        className="h-[85vh] max-h-[85vh]"
+        className="h-[85vh]"
       >
-        <ModalContent className=' rounded-b-none sm:rounded-lg m-0'>
+        <ModalContent className=' rounded-b-none sm:rounded-lg m-0 w-full max-h-[66vh]'>
           <ModalHeader >
             <h2 className="font-bold text-lg">Filters</h2>
           </ModalHeader>
           
           <ModalBody className="overflow-auto py-4 px-4">
-            {/* Sezione checkbox */}
             <div>
               <h3 className="font-medium mb-3 text-gray-700">Preferences</h3>
               <div className="space-y-4">
@@ -93,9 +83,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
               </div>
             </div>
 
-            {/* Sezione accordions */}
             <Accordion className="mt-4">
-              {/* Sezione Cuisine */}
               <AccordionItem
                 key="cuisines"
                 aria-label="Preferred Cuisine"
@@ -103,8 +91,8 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
                 title={
                   <span className="font-medium">Preferred Cuisine</span>
                 }
-                className="accordion-item" // Aggiunto per uniformare l'animazione
-                classNames={{             // Aggiunto per uniformare l'animazione
+                className="accordion-item"
+                classNames={{
                   content: "py-1",
                   trigger: "py-2",
                   indicator: "text-gray-500"
@@ -123,7 +111,6 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
                   ))}
                 </div>
               </AccordionItem>
-              {/* Sezione Allergie */}
               <AccordionItem
                 key="allergens"
                 aria-label="Exclude Allergens"
@@ -158,7 +145,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
             <div className="w-full flex justify-between">
               {activeFilterCount > 0 ? (
                 <Button 
-                  onClick={resetFilters}
+                  onPress={resetFilters}
                   variant="light"
                   className="text-sm font-medium text-orange-600 hover:text-orange-700"
                 >
@@ -168,7 +155,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
                 <div></div>
               )}
               <Button 
-                onClick={() => setIsDrawerOpen(false)}
+                onPress={() => setIsDrawerOpen(false)}
                 color="warning"
                 className="bg-[#ff8844] text-white"
               >
@@ -181,7 +168,6 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
     );
   }
   
-  // Altrimenti, mostriamo la sidebar desktop
   return (
     <aside className="hidden lg:block w-64 shrink-0 pt-6 pr-8">
       <div className="flex items-center justify-between mb-6">
@@ -192,7 +178,6 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
       </div>
 
       <div className="space-y-4">
-        {/* Sezione checkbox */}
         <div>
           <h3 className="font-medium mb-3 text-gray-700">Preferences</h3>
           <div className="space-y-4">
@@ -207,10 +192,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
           </div>
         </div>
 
-        {/* Sezione accordions */}
         <Accordion>
-          
-          {/* Sezione Cuisine */}
           <AccordionItem
             key="cuisines"
             aria-label="Preferred Cuisine"
@@ -238,7 +220,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
               ))}
             </div>
           </AccordionItem>
-          {/* Sezione Allergie */}
+
           <AccordionItem
             key="allergens"
             aria-label="Exclude Allergens"
@@ -267,8 +249,6 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
             </div>
           </AccordionItem>
         </Accordion>
-        
-        {/* Altre sezioni di filtro possono essere aggiunte qui */}
         
         {activeFilterCount > 0 && (
           <button 

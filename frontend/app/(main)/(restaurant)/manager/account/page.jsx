@@ -14,6 +14,7 @@ import { addToast } from "@heroui/toast";
 import { weekDays } from "@/utils/lists";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import ConfirmDelete from "@/components/ConfirmDelete";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -33,6 +34,11 @@ export default function ProfilePage() {
   const [deleteInput, setDeleteInput] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+  const [profileImage, setProfileImage] = useState(null);
+  const [bannerImage, setBannerImage] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [bannerImagePreview, setBannerImagePreview] = useState(null);
 
   const restaurantData = {
     name: "Luca",
@@ -199,6 +205,38 @@ export default function ProfilePage() {
   const handleCancelHoursAndService = () => {
     setStagedHours(openingHours);
     setStagedServiceMode(serviceMode);
+  };
+
+  const handleProfileImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(file);
+      setProfileImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleBannerImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setBannerImage(file);
+      setBannerImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const handleImageUpload = (type) => {
+    addToast({
+      title: "Success",
+      description: `${type} image uploaded successfully.`,
+      color: "success",
+      timeout: 4000,
+    });
+    if (type === 'Profile') {
+      setProfileImage(null);
+      setProfileImagePreview(null);
+    } else {
+      setBannerImage(null);
+      setBannerImagePreview(null);
+    }
   };
 
   return (
@@ -553,6 +591,68 @@ export default function ProfilePage() {
                   </>
                 )}
               </form>
+            </Card>
+
+            <Card className="w-full p-4 sm:p-8">
+              <CardHeader className="font-bold text-2xl">
+                Images
+              </CardHeader>
+              <div className="w-full my-3 flex justify-center">
+                <Divider className="w-[90%] bg-black/10" />
+              </div>
+              <CardBody className="flex flex-col gap-8">
+                <div>
+                  <h3 className="text-lg font-bold">Profile Picture</h3>
+                  <p>This will appear on the order list.</p>
+                  <p className="text-sm text-default-500 mb-2">Recommended size: 400x400px.</p>
+                  <div className="flex flex-col sm:flex-row items-center gap-4">
+                    <div className="w-32 h-32 rounded-full bg-default-200 flex items-center justify-center overflow-hidden">
+                      {profileImagePreview ? (
+                        <Image src={profileImagePreview} alt="Profile preview" width={128} height={128} className="object-cover w-full h-full" />
+                      ) : (
+                        <span className="text-default-500">Preview</span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button as="label" variant="flat" radius="sm">
+                        Choose file
+                        <input type="file" accept="image/*" className="hidden" onChange={handleProfileImageChange} />
+                      </Button>
+                      {profileImage && (
+                        <Button color="primary" radius="sm" onPress={() => handleImageUpload('Profile')} >
+                          Upload
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="text-lg font-bold">Banner Image</h3>
+                  <p>This will appear on the search page.</p>
+                  <p className="text-sm text-default-500 mb-2">Recommended size: 1200x675px (16:9).</p>
+                  <div className="flex flex-col gap-4">
+                    <div className="aspect-video w-full sm:w-2/3 rounded-md bg-default-200 flex items-center justify-center overflow-hidden">
+                      {bannerImagePreview ? (
+                        <Image src={bannerImagePreview} alt="Banner preview" width={1200} height={675} className="object-cover w-full h-full" />
+                      ) : (
+                        <span className="text-default-500">Preview</span>
+                      )}
+                    </div>
+                    <div className="flex flex-row gap-2">
+                      <Button as="label" variant="flat" radius="sm">
+                        Choose file
+                        <input type="file" accept="image/*" className="hidden" onChange={handleBannerImageChange} />
+                      </Button>
+                      {bannerImage && (
+                        <Button color="primary" radius="sm" onPress={() => handleImageUpload('Banner')}>
+                          Upload
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </CardBody>
             </Card>
 
             <Card className="w-full p-4 sm:p-8">
