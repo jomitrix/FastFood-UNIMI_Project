@@ -100,24 +100,24 @@ export default function OnboardingPreferences() {
               {/* Preferred Food Categories */}
               <div className="flex flex-col gap-1">
                 <Select
-                  items={courses.map(item => ({ value: item, label: item }))}
-                  variant="bordered"
-                  label={<span className="font-medium">Preferred Food Categories</span>}
-                  labelPlacement="outside"
-                  placeholder="Select preferred categories"
-                  selectionMode="multiple"
-                  selectedKeys={categories}
-                  onSelectionChange={setCategories}
-                  className="w-full"
-                  radius="sm"
-                  size="lg"
-                >
-                  {(item) => (
-                    <SelectItem key={item.value} value={item.value}>
-                      {item.label}
-                    </SelectItem>
-                  )}
-                </Select>
+                    items={courses.map(item => ({ value: item.name, label: item.name }))}
+                    variant="bordered"
+                    label={<span className="font-medium">Preferred Food Categories</span>}
+                    labelPlacement="outside"
+                    placeholder="Select preferred categories"
+                    selectionMode="multiple"
+                    selectedKeys={categories}
+                    onSelectionChange={setCategories}
+                    className="w-full"
+                    radius="sm"
+                    size="lg"
+                  >
+                    {(item) => (
+                      <SelectItem key={item.value} value={item.value}>
+                        {item.label}
+                      </SelectItem>
+                    )}
+                  </Select>
                 <p className="text-sm text-default-500">
                   Select your favorite food categories
                 </p>

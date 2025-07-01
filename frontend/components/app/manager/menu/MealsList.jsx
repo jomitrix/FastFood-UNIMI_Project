@@ -121,6 +121,12 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
         }
     };
 
+    // Trasformiamo i dati nel formato corretto per i Select
+    const formattedCourses = courses.map(course => ({
+        value: course.name,
+        label: course.name
+    }));
+
     return (
         <div className="w-full mt-0 flex flex-col items-center justify-center w-full h-full">
             {/* Meals List */}
@@ -291,7 +297,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                 isOpen={isModalOpen === "new"} 
                 onClose={() => setIsModalOpen(null)}
                 onSubmit={(newMeal) => handleAddMeal(newMeal)}
-                courses={courses}
+                courses={formattedCourses}
                 areas={areas}
                 allergens={allergens}
             />
@@ -303,7 +309,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                 mealData={selectedMeal}
                 onSubmit={handleUpdateMeal}
                 onDelete={handleDeleteMeal}
-                courses={courses}
+                courses={formattedCourses}
                 areas={areas}
                 allergens={allergens}
             />

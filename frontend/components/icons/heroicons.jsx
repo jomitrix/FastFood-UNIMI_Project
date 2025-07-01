@@ -545,8 +545,23 @@ const Star = ({ size = 24, width, height, ...props }) => (
     </svg>
 );
 
+const CheckMark = ({ size = 24, width, height, ...props }) => (
+    <svg 
+        xmlns="http://www.w3.org/2000/svg" 
+        fill="none" 
+        viewBox="0 0 24 24" 
+        strokeWidth="1.5" 
+        stroke="currentColor" 
+        width={width || size}
+        height={height || size}
+        {...props}
+    >
+        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+    </svg>
+);
+
 export { Eye, EyeClosed, Profile, Login, Logout, Restaurant, Search, Home, Email, Handle,
     Storefront, ChevronRight, Dashboard, Takeaway, Delivery, Hamburger, Orders,
     Meals, Phone, Briefcase, MapPin, MoveUp, MoveDown, Edit, Draggable, Plus,
     ChefHat, Pizza, Upload, Flag, ForkKnife, ExclShield, Points, CreditCard,
-    Funnel, Star };
+    Funnel, Star, CheckMark };

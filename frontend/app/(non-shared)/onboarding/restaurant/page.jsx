@@ -6,34 +6,35 @@ import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { WaveClean } from "@/components/waves";
-import { Phone, MapPin, Briefcase } from "@/components/icons/heroicons";
+import { Phone, MapPin, Briefcase, Storefront } from "@/components/icons/heroicons";
 
 export default function OnboardingPreferences() {
   const router = useRouter();
 
-  /* ────────────────────────  STATE  ──────────────────────── */
+  const [restaurantName, setRestaurantName] = useState("");
   const [address, setAddress]         = useState("");
   const [phone, setPhone]         = useState("");
   const [vat,   setVat]           = useState("");
   const [errors, setErrors]       = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  /* ─────────────  SEMPLICI FUNZIONI DI VALIDAZIONE  ───────────── */
-  const validateAddress = (v) => /^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u.test(v);
+  const validateAddress = (v) => /^(?=.{15,200}$)([\p{L}0-9.''\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u.test(v);
   const invalidAddress  = useMemo(() => address && !validateAddress(address), [address]);
 
   const validatePhone = (v) => /^\+(?:[0-9] ?){6,14}[0-9]$/.test(v);
   const invalidPhone  = useMemo(() => phone && !validatePhone(phone), [phone]);
 
-  const validateVat   = (v) => /^\d{11}$/.test(v);               // IT-style P.IVA (11 cifre)
+  const validateVat   = (v) => /^\d{11}$/.test(v);
   const invalidVat    = useMemo(() => vat && !validateVat(vat), [vat]);
 
-  /* ──────────────────────  SUBMIT  ────────────────────── */
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErr = {};
-    if (!address)           newErr.email = "Address required";
-    else if (invalidAddress) newErr.email = "Invalid email";
+    
+    if (!restaurantName) newErr.restaurantName = "Restaurant name required";
+    
+    if (!address)           newErr.address = "Address required";
+    else if (invalidAddress) newErr.address = "Invalid address";
 
     if (!phone)           newErr.phone = "Phone required";
     else if (invalidPhone) newErr.phone = "Invalid phone";
@@ -44,13 +45,13 @@ export default function OnboardingPreferences() {
     if (Object.keys(newErr).length) { setErrors(newErr); return; }
 
     setIsLoading(true);
-    // ↳ invia i dati al server …
-    // await fetch(...)
+    
+    //api
+
     setIsLoading(false);
-    router.push("/manager/dashboard");        // oppure dov’è previsto atterrare
+    router.push("/manager/dashboard");
   };
 
-  /* ─────────────────────────  UI  ───────────────────────── */
   return (
     <div className="flex flex-col min-h-screen bg-[#f5f3f5]">
       <WaveClean />
@@ -71,8 +72,20 @@ export default function OnboardingPreferences() {
 
           <CardBody className="px-6 py-6">
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+              <Input
+                type="text"
+                value={restaurantName}
+                onChange={(e) => { setRestaurantName(e.target.value); setErrors(p => ({ ...p, restaurantName: undefined })); }}
+                isInvalid={!!errors.restaurantName}
+                errorMessage={errors.restaurantName}
+                label={<span className="font-medium">Nome Ristorante</span>}
+                placeholder="es. Ristorante da Mario"
+                labelPlacement="outside"
+                radius="sm"
+                size="lg"
+                endContent={<Storefront className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+              />
 
-              {/* Phone number */}
               <Input
                 type="tel"
                 value={phone}
@@ -87,7 +100,6 @@ export default function OnboardingPreferences() {
                 endContent={<Phone className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
               />
 
-              {/* Address */}
               <Input
                     value={address}
                     onChange={(e) => {
@@ -110,7 +122,6 @@ export default function OnboardingPreferences() {
                     size="lg"
                   />
 
-              {/* VAT number */}
               <Input
                 type="text"
                 value={vat}
@@ -125,7 +136,6 @@ export default function OnboardingPreferences() {
                 endContent={<Briefcase className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
               />
 
-              {/* Save button */}
               <Button
                 type="submit"
                 size="lg"
