@@ -67,7 +67,7 @@ function ProfilePage() {
   const [cardExpiry, setCardExpiry] = useState("");
   const [cardCVC, setCardCVC] = useState("");
   const [cardError, setCardError] = useState("");
-  const [savedCards, setSavedCards] = useState([]);
+  const [savedCards, setSavedCards] = useState(user.cards || []);
 
   const validateEmail = (email) =>
     email.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
@@ -240,7 +240,7 @@ function ProfilePage() {
     [newDeliveryAddress]
   );
 
-  const handleAddCard = (e) => {
+  const handleAddCard = async (e) => {
     e.preventDefault();
     if (
       !cardName ||
@@ -260,6 +260,19 @@ function ProfilePage() {
         exp: cardExpiry,
       },
     ]);
+
+    const data = await UserService.editCards(
+      cardName,
+      cardHolder,
+      cardNumber,
+      cardExpiry,
+      cardCVC
+    );
+
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
+
     addToast({ title: "Success", description: "Carta salvata!", color: "success" });
     setCardName("");
     setCardHolder("");
@@ -267,6 +280,15 @@ function ProfilePage() {
     setCardExpiry("");
     setCardCVC("");
   };
+
+  const handleRemoveCard = async (id) => {
+    const data = await UserService.deleteCard(id);
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
+
+    setSavedCards((prev) => prev.filter((card) => card._id !== id));
+  }
 
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
@@ -761,27 +783,25 @@ function ProfilePage() {
                 {savedCards.length === 0 ? (
                   <p className="text-gray-500">No cards saved.</p>
                 ) : (
-                  savedCards.map(({ cardName, cardHolder, last4, exp }, idx) => (
+                  savedCards.map((card, idx) => (
                     <div
                       key={idx}
                       className="flex flex-col gap-2 sm:flex-row sm:items-center border p-2 rounded-md bg-gray-50"
                     >
                       <div className="flex-1">
                         <div className="font-semibold">
-                          {cardName}
+                          {card.name}
                         </div>
                         <div className="text-sm">
-                          Holder: {cardHolder}
+                          Holder: {card.holder}
                         </div>
-                        <div className="text-sm">•••• •••• •••• {last4} – {exp}</div>
+                        <div className="text-sm">•••• •••• •••• {card.number.slice(-4)} – {card.expiry}</div>
                       </div>
                       <Button
                         color="danger"
                         size="sm"
                         radius="sm"
-                        onPress={() =>
-                          setSavedCards((prev) => prev.filter((_, i) => i !== idx))
-                        }
+                        onPress={() => handleRemoveCard(card._id)}
                       >
                         Remove
                       </Button>

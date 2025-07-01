@@ -86,9 +86,18 @@ const deliveryEditSchema = Joi.object({
     address: Joi.string().min(5).max(100).trim().required()
 });
 
+const cardsEditSchema = Joi.object({
+    name: Joi.string().min(2).max(30).trim().required(),
+    holder: Joi.string().min(2).max(30).trim().required(),
+    number: Joi.string().length(16).pattern(/^[0-9]+$/).required(),
+    expiry: Joi.string().length(5).pattern(/^(0[1-9]|1[0-2])\/\d{2}$/).required(), // MM/YY format
+    cvv: Joi.string().length(3).pattern(/^[0-9]+$/).required()
+});
+
 module.exports = {
     accountEditSchema,
     preferencesEditSchema,
     billingEditSchema,
-    deliveryEditSchema
+    deliveryEditSchema,
+    cardsEditSchema
 };

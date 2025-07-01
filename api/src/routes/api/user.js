@@ -112,4 +112,41 @@ router.delete("/delivery/:deliveryId/delete", authStrict, async (req, res, next)
     } catch (err) { next(err); }
 });
 
+router.patch("/cards/edit", authStrict, validate(validator.cardsEditSchema), async (req, res, next) => {
+    try {
+        const { name, holder, number, expiry, cvv } = req.body;
+
+        if (req.user.cards?.length >= 5) return res.status(400).send({ status: "error", error: "Maximum of 5 cards allowed" });
+
+        const newCard = { name, holder, number, expiry, cvv };
+        const updatedUser = await Users.findByIdAndUpdate(
+            req.user._id,
+            { $push: { cards: newCard } },
+            { new: true }
+        );
+
+        if (!updatedUser) return res.status(404).send({ status: "error", error: "User not found" });
+
+        res.send({ status: "success", cards: updatedUser.cards });
+    } catch (err) { next(err); }
+});
+
+router.delete("/cards/:cardId/delete", authStrict, async (req, res, next) => {
+    try {
+        const { cardId } = req.params;
+
+        if (!mongoose.Types.ObjectId.isValid(cardId)) return res.status(400).send({ status: "error", error: "Invalid card ID" });
+
+        const updatedUser = await Users.findByIdAndUpdate(
+            req.user._id,
+            { $pull: { cards: { _id: cardId } } },
+            { new: true }
+        );
+
+        if (!updatedUser) return res.status(404).send({ status: "error", error: "User not found" });
+
+        res.send({ status: "success", cards: updatedUser.cards });
+    } catch (err) { next(err); }
+});
+
 module.exports = router;
