@@ -37,5 +37,9 @@ export const UserService = {
 
     deleteCard(cardId) {
         return ApiService.delete(`/user/cards/${cardId}/delete`);
+    },
+
+    deleteAccount() {
+        return ApiService.delete('/user/account/delete');
     }
 };

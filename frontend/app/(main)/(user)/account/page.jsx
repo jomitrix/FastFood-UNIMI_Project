@@ -19,7 +19,7 @@ import { UserService } from '@/services/userService';
 
 function ProfilePage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
 
   const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible(!isVisible);
@@ -160,9 +160,21 @@ function ProfilePage() {
     setIsDeleteModalOpen(true);
   };
 
-  const handleDelete = (e) => {
-    // Simula cancellazione account e logout
-    /*localStorage.removeItem("token");*/
+  const handleDelete = async (e) => {
+    const data = await UserService.deleteAccount();
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
+
+    await logout();
+
+    addToast({
+      title: "Success",
+      description: "Account deleted successfully!",
+      color: "success",
+      timeout: 5000,
+      shouldShowTimeoutProgress: true,
+    });
     router.push("/auth/login");
   };
 

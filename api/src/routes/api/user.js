@@ -149,4 +149,17 @@ router.delete("/cards/:cardId/delete", authStrict, async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+router.delete("/account/delete", authStrict, async (req, res, next) => {
+    try {
+        const user = await Users.findById(req.user._id);
+        if (!user) return res.status(404).send({ status: "error", error: "User not found" });
+
+        user.deleted = true;
+        user.deletedAt = new Date();
+        await user.save();
+
+        res.send({ status: "success" });
+    } catch (err) { next(err); }
+});
+
 module.exports = router;
