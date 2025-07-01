@@ -75,7 +75,7 @@ export default function OnboardingPreferences() {
               {/* Preferred Food Categories */}
               <div className="flex flex-col gap-1">
                 <Select
-                    items={courses.map(item => ({ value: item, label: item }))}
+                    items={courses.map(item => ({ value: item.name, label: item.name }))}
                     variant="bordered"
                     label={<span className="font-medium">Preferred Food Categories</span>}
                     labelPlacement="outside"

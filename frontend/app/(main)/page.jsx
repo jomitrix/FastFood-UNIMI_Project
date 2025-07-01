@@ -8,7 +8,7 @@ import {
   AutocompleteSection,
   AutocompleteItem,
 } from "@heroui/autocomplete";
-import { Search, Meals } from "@/components/icons/heroicons";
+import { Search, Meals, Login } from "@/components/icons/heroicons";
 import { WaveClean } from "@/components/waves";
 import { useAuth } from "@/contexts/AuthContext";
 import DeliveryAddressesSection from "../../components/app/home/DeliveryAddressesSection";
@@ -68,80 +68,95 @@ export default function Home() {
             <h3 className="text-xl md:text:3xl lg:text-4xl">
               {user?.role !== "restaurant" ? "Order now!" : "Set up your menu now!"}
             </h3>
-            { user?.role !== "restaurant" ? (
-              <div className="w-full flex flex-col items-center md:items-start">
-                <div className="w-full flex items-center relative">
-                  <Autocomplete
-                    inputValue={addressQuery}
-                    selectorIcon={null}
-                    defaultItems={addresses}
-                    value={addressQuery}
-                    onInputChange={value => {
-                      setAddressQuery(value);
-                      setSelectedAddress(""); // reset se si digita manualmente
-                    }}
-                    placeholder="Insert delivery address"
-                    radius="lg"
-                    size="md"
-                    className="w-full"
-                    selectorButtonProps={ { className: "hidden" }}
-                    openOnFocus
-                    inputProps={{
-                      classNames: {
-                        inputWrapper: "py-4 sm:py-7",
-                        input: "mr-[1.5rem] sm:mr-[3rem]",
-                      }
-                    }}
-                  >
-                    <AutocompleteSection title="Your Addresses">
-                      {filtered.map(addr => (
-                        <AutocompleteItem
-                          key={addr.id}
-                          value={addr.address}
-                          textValue={addr.address}
-                          onPress={() => handleSelect(addr)}
-                          className={selectedAddress?.id === addr.id ? "bg-[#ffe0c2]" : ""}
-                        >
-                          {addr.address}
-                        </AutocompleteItem>
-                      ))}
-                      <AutocompleteItem
-                        key="add-new"
-                        className="text-[#083d77] mt-1"
-                        classNames={{title: "font-semibold"}}
-                        title="+ Add new Address"
-                        onPress={() => { setIsModalOpen(true), setTimeout(() => setAddressQuery(""), 100); }}
-                      />
-                    </AutocompleteSection>
-                  </Autocomplete>
-
-                  <Button
-                    variant="solid"
-                    color="default"
-                    className="bg-[#083d77] text-white font-medium -ml-[5.25rem] sm:-ml-[6.5rem] w-0 px-0 sm:w-[6rem] h-[2rem] sm:h-[2.5rem]"
-                    startContent={<Search className="text-white flex-shrink-0 m-0" />}
-                    radius="md"
-                    isDisabled={!isAddressValid}
-                    onPress={() => router.push(`/search?addressId=${selectedAddress.id}`)}
-                  >
-                    <span className="hidden sm:block">Search</span>
-                  </Button>
-                </div>
-              </div>
-            ) : (
+            { !user && (
               <Button
-                placeholder="Search restaurants and dishes"
                 variant="solid"
+                startContent={<Login />}
                 color="default"
                 className="w-full bg-black text-white"
-                startContent={<Meals />}
-                isClearable
                 size="lg"
-                onPress={() => router.push("/manager/menu")}
+                onPress={() => router.push("/auth/login")}
               >
-                Manage your menu
+                Login
               </Button>
             )}
+
+            {user?.role === "user" && (
+                <div className="w-full flex flex-col items-center md:items-start">
+                  <div className="w-full flex items-center relative">
+                    <Autocomplete
+                      inputValue={addressQuery}
+                      selectorIcon={null}
+                      defaultItems={addresses}
+                      value={addressQuery}
+                      onInputChange={value => {
+                        setAddressQuery(value);
+                        setSelectedAddress(""); // reset se si digita manualmente
+                      }}
+                      placeholder="Insert delivery address"
+                      radius="lg"
+                      size="md"
+                      className="w-full"
+                      selectorButtonProps={ { className: "hidden" }}
+                      openOnFocus
+                      inputProps={{
+                        classNames: {
+                          inputWrapper: "py-4 sm:py-7",
+                          input: "mr-[1.5rem] sm:mr-[3rem]",
+                        }
+                      }}
+                    >
+                      <AutocompleteSection title="Your Addresses">
+                        {filtered.map(addr => (
+                          <AutocompleteItem
+                            key={addr.id}
+                            value={addr.address}
+                            textValue={addr.address}
+                            onPress={() => handleSelect(addr)}
+                            className={selectedAddress?.id === addr.id ? "bg-[#ffe0c2]" : ""}
+                          >
+                            {addr.address}
+                          </AutocompleteItem>
+                        ))}
+                        <AutocompleteItem
+                          key="add-new"
+                          className="text-[#083d77] mt-1"
+                          classNames={{title: "font-semibold"}}
+                          title="+ Add new Address"
+                          onPress={() => { setIsModalOpen(true), setTimeout(() => setAddressQuery(""), 100); }}
+                        />
+                      </AutocompleteSection>
+                    </Autocomplete>
+
+                    <Button
+                      variant="solid"
+                      color="default"
+                      className="bg-[#083d77] text-white font-medium -ml-[5.25rem] sm:-ml-[6.5rem] w-0 px-0 sm:w-[6rem] h-[2rem] sm:h-[2.5rem]"
+                      startContent={<Search className="text-white flex-shrink-0 m-0" />}
+                      radius="md"
+                      isDisabled={!isAddressValid}
+                      onPress={() => router.push(`/search?addressId=${selectedAddress.id}`)}
+                    >
+                      <span className="hidden sm:block">Search</span>
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {user?.role === "restaurant" && (
+                <Button
+                  placeholder="Search restaurants and dishes"
+                  variant="solid"
+                  color="default"
+                  className="w-full bg-black text-white"
+                  startContent={<Meals />}
+                  isClearable
+                  size="lg"
+                  onPress={() => router.push("/manager/menu")}
+                >
+                  Manage your menu
+                </Button>
+              )}
           </div>
         </div>
       </div>
@@ -149,14 +164,13 @@ export default function Home() {
         <WaveClean className="h-10 sm:h-20"/>
       </div>
       <DeliveryAddressesSection
-        addresses={addresses.map(a => a.address)} // passa solo le stringhe degli indirizzi
+        addresses={addresses.map(a => a.address)}
         isOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
         onSave={(newAddresses) => {
-          // Ricostruisci la lista con id univoci
           setAddresses(
             newAddresses.map((address, idx) => ({
-              id: addresses[idx]?.id || Date.now() + idx, // mantieni id se esiste, altrimenti genera
+              id: addresses[idx]?.id || Date.now() + idx,
               address,
             }))
           );

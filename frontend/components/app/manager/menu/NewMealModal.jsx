@@ -212,8 +212,8 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                 }}
                             >
                                 {courses.map((course) => (
-                                    <SelectItem key={course} value={course}>
-                                        {course}
+                                    <SelectItem key={course.value || course} value={course.value || course}>
+                                        {course.label || course}
                                     </SelectItem>
                                 ))}
                             </Select>

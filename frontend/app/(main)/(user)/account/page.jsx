@@ -536,7 +536,7 @@ function ProfilePage() {
 
               <div>
                 <Select
-                  items={courses.map(item => ({ value: item, label: item }))}
+                  items={courses.map(item => ({ value: item.name, label: item.name }))}
                   label="Preferred Food Categories"
                   labelPlacement="outside"
                   placeholder="Select preferred categories"
