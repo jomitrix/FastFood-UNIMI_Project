@@ -96,8 +96,7 @@ export const areas = [
         "Turkish",
         "Ukrainian",
         "Uruguayan",
-        "Vietnamese",
-        "Unknown",
+        "Vietnamese"
 ];
 
 export const allergens = [

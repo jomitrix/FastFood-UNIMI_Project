@@ -12,7 +12,7 @@ export function AuthProvider({ children }) {
   const getUser = useCallback(async () => {
     try {
       const data = await AuthService.getUser();
-      if (data && !data.error) setUser(data.user);
+      if (data && data.status === "success") setUser(data.user);
     } catch (e) {
       return { success: false, error: e.message };
     }
@@ -38,12 +38,12 @@ export function AuthProvider({ children }) {
   const login = useCallback(async (email, password) => {
     try {
       const data = await AuthService.login(email, password);
-      if (!data || data.error) return { success: false, error: data.error };
+      if (!data || data.status !== "success") return { success: false, error: data.error ?? 'Login failed' };
 
       const { token } = data;
       if (!token) return { success: false, error: 'Login failed' };
 
-      AuthService.storeToken(token);
+      await AuthService.storeToken(token);
       setIsAuthenticated(true);
       return { success: true };
     } catch (e) {
@@ -54,12 +54,12 @@ export function AuthProvider({ children }) {
   const register = useCallback(async (username, email, password, name, surname) => {
     try {
       const data = await AuthService.register(username, email, password, name, surname);
-      if (!data || data.error) return { success: false, error: data.error };
+      if (!data || data.status !== "success") return { success: false, error: data.error ?? 'Registration failed' };
 
       const { token } = data;
       if (!token) return { success: false, error: 'Registrazione failed' };
 
-      AuthService.storeToken(token);
+      await AuthService.storeToken(token);
       setIsAuthenticated(true);
       return { success: true };
     } catch (e) {

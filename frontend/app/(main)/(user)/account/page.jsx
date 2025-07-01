@@ -15,6 +15,7 @@ import { Checkbox } from "@heroui/checkbox";
 import { Select, SelectItem } from "@heroui/select";
 import { courses, areas, allergens } from "@/utils/lists";
 import { useAuth } from '@/contexts/AuthContext';
+import { UserService } from '@/services/userService';
 
 function ProfilePage() {
   const router = useRouter();
@@ -36,35 +37,24 @@ function ProfilePage() {
   const [deleteError, setDeleteError] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-  // dati iniziali mock
-  const mockUser = {
-    name: "John",
-    surname: "Glovo",
-    email: "john.glovo@example.com",
-    username: "JohnGlovo",
-    accountType: "user"
-  };
-
-  const mock = mockUser;
-
   // stati locali per rendere i campi editabili
-  const [name, setName] = useState(user?.name);
-  const [surname, setSurname] = useState(user?.surname);
-  const [username, setUsername] = useState(user?.username);
-  const [email, setEmail] = useState(user?.email);
+  const [name, setName] = useState(user.name);
+  const [surname, setSurname] = useState(user.surname);
+  const [username, setUsername] = useState(user.username);
+  const [email, setEmail] = useState(user.email);
 
   // Modify these states to use new Set() instead of arrays
-  const [userAllergies, setUserAllergies] = useState(new Set([]));
-  const [preferredCourses, setPreferredCourses] = useState(new Set([]));
-  const [preferredAreas, setPreferredAreas] = useState(new Set([]));
-  const [offersOptIn, setOffersOptIn] = useState(false);
+  const [userAllergies, setUserAllergies] = useState(user.preferences.allergens || new Set([]));
+  const [preferredCourses, setPreferredCourses] = useState(user.preferences.preferredFoodTypes || new Set([]));
+  const [preferredAreas, setPreferredAreas] = useState(user.preferences.preferredCuisines || new Set([]));
+  const [offersOptIn, setOffersOptIn] = useState(user.preferences.specialOffersFeed ?? true);
 
   // Stato per indirizzo di fatturazione
-  const [billingAddress, setBillingAddress] = useState("");
+  const [billingAddress, setBillingAddress] = useState(user.billingAddress || "");
   const [billingAddressError, setBillingAddressError] = useState("");
 
   // Stato per indirizzi di spedizione (lista)
-  const [deliveryAddresses, setDeliveryAddresses] = useState([]);
+  const [deliveryAddresses, setDeliveryAddresses] = useState(user.delivery || []);
   const [newShippingName, setNewShippingName] = useState("");
   const [newShippingSurname, setNewShippingSurname] = useState("");
   const [newDeliveryAddress, setNewDeliveryAddress] = useState("");
@@ -87,7 +77,7 @@ function ProfilePage() {
   }, [email]);
 
   // Regex validazione indirizzo
-  const validateAddress = (address) => 
+  const validateAddress = (address) =>
     address.match(/^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u);
 
   // Regex validazione carta (base)
@@ -95,18 +85,15 @@ function ProfilePage() {
   const validateCardExpiry = (exp) => exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
   const validateCardCVC = (cvc) => cvc.match(/^\d{3,4}$/);
 
-  const handleSubmit = (e) => {
-    // Check if e exists and has preventDefault method before calling it
+  const editAccount = async (e) => {
     if (e && typeof e.preventDefault === 'function') {
       e.preventDefault();
     }
-    
+
     const newErrors = {};
     if (!name) newErrors.name = "Name required";
     if (!surname) newErrors.surname = "Surname required";
     if (!username) newErrors.username = "Username required";
-    if (!email) newErrors.email = "Email required";
-    else if (invalidEmail) newErrors.email = "Invalid email";
     if (newPassword && newPassword.length < 6)
       newErrors.newPassword = "Password must be at least 6 characters";
     if (newPassword && newPassword !== confirmNewPassword)
@@ -118,28 +105,41 @@ function ProfilePage() {
       setErrors(newErrors);
       return;
     }
-    
-    // Convert Sets to arrays for the API request
-    const updatedUserData = {
-      name,
-      surname,
-      username,
-      email,
-      allergies: Array.from(userAllergies),
-      preferredCourses: Array.from(preferredCourses),
-      preferredAreas: Array.from(preferredAreas),
-      offersOptIn,
-    };
-    
-    // invia la richiesta di aggiornamento...
-    console.log("Updated user data:", updatedUserData);
-    
+
+    const data = await UserService.editAccount(username, name, surname, newPassword, currentPassword);
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
+
     setIsUserChanged(false);
     setCurrentPassword("");
     setNewPassword("");
     setConfirmNewPassword("");
 
-    console.log(updatedUserData);
+    addToast({
+      title: "Success",
+      description: "Changes saved successfully!",
+      color: "success",
+      timeout: 5000,
+      shouldShowTimeoutProgress: true,
+    });
+  };
+
+  const editPreferences = async (e) => {
+    if (e && typeof e.preventDefault === 'function') {
+      e.preventDefault();
+    }
+
+    const data = await UserService.editPreferences(
+      Array.from(userAllergies),
+      Array.from(preferredCourses),
+      Array.from(preferredAreas),
+      offersOptIn
+    );
+
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
 
     addToast({
       title: "Success",
@@ -156,7 +156,7 @@ function ProfilePage() {
       setDeleteError('You must type "DELETE" to confirm');
       return;
     }
-    
+
     setIsDeleteModalOpen(true);
   };
 
@@ -166,8 +166,7 @@ function ProfilePage() {
     router.push("/auth/login");
   };
 
-  // Handler aggiunta indirizzo spedizione
-  const handleAddDeliveryAddress = (e) => {
+  const handleAddDeliveryAddress = async (e) => {
     e.preventDefault();
     if (!newShippingName || !newShippingSurname || !newDeliveryAddress) {
       setDeliveryAddressError("All fields required");
@@ -185,18 +184,30 @@ function ProfilePage() {
         address: newDeliveryAddress,
       }
     ]);
+
+    const data = await UserService.editDelivery(newShippingName, newShippingSurname, newDeliveryAddress);
+
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
+
     setNewShippingName("");
     setNewShippingSurname("");
     setNewDeliveryAddress("");
     setDeliveryAddressError("");
   };
 
-  const handleRemoveDeliveryAddress = (idx) => {
-    setDeliveryAddresses(deliveryAddresses.filter((_, i) => i !== idx));
+  const handleRemoveDeliveryAddress = async (id) => {
+    const data = await UserService.deleteDelivery(id);
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
+
+    setDeliveryAddresses(deliveryAddresses.filter((e) => e._id !== id));
   };
 
   // Handler salvataggio indirizzo di fatturazione
-  const handleSaveBillingAddress = (e) => {
+  const handleSaveBillingAddress = async (e) => {
     if (!billingAddress) {
       setBillingAddressError("Billing address required");
       return;
@@ -205,6 +216,12 @@ function ProfilePage() {
       setBillingAddressError("Format: Road, City, ZIP, Country");
       return;
     }
+
+    const data = await UserService.editBilling(billingAddress);
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
+
     setBillingAddressError("");
     addToast({
       title: "Success",
@@ -276,7 +293,7 @@ function ProfilePage() {
               <Divider className="w-[90%] flex bg-black/10" />
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={editAccount}>
               <CardBody className="flex flex-col gap-4">
                 <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
                   <Input
@@ -350,7 +367,7 @@ function ProfilePage() {
                 <Input
                   value={email}
                   isDisabled
-                  classNames={{input: "cursor-not-allowed pointer-events-auto",}}
+                  classNames={{ input: "cursor-not-allowed pointer-events-auto", }}
                   isInvalid={!!errors.email || invalidEmail}
                   errorMessage={errors.email || "Invalid email"}
                   type="email"
@@ -379,10 +396,11 @@ function ProfilePage() {
                   onChange={(e) => {
                     setNewPassword(e.target.value);
                     setIsUserChanged(true);
-                    setErrors((prev) => ({ ...prev, 
+                    setErrors((prev) => ({
+                      ...prev,
                       newPassword: undefined,
                       confirmNewPassword: undefined
-                     }));
+                    }));
                   }}
                   isInvalid={!!errors.newPassword}
                   errorMessage={errors.newPassword}
@@ -597,7 +615,7 @@ function ProfilePage() {
                 size="lg"
                 radius="sm"
                 className="self-start mt-2"
-                onPress={handleSubmit}
+                onPress={editPreferences}
               >
                 Save Preferences
               </Button>
@@ -663,7 +681,7 @@ function ProfilePage() {
                       color="danger"
                       size="sm"
                       radius="sm"
-                      onPress={() => handleRemoveDeliveryAddress(idx)}
+                      onPress={() => handleRemoveDeliveryAddress(addr._id)}
                     >
                       Remove
                     </Button>
@@ -771,7 +789,7 @@ function ProfilePage() {
                   ))
                 )}
               </div>
-              
+
 
               <Divider className="w-[90%] self-center bg-black/10" />
 
@@ -802,7 +820,7 @@ function ProfilePage() {
                   />
                   <Input
                     label="Card Number"
-                    labelPlacement="outside"  
+                    labelPlacement="outside"
                     placeholder="Example: 1234 5678 9012 3456"
                     value={cardNumber}
                     onChange={(e) => setCardNumber(e.target.value.replace(/[^\d ]/g, ""))}

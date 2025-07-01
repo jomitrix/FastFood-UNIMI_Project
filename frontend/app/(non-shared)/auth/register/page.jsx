@@ -74,7 +74,7 @@ export default function Register() {
 
       if (!resp.success) {
         addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger" });
-      } else return router.push("/");
+      } else return router.push("/onboarding/user");
     } catch (error) {
       setErrors({ general: "Error during registration. Please try again." });
     } finally {
