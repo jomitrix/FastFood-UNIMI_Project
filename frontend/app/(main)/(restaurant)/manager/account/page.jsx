@@ -7,7 +7,7 @@ import { Divider } from "@heroui/divider";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Eye, EyeClosed, Restaurant, Email, 
-         Storefront, Phone, MapPin, Briefcase } from "@/components/icons/heroicons";
+         Storefront, Phone, MapPin, Briefcase, Handle } from "@/components/icons/heroicons";
 import { Chip } from "@heroui/chip";
 import { RadioGroup, Radio } from "@heroui/radio";
 import { addToast } from "@heroui/toast";
@@ -15,7 +15,7 @@ import { weekDays } from "@/utils/lists";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import ConfirmDelete from "@/components/ConfirmDelete";
 
-function ProfilePage() {
+export default function ProfilePage() {
   const router = useRouter();
 
   const [isVisible, setIsVisible] = useState(false);
@@ -38,13 +38,15 @@ function ProfilePage() {
     name: "Luca",
     surname: "Toni",
     email: "luca.toni@esempio.it",
-    username: "La Pizzeria di Luca",
+    username: "lucatoni",
+    restaurantName: "La Pizzeria di Luca",
     accountType: "restaurant"
   };
 
   const [name, setName] = useState(restaurantData.name);
   const [surname, setSurname] = useState(restaurantData.surname);
-  const [restaurantName, setRestaurantName] = useState(restaurantData.username);
+  const [username, setUsername] = useState(restaurantData.username);
+  const [restaurantName, setRestaurantName] = useState(restaurantData.restaurantName);
   const [email, setEmail] = useState(restaurantData.email);
   const [phone, setPhone] = useState(restaurantData.phone || "");
   const [address, setAddress] = useState(restaurantData.address || "");
@@ -100,6 +102,7 @@ function ProfilePage() {
     if (!restaurantName) newErrors.restaurantName = "Restaurant Name required";
     if (!name) newErrors.name = "Name required";
     if (!surname) newErrors.surname = "Surname required";
+    if (!username) newErrors.username = "Username required";
     if (!email) newErrors.email = "Email required";
     else if (invalidEmail) newErrors.email = "Invalid email";
     if (!phone) newErrors.phone = "Phone number required";
@@ -345,6 +348,29 @@ function ProfilePage() {
                       size="lg"
                     />
                   </div>
+
+                  <Input
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setIsUserChanged(true);
+                      setErrors((prev) => ({ ...prev, username: undefined }));
+                    }}
+                    isInvalid={!!errors.username}
+                    errorMessage={errors.username}
+                    type="text"
+                    label={
+                      <span>
+                        Username
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Username"
+                    labelPlacement="outside"
+                    endContent={<Handle className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
 
                   <Input
                     value={email}
@@ -697,5 +723,3 @@ function ProfilePage() {
     </div>
   );
 }
-
-export default withAuth(ProfilePage);
