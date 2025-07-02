@@ -28,12 +28,15 @@ const ALLOWED_FOOD_TYPES = [
     "Vegetarian",
 ];
 const ALLOWED_CUISINES = [
+    "African",
     "American",
+    "Asian",
     "British",
     "Canadian",
     "Chinese",
     "Croatian",
     "Dutch",
+    "European",
     "Egyptian",
     "Filipino",
     "French",

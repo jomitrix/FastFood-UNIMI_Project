@@ -7,8 +7,10 @@ import { Plus, Upload } from '@/components/icons/heroicons';
 import { ScrollShadow } from '@heroui/scroll-shadow';
 import { Modal, ModalHeader, ModalContent, ModalBody, ModalFooter } from "@heroui/modal";
 import { Select, SelectItem } from "@heroui/select";
+import { RestaurantService } from '@/services/restaurantService';
+import { addToast } from "@heroui/toast";
 
-export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], areas = [], allergens = [] }) {
+export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], areas = [], allergens = [], restaurantId }) {
     const [image, setImage] = useState(null);
     const [name, setName] = useState('');
     const [ingredients, setIngredients] = useState([]);
@@ -37,9 +39,11 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
             setErrors({});
         }
     }, [isOpen]);
-    
-    const handleImageUpload = (e) => {
-        // Mock 
+
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setImage(file);
     };
 
     const addIngredient = () => {
@@ -49,7 +53,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
             const exists = ingredients.some(
                 ing => ing.toLowerCase() === trimmedIngredient.toLowerCase()
             );
-            
+
             if (!exists) {
                 setIngredients([...ingredients, trimmedIngredient]);
                 setNewIngredient('');
@@ -82,10 +86,10 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
     }, [ingredients]);
 
     // Gestione submit
-    const handleSubmitNewMeal = () => {
+    const handleSubmitNewMeal = async () => {
         // Reset errors
         setErrors({});
-        
+
         // Validazione solo per name e price
         const newErrors = {};
         if (!name.trim()) newErrors.name = "Meal name is required";
@@ -96,22 +100,38 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
             return;
         }
 
+        const data = await RestaurantService.addMeal(
+            restaurantId,
+            name,
+            category,
+            area,
+            Array.from(selectedAllergens),
+            ingredients,
+            price,
+            image
+        );
+
+        if (!data || data.status !== "success") {
+            return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+        }
+
+
         // Creazione oggetto meal per la submission
-        const newMeal = {
-            id: Date.now().toString(),
-            name: name,
-            image: image || "https://placehold.co/500x500?text=No+Image",
-            price: price,
-            currency: "€",
-            ingredients: ingredients,
-            category: category,
-            area: area,
-            allergens: Array.from(selectedAllergens)
-        };
+        // const newMeal = {
+        //     id: Date.now().toString(),
+        //     name: name,
+        //     image: image || "https://placehold.co/500x500?text=No+Image",
+        //     price: price,
+        //     currency: "€",
+        //     ingredients: ingredients,
+        //     category: category,
+        //     area: area,
+        //     allergens: Array.from(selectedAllergens)
+        // };
 
         // Invio del nuovo pasto al componente padre
-        onSubmit(newMeal);
-        
+        onSubmit(data.meal);
+
         // Chiusura del modale
         onClose();
     };
@@ -132,20 +152,20 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                         {/* Nome e Immagine del pasto */}
                         <div className="flex gap-4 items-center">
                             <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border relative">
-                                    {image && (
-                                        <img 
-                                            src={image}
-                                            className="w-full h-full object-cover rounded-xl"
-                                        />
-                                    )}
-                                    <Button
-                                        className={`bg-[#083d77] text-white w-full h-full flex items-center justify-center absolute top-0 left-0 rounded-xl
+                                {image && (
+                                    <img
+                                        src={image}
+                                        className="w-full h-full object-cover rounded-xl"
+                                    />
+                                )}
+                                <Button
+                                    className={`bg-[#083d77] text-white w-full h-full flex items-center justify-center absolute top-0 left-0 rounded-xl
                                             ${image ? 'opacity-50 hover:opacity-90' : 'opacity-100'}`}
-                                        isIconOnly
-                                        onPress={() => fileInputRef.current?.click()}
-                                    >
-                                        <Upload size={24} />
-                                    </Button>
+                                    isIconOnly
+                                    onPress={() => fileInputRef.current?.click()}
+                                >
+                                    <Upload size={24} />
+                                </Button>
                                 <input
                                     type="file"
                                     accept="image/*"
@@ -170,7 +190,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                     onChange={(e) => {
                                         setName(e.target.value);
                                         if (errors.name) {
-                                            setErrors({...errors, name: undefined});
+                                            setErrors({ ...errors, name: undefined });
                                         }
                                     }}
                                     isInvalid={!!errors.name}
@@ -196,7 +216,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                 {description.length}/200
                             </div>
                         </div>*/}
-                            
+
                         {/* Categoria e Area */}
                         <div className="flex flex-col sm:flex-row gap-4 w-full">
                             <Select
@@ -261,36 +281,36 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                             <p className="text-sm">Ingredients</p>
                             <div className="max-h-[8rem] sm:max-h-40 overflow-y-auto flex flex-col">
                                 {ingredients.length > 0 ? (
-                                    <ScrollShadow 
-                                        ref={scrollContainerRef} 
-                                        size={30} 
-                                        hideScrollBar 
+                                    <ScrollShadow
+                                        ref={scrollContainerRef}
+                                        size={30}
+                                        hideScrollBar
                                         className='gap-2'
                                     >
-                                    {ingredients.map((ingredient, index) => (
-                                        <div key={index} className="w-full flex gap-2 items-end justify-center mt-2">
-                                            <Input
-                                                placeholder="Ingredient"
-                                                className="flex-grow"
-                                                variant="faded"
-                                                value={ingredient}
-                                                onChange={(e) => {
-                                                    const updatedIngredients = [...ingredients];
-                                                    updatedIngredients[index] = e.target.value;
-                                                    setIngredients(updatedIngredients);
-                                                }}
-                                            />
-                                            <Button 
-                                                isIconOnly 
-                                                isPressable
-                                                className="bg-red-500 text-white" 
-                                                size="md"
-                                                onPress={() => removeIngredient(index)}
-                                            >
-                                                <Plus className="rotate-[45deg]" size={24} />
-                                            </Button>
-                                        </div>
-                                    ))}
+                                        {ingredients.map((ingredient, index) => (
+                                            <div key={index} className="w-full flex gap-2 items-end justify-center mt-2">
+                                                <Input
+                                                    placeholder="Ingredient"
+                                                    className="flex-grow"
+                                                    variant="faded"
+                                                    value={ingredient}
+                                                    onChange={(e) => {
+                                                        const updatedIngredients = [...ingredients];
+                                                        updatedIngredients[index] = e.target.value;
+                                                        setIngredients(updatedIngredients);
+                                                    }}
+                                                />
+                                                <Button
+                                                    isIconOnly
+                                                    isPressable
+                                                    className="bg-red-500 text-white"
+                                                    size="md"
+                                                    onPress={() => removeIngredient(index)}
+                                                >
+                                                    <Plus className="rotate-[45deg]" size={24} />
+                                                </Button>
+                                            </div>
+                                        ))}
                                     </ScrollShadow>
                                 ) : (
                                     ""
@@ -306,10 +326,10 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                     onKeyDown={handleKeyDown}
                                     ref={newIngredientInputRef}
                                 />
-                                <Button 
-                                    isIconOnly 
+                                <Button
+                                    isIconOnly
                                     isPressable
-                                    className="bg-[#083d77] text-white" 
+                                    className="bg-[#083d77] text-white"
                                     size="md"
                                     onPress={addIngredient}
                                 >
@@ -317,7 +337,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                 </Button>
                             </div>
                         </div>
-                            
+
                         {/* Prezzo */}
                         <div className="flex gap-4 items-center">
                             <NumberInput
@@ -349,7 +369,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                     }
                                     setPrice(numValue);
                                     if (errors.price) {
-                                        setErrors({...errors, price: undefined});
+                                        setErrors({ ...errors, price: undefined });
                                     }
                                 }}
                                 isInvalid={!!errors.price}
@@ -359,13 +379,13 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                     </div>
                 </ModalBody>
                 <ModalFooter>
-                    <Button 
-                        variant="ghost" 
+                    <Button
+                        variant="ghost"
                         onPress={onClose}
                     >
                         Cancel
                     </Button>
-                    <Button 
+                    <Button
                         className="bg-[#083d77] text-white"
                         onPress={handleSubmitNewMeal}
                     >

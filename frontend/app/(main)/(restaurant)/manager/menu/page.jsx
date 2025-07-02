@@ -6,19 +6,11 @@ import { useRouter } from "next/navigation";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import MealsList from "@/components/app/manager/menu/MealsList";
 import meals from "@/utils/meals.json";
+import { useAuth } from '@/contexts/AuthContext';
 
 function MealsPage() {
   const router = useRouter();
-
-  const mockRestaurant = {
-    name: "Mario",
-    surname: "Rossi",
-    email: "mario.rossi@example.com",
-    username: "La Pizzeria di Mario",
-    accountType: "restaurant"
-  };
-
-  const mock = mockRestaurant;
+  const { user } = useAuth();
   
   //
   // ho spostato i campi come name category ... come campi fuori da data
@@ -197,23 +189,10 @@ function MealsPage() {
         },
   ];
 
-  useEffect(() => {
-    // Controllo se l'utente è autenticato
-    if (typeof window === "undefined") return;
-    const token = localStorage.getItem("token");
-    if (/*!*/token) {
-      router.push("/auth/login");
-    }
-  }, [router]);
-
-  if (mock.accountType !== "restaurant") {
-    notFound();
-  }
-
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
-        accountType={mock.accountType}
+        accountType='restaurant'
         title="Menu Management"
         subtitle="Manage your restaurant's menu"
       />
@@ -222,6 +201,7 @@ function MealsPage() {
         <MealsList 
           searchMeals={meals}
           meals={mockMeals}
+          restaurantId={user.restaurant._id}
         />
       </div>   
     </div>

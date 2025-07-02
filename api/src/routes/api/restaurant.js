@@ -3,9 +3,13 @@ const { authStrict } = require("@middleware/authMiddleware");
 const Users = require("@models/Users");
 const Restaurants = require("@models/Users.Restaurants");
 const Menus = require("@models/Restaurants/Restaurants.Menus");
+const Meals = require("@models/Restaurants/Restaurants.Meals");
 const { validate } = require("@middleware/validationMiddleware");
 const validator = require("@validators/restaurantValidator");
 const { upload } = require("@utils/multerUploader");
+const mongoose = require("mongoose");
+const fs = require("fs");
+const path = require("path");
 
 router.patch("/edit", authStrict, validate(validator.restaurantEditSchema), async (req, res, next) => {
     try {
@@ -74,7 +78,7 @@ router.post("/:restaurantId/menu/meals/add", authStrict, upload.fields([
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
 
         let menu = await Menus.findOne({ restaurant: restaurantId }).lean();
-        if (!menu) menu = await Menus.create({ restaurant: updatedRestaurant._id });
+        if (!menu) menu = await Menus.create({ restaurant: restaurantId });
 
         let imageFilename = null;
         if (files?.mealImage) {
@@ -83,11 +87,12 @@ router.post("/:restaurantId/menu/meals/add", authStrict, upload.fields([
 
             const destDir = path.join(__dirname, `../../../uploads/restaurants/${restaurant._id}/menus/${menu._id}/meals`);
             if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-            imageFilename = file.filename;
-            fs.renameSync(tmpPath, path.join(destDir, imageFilename));
+            imageFilename = `/restaurants/${restaurant._id}/menus/${menu._id}/meals/${file.filename}`;
+            fs.renameSync(tmpPath, path.join(destDir, file.filename));
         }
 
         const newMeal = {
+            restaurant: restaurant._id,
             name,
             category,
             area,
@@ -97,13 +102,16 @@ router.post("/:restaurantId/menu/meals/add", authStrict, upload.fields([
             image: imageFilename
         };
 
-        const meal = await Menus.findOneAndUpdate(
+        const meal = await Meals.create(newMeal);
+        if (!meal) return res.status(500).send({ status: "error", error: "Failed to create meal" });
+
+        await Menus.findOneAndUpdate(
             { _id: menu._id },
-            { $push: { meals: newMeal } },
+            { $push: { meals: meal._id } },
             { new: true, upsert: true }
         );
 
-        res.send({ status: "success", meal });
+        res.send({ status: "success", meal: meal });
     } catch (err) { next(err); }
 });
 

@@ -13,7 +13,7 @@ import ExistingMealModal from "./ExistingMealModal";
 import EditMealModal from "./EditMealModal";
 import { areas, courses, allergens } from "@/utils/lists";
 
-export default function MealsList({ meals, searchMeals, onMealsReorder }) {
+export default function MealsList({ meals, searchMeals, onMealsReorder, restaurantId }) {
     const [isMoveable, setIsMoveable] = useState(false);
     const [localMeals, setLocalMeals] = useState([]);
     const [isModified, setIsModified] = useState(false);
@@ -22,8 +22,6 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
     const [mealFormData, setMealFormData] = useState({});
     const [queryResult, setQueryResult] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
-
-    
 
     useEffect(() => {
         setLocalMeals(meals);
@@ -202,7 +200,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                                         <div className="relative mr-3 w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
                                             <Skeleton className="absolute w-full h-full rounded-xl" />
                                             <img 
-                                                src={meal.image}
+                                                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${meal.image}`}
                                                 className="absolute w-full h-full rounded-xl object-cover"
                                             />
                                         </div>
@@ -300,6 +298,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder }) {
                 courses={formattedCourses}
                 areas={areas}
                 allergens={allergens}
+                restaurantId={restaurantId}
             />
 
             {/* Modal per la modifica dei pasti */}
