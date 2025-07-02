@@ -13,11 +13,11 @@ import { WaveClean } from "@/components/waves";
 import { useAuth } from "@/contexts/AuthContext";
 import HorizontalScroller from "@/components/app/search/HorizontalScroller";
 import RestaurantCard from "@/components/app/search/RestaurantCard";
-import DeliveryAddressesSection from "../../components/app/home/DeliveryAddressesSection";
+import DeliveryAddressesSection from "@/components/app/home/DeliveryAddressesSection";
 
 export default function Home() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, getUser } = useAuth();
 
   // Gli indirizzi ora sono gestiti nello stato del componente
   const [addresses, setAddresses] = useState([
@@ -44,7 +44,6 @@ export default function Home() {
       courses: ["Fish", "Starter", "Main Course", "First Course"],
       area: ["Japanese", "Chinese", "Asian"],
       allergens: ["Milk", "Egg", "Peanut"],
-      rating: 4.5,
       isOpenNow: true,
       orderType: "both",
     },
@@ -56,7 +55,6 @@ export default function Home() {
       courses: ["Pizza", "Italian"],
       area: ["Italian"],
       allergens: ["Gluten", "Milk"],
-      rating: 4.8,
       isOpenNow: false,
       orderType: "delivery",
     }
@@ -65,8 +63,12 @@ export default function Home() {
   const [addressQuery, setAddressQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState("");
-  const userOptedIn = user?.preferences.specialOffersFeed;
 
+  useEffect(() => {
+    // Recupera l'utente al caricamento della pagina
+    getUser()
+  }, [getUser]);
+  
   // Memoizzazione del filtro per performance migliori
   const filtered = useMemo(
     () =>
@@ -198,7 +200,7 @@ export default function Home() {
       {/* Sezione per i ristoranti consigliati in base ai gusti (da vedere solo in opt-in) 
       Li mostra in base alla vicinanza degli indirizzi inseriti, quando cliccato rimanda
       all'ordine con quell'indirizzo*/}
-      { userOptedIn && (
+      { user?.role === "user" && user?.preferences.specialOffersFeed && (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <HorizontalScroller title="Based on your tastes">
             {mockTastesRest.map((r) => (

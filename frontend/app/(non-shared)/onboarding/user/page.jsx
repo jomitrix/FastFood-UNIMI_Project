@@ -34,7 +34,7 @@ export default function OnboardingPreferences() {
     );
 
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     setIsLoading(false);

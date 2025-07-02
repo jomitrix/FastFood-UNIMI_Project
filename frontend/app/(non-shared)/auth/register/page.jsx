@@ -68,7 +68,7 @@ export default function Register() {
       );
 
       if (!resp.success) {
-        addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger" });
+        addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger", timeout: 4000 });
       } else return router.push("/onboarding/user");
     } catch (error) {
       setErrors({ general: "Error during registration. Please try again." });

@@ -63,6 +63,7 @@ const mockAddresses = [
   ];
 // filtro richiesto dal prof (i ristoranti devono essere mostrati per vicinanza dall'indirizzo selezionato
 // già filtrati per delivery, takeaway e entrambi
+// inoltre al caricamento della pagina mettere già tra i filtri di esclusione gli allergeni onboarding
 const mockRestaurants = [
   {
     img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
@@ -125,7 +126,29 @@ const mockMeals = [
     image: "https://www.themealdb.com/images/media/meals/tytyxu1515363282.jpg",
     restaurant: {
       ...mockRestaurants[3]
-    }
+    },
+    ingredients: [
+              "Chicken Thighs",
+              "Lime",
+              "Spring Onions",
+              "Ginger",
+              "Garlic",
+              "Onion",
+              "Red Chilli",
+              "Thyme",
+              "Lime",
+              "Soy Sauce",
+              "Vegetable Oil",
+              "Brown Sugar",
+              "Allspice",
+              "Basmati Rice",
+              "Coconut Milk",
+              "Spring Onions",
+              "Thyme",
+              "Garlic",
+              "Allspice",
+              "Kidney Beans"
+          ],
   },
   {
     id: "2",
@@ -137,7 +160,20 @@ const mockMeals = [
     image: "https://www.themealdb.com/images/media/meals/wsqqsw1515364068.jpg",
     restaurant: {
       ...mockRestaurants[2]
-    }
+    },
+    ingredients: [
+      "Beef",
+      "Salt",
+      "Black Pepper",
+      "Garlic",
+      "Onion",
+      "Paprika",
+      "Allspice",
+      "Turmeric",
+      "Flour",
+      "Butter",
+      "Water"
+    ]
   },
 ];
 
@@ -218,10 +254,43 @@ export default function Home() {
     return count;
   }, [activeFilters]);
 
+  // Aggiungi questa funzione per filtrare i risultati
+  const getFilteredResults = useMemo(() => {
+    if (!searchValue) {
+      return searchType === "restaurant" ? mockRestaurants : mockMeals;
+    }
+    
+    const query = searchValue.toLowerCase();
+    
+    if (searchType === "restaurant") {
+      return mockRestaurants.filter(restaurant => 
+        restaurant.restaurantname.toLowerCase().includes(query) ||
+        restaurant.area.some(area => area.toLowerCase().includes(query))
+      );
+    } else {
+      // Filtra i piatti per nome o ingredienti
+      return mockMeals.filter(meal => {
+        // Controlla il nome del piatto
+        if (meal.name.toLowerCase().includes(query)) {
+          return true;
+        }
+        
+        // Controlla gli ingredienti
+        if (meal.ingredients && Array.isArray(meal.ingredients)) {
+          return meal.ingredients.some(ingredient => 
+            ingredient.toLowerCase().includes(query)
+          );
+        }
+        
+        return false;
+      });
+    }
+  }, [searchValue, searchType]);
+
   return (
-    <div className='bg-[#f5f3f5] w-full flex flex-col min-h-screen'>
+    <div className='bg-[#f5f3f5] w-full flex flex-col min-h-screen overflow-x-hidden'>
       {/* Header fisso */}
-      <header className="sticky w-full top-16 z-50 bg-[#ff8844] shadow-sm">
+      <header className="fixed w-full top-16 z-40 bg-[#ff8844] shadow-sm">
         <div className="w-full py-3 px-4 gap-3 flex flex-wrap sm:flex-nowrap items-center justify-center">
           <Autocomplete
             inputValue={addressQuery}
@@ -298,112 +367,125 @@ export default function Home() {
         <CategoryNav onCategoriesChange={handleCategoriesChange} />
       </header>
 
-      {/* Contenuto */}
-      <main className="max-w-7xl mx-auto flex flex-col lg:flex-row px-4">
-        <FilterSidebar 
-          onFiltersChange={handleFiltersChange}
-          isDrawerOpen={isFilterDrawerOpen}
-          setIsDrawerOpen={setIsFilterDrawerOpen}
-          isMobile={false}
-        />
-
-        <div className="flex-1 pt-6">
-          <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-8">
-            <Input
-              type="search"
-              placeholder="Type here to search..."
-              size="lg"
-              startContent={<Search className="text-[#083d77]" />}
-              classNames={{
-                inputWrapper: "bg-gray-200",
-                label: "text-sm mb-4",
-                input: "text-lg",
-              }}
-              variant="solid"
-              value={searchValue}
-              onChange={handleSearchChange}
-              className="w-full lg:flex-1"
-            />
-            
-            <div className="flex items-center gap-3">
-              <Select
-                disallowEmptySelection
-                selectedKeys={[searchType]}
-                onSelectionChange={(keys) => setSearchType(Array.from(keys)[0])}
-                aria-label="Search type"
+      {/* Contenuto - aumentato padding-top per evitare sovrapposizioni */}
+      <div className="pt-[13rem] sm:pt-[12.5rem] w-full">
+        <main className="max-w-7xl mx-auto flex flex-col lg:flex-row px-4 w-full overflow-hidden">
+          <FilterSidebar 
+            onFiltersChange={handleFiltersChange}
+            isDrawerOpen={isFilterDrawerOpen}
+            setIsDrawerOpen={setIsFilterDrawerOpen}
+            isMobile={false}
+          />
+  
+          <div className="flex-1 pt-6 w-full">
+            <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-8">
+              <Input
+                type="search"
+                placeholder={`Type here to search ${searchType === "restaurant" ? "restaurants" : "dishes or ingredients"}...`}
                 size="lg"
-                className="flex-1 lg:w-48 lg:shrink-0"
+                startContent={<Search className="text-[#083d77]" />}
                 classNames={{
-                  trigger: "bg-gray-200",
+                  inputWrapper: "bg-gray-200",
+                  label: "text-sm mb-4",
+                  input: "text-sm sm:text-lg",
                 }}
-              >
-                <SelectItem key="restaurant" value="restaurant">Restaurant</SelectItem>
-                <SelectItem key="dishes" value="dishes">Dishes</SelectItem>
-              </Select>
+                variant="solid"
+                value={searchValue}
+                onChange={handleSearchChange}
+                className="w-full lg:flex-1"
+              />
               
-              <Button 
-                onPress={() => setIsFilterDrawerOpen(true)} 
-                className="lg:hidden flex items-center justify-center gap-2 border rounded-lg px-3 py-2 bg-gray-200 shrink-0 relative"
-                size="lg"
-              >
-                <Funnel className="h-5 w-5" />
-                <span className="hidden sm:inline">Filters</span>
-                {activeFilterCount > 0 && (
-                  <span className="absolute -top-2 -right-2 bg-[#ff8844] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {activeFilterCount}
-                  </span>
-                )}
-              </Button>
+              <div className="flex items-center gap-3">
+                <Select
+                  disallowEmptySelection
+                  selectedKeys={[searchType]}
+                  onSelectionChange={(keys) => {
+                    const newSearchType = Array.from(keys)[0];
+                    setSearchType(newSearchType);
+                    // Reset all filters when switching between restaurant and dishes
+                    setActiveFilters({
+                      isOpenNow: false,
+                      selectedAllergens: [],
+                      selectedCuisines: []
+                    });
+                    setSelectedCategories([]);
+                    console.log(`Switched to ${newSearchType} search, filters reset`);
+                  }}
+                  aria-label="Search type"
+                  size="lg"
+                  className="flex-1 lg:w-48 lg:shrink-0"
+                  classNames={{
+                    trigger: "bg-gray-200",
+                  }}
+                >
+                  <SelectItem key="restaurant" value="restaurant">Restaurant</SelectItem>
+                  <SelectItem key="dishes" value="dishes">Dishes</SelectItem>
+                </Select>
+                
+                <Button 
+                  onPress={() => setIsFilterDrawerOpen(true)} 
+                  className="lg:hidden flex items-center justify-center gap-2 border rounded-lg px-3 py-2 bg-gray-200 shrink-0 relative"
+                  size="lg"
+                >
+                  <Funnel className="h-5 w-5" />
+                  <span className="hidden sm:inline">Filters</span>
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-2 -right-2 bg-[#ff8844] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+              </div>
             </div>
+  
+            { !searchValue && searchType === "restaurant" && (
+              <HorizontalScroller title="Based on your tastes">
+                {mockTastesRest.map((r) => (
+                  <RestaurantCard
+                    key={r.restaurantname}
+                    {...r}
+                    className="w-72 shrink-0"
+                  />
+                ))}
+              </HorizontalScroller>
+            ) }
+  
+            <h2 className="text-xl font-semibold mb-4">
+              {searchType === "restaurant" 
+                ? `Order from ${mockRestaurants.length} restaurants`
+                : `Choose from ${mockMeals.length} dishes`
+              }
+            </h2>
+            
+            {searchType === "restaurant" ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                {getFilteredResults.map((restaurant, i) => (
+                  <RestaurantCard
+                    key={`${restaurant.restaurantname}-${i}`}
+                    {...restaurant}
+                    className="w-full"
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+                {getFilteredResults.map((meal) => (
+                  <MealCard
+                    key={meal.id}
+                    img={meal.image}
+                    mealName={meal.name}
+                    price={meal.price}
+                    description={meal.area}
+                    restaurant={meal.restaurant}
+                    className="w-full"
+                  />
+                ))}
+              </div>
+            )}
           </div>
-
-          { !searchValue && searchType === "restaurant" && (
-            <HorizontalScroller title="Based on your tastes">
-              {mockTastesRest.map((r) => (
-                <RestaurantCard
-                  key={r.restaurantname}
-                  {...r}
-                  className="w-72 shrink-0"
-                />
-              ))}
-            </HorizontalScroller>
-          ) }
-
-          <h2 className="text-xl font-semibold mb-4">
-            {searchType === "restaurant" 
-              ? `Order from ${mockRestaurants.length} restaurants`
-              : `Choose from ${mockMeals.length} dishes`
-            }
-          </h2>
-          
-          {searchType === "restaurant" ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-              {mockRestaurants.map((restaurant, i) => (
-                <RestaurantCard
-                  key={`${restaurant.restaurantname}-${i}`}
-                  {...restaurant}
-                  className="w-full"
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-              {mockMeals.map((meal) => (
-                <MealCard
-                  key={meal.id}
-                  img={meal.image}
-                  mealName={meal.name}
-                  price={meal.price}
-                  description={meal.area}
-                  restaurant={meal.restaurant}
-                  className="w-full"
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
-
+        </main>
+      </div>
+  
       <DeliveryAddressesSection
         addresses={addresses.map(a => a.address)}
         isOpen={isModalOpen}

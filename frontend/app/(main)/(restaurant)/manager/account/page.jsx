@@ -687,7 +687,7 @@ export default function ProfilePage() {
                           type="time"
                           label="Open"
                           value={open}
-                          disabled={closed}
+                          isDisabled={closed}
                           isInvalid={invalid}
                           onChange={(e) => onHourChange(idx, "open", e.target.value)}
                           size="sm"
@@ -698,7 +698,7 @@ export default function ProfilePage() {
                           type="time"
                           label="Close"
                           value={close}
-                          disabled={closed}
+                          isDisabled={closed}
                           isInvalid={invalid}
                           onChange={(e) => onHourChange(idx, "close", e.target.value)}
                           size="sm"

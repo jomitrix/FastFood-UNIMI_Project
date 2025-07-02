@@ -111,7 +111,7 @@ function ProfilePage() {
 
     const data = await UserService.editAccount(username, name, surname, newPassword, currentPassword);
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     setIsUserChanged(false);
@@ -141,7 +141,7 @@ function ProfilePage() {
     );
 
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     addToast({
@@ -166,7 +166,7 @@ function ProfilePage() {
   const handleDelete = async (e) => {
     const data = await UserService.deleteAccount();
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     await logout();
@@ -195,7 +195,7 @@ function ProfilePage() {
     const data = await UserService.editDelivery(newShippingName, newShippingSurname, newDeliveryAddress);
 
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     setDeliveryAddresses(data.delivery);
@@ -210,7 +210,7 @@ function ProfilePage() {
   const handleRemoveDeliveryAddress = async (id) => {
     const data = await UserService.deleteDelivery(id);
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     setDeliveryAddresses(deliveryAddresses.filter((e) => e._id !== id));
@@ -229,7 +229,7 @@ function ProfilePage() {
 
     const data = await UserService.editBilling(billingAddress);
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     setIsBillingChanged(false);
@@ -272,7 +272,7 @@ function ProfilePage() {
     );
 
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     setSavedCards(data.cards);
@@ -289,7 +289,7 @@ function ProfilePage() {
   const handleRemoveCard = async (id) => {
     const data = await UserService.deleteCard(id);
     if (!data || data.status !== "success") {
-      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
     setSavedCards((prev) => prev.filter((card) => card._id !== id));
@@ -715,8 +715,11 @@ function ProfilePage() {
                     </Button>
                   </div>
                 ))}
-              </div>
 
+                <Divider className="w-[90%] self-center bg-black/10 mt-3" />
+              </div>
+              
+              
               {/* form aggiunta spedizione */}
               {!isAddingDeliveryAddress && (
                 <Button

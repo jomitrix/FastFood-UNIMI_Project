@@ -53,7 +53,7 @@ export default function Login() {
       const resp = await login(email, password);
 
       if (!resp.success) {
-        addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger" });
+        addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger", timeout: 4000 });
       } else return router.push("/");
     } catch (error) {
       setErrors({ general: "Errore durante il login. Riprova." });
