@@ -5,14 +5,15 @@ export const AuthService = {
         return ApiService.post('/auth/login', { body: { email, password } });
     },
 
-    register(username, email, password, name, surname) {
+    register(username, email, password, name, surname, role = 'user') {
         return ApiService.post('/auth/register', {
             body: {
                 username,
                 email,
                 password,
                 name,
-                surname
+                surname,
+                role,
             }
         });
     },

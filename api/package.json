@@ -15,7 +15,8 @@
     "@middleware": "src/middleware",
     "@routes": "src/routes",
     "@models": "src/models",
-    "@validators": "src/validators"
+    "@validators": "src/validators",
+    "@utils": "src/utils"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",

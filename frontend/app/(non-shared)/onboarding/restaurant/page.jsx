@@ -7,6 +7,8 @@ import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { WaveClean } from "@/components/waves";
 import { Phone, MapPin, Briefcase, Storefront } from "@/components/icons/heroicons";
+import { RestaurantService } from '@/services/restaurantService';
+import { addToast } from "@heroui/toast";
 
 export default function OnboardingPreferences() {
   const router = useRouter();
@@ -46,7 +48,11 @@ export default function OnboardingPreferences() {
 
     setIsLoading(true);
     
-    //api
+    const data = await RestaurantService.editRestaurant(restaurantName, phone, address, vat);
+    if (!data || data.status !== "success") {
+      setIsLoading(false);
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger" });
+    }
 
     setIsLoading(false);
     router.push("/manager/dashboard");

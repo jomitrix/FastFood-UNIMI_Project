@@ -30,7 +30,7 @@ router.post("/login", validate(validator.loginSchema), async (req, res, next) =>
 
 router.post("/register", validate(validator.registerSchema), async (req, res, next) => {
     try {
-        const { username, email, password, name, surname } = req.body;
+        const { username, email, password, name, surname, role } = req.body;
 
         const betterEmail = email.toLowerCase();
 
@@ -42,7 +42,7 @@ router.post("/register", validate(validator.registerSchema), async (req, res, ne
 
         let hashedPassword = await bcrypt.hash(password, 10);
 
-        let user = new Users({ username, email: betterEmail, password: hashedPassword, name, surname });
+        let user = new Users({ username, email: betterEmail, password: hashedPassword, name, surname, role });
         await user.save();
 
         let token = jwt.sign({ _id: user._id }, process.env.TOKEN_SECRET);

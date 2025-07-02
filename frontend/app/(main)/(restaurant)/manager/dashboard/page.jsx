@@ -20,9 +20,11 @@ import { statuses } from '@/utils/lists';
 import { formatCurrency } from '@/utils/format';
 import SkeletonChart from '@/components/app/manager/dashboard/SkeletonChart';
 import Chart from 'chart.js/auto';
+import { useAuth } from '@/contexts/AuthContext';
 
 function DashboardPage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const [timeRange, setTimeRange] = useState((['month']));
   const [productTab, setProductTab] = useState('popular');
@@ -90,10 +92,10 @@ function DashboardPage() {
       { day: "Sat", orders: 12, revenue: 285.40 },
       { day: "Sun", orders: 10, revenue: 230.20 }
     ],
-    name: "Luca",
-    surname: "Toni",
-    email: "luca.toni@esempio.it",
-    username: "La Pizzeria di Luca",
+    name: user.name,
+    surname: user.surname,
+    email: user.email,
+    username: user.restaurant.name,
     accountType: "restaurant"
   }), []);
 

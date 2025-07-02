@@ -51,9 +51,9 @@ export function AuthProvider({ children }) {
     }
   }, []);
 
-  const register = useCallback(async (username, email, password, name, surname) => {
+  const register = useCallback(async (username, email, password, name, surname, role) => {
     try {
-      const data = await AuthService.register(username, email, password, name, surname);
+      const data = await AuthService.register(username, email, password, name, surname, role);
       if (!data || data.status !== "success") return { success: false, error: data.error ?? 'Registration failed' };
 
       const { token } = data;

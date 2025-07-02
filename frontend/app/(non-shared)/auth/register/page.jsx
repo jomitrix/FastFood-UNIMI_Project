@@ -58,18 +58,20 @@ export default function Register() {
     }
 
     setIsLoading(true);
+    console.log(accountType);
     try {
       const resp = await register(
         username,
         email,
         password,
         name,
-        surname
+        surname,
+        accountType.toLowerCase()
       );
 
       if (!resp.success) {
-        addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger", timeout: 4000 });
-      } else return router.push("/onboarding/user");
+        addToast({ title: "Error", description: resp.error ?? "Server Error", color: "danger" });
+      } else return router.push(`/onboarding/${accountType.toLowerCase()}`);
     } catch (error) {
       setErrors({ general: "Error during registration. Please try again." });
     } finally {

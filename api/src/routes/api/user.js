@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { authStrict } = require("@middleware/authMiddleware");
 const Users = require("@models/Users");
+const Restaurants = require("@models/Users.Restaurants");
 const { validate } = require("@middleware/validationMiddleware");
 const validator = require("@validators/userValidator");
 const bcrypt = require("bcrypt");
@@ -8,7 +9,14 @@ const { default: mongoose } = require("mongoose");
 
 router.get("/get", authStrict, async (req, res, next) => {
     try {
-        res.send({ status: "success", user: req.user });
+        const user = req.user;
+
+        if (req.user.role === "restaurant") {
+            const restaurant = await Restaurants.findOne({ user: req.user._id }).lean();
+            if (restaurant) user.restaurant = restaurant;
+        }
+
+        res.send({ status: "success", user });
     } catch (err) { next(err); }
 });
 

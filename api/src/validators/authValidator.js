@@ -11,6 +11,7 @@ const registerSchema = Joi.object({
     password: Joi.string().min(6).max(46).trim().required(),
     name: Joi.string().min(2).max(30).trim().required(),
     surname: Joi.string().min(2).max(30).trim().required(),
+    role: Joi.string().valid("user", "restaurant").required(),
 });
 
 const resetPasswordSchema = Joi.object({

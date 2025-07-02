@@ -11,6 +11,9 @@ function ResturantLayout({ children }) {
     useEffect(() => {
         if (user?.role !== "restaurant") {
             router.replace("/");
+        } else if (!user?.restaurant) {
+            console.log("User is a restaurant but has no restaurant data.");
+            router.replace("/onboarding/restaurant");
         }
     }, [user, router]);
 
