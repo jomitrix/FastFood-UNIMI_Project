@@ -1,7 +1,8 @@
 import { ScrollShadow } from '@heroui/scroll-shadow';
-import { Cart, Trash } from "@/components/icons/heroicons";
+import { Cart, Trash, Cash } from "@/components/icons/heroicons";
 import { useState, useEffect } from 'react';
 import AddressOrderType from '@/components/app/search/AddressOrderType';
+import { Button } from '@heroui/button';
 
 export default function CartComponent({ 
   isDesktop = false, 
@@ -183,15 +184,17 @@ export default function CartComponent({
               </span>
             </div>
           </div>
-          <button 
+          <Button 
             className="w-full bg-[#083d77] text-white py-3 rounded-xl font-medium hover:bg-[#062f5c] disabled:bg-gray-300 disabled:cursor-not-allowed"
-            onClick={onCheckout}
+            onPress={onCheckout}
+            size='lg'
             disabled={orderType === 'delivery' && !selectedAddress}
           >
+            <Cash />
             {orderType === 'delivery' && !selectedAddress 
               ? "Please select an address" 
               : "Proceed to checkout"}
-          </button>
+          </Button>
         </div>
       )}
     </div>

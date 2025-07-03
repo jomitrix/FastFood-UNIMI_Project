@@ -1,0 +1,720 @@
+'use client';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardHeader, CardBody } from "@heroui/card";
+import AccountHeader from "@/components/app/account/AccountHeader";
+import { Profile, MapPin, Time, Notes, CreditCard, ChevronRight, Cash, } from "@/components/icons/heroicons";
+import { Button } from "@heroui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/modal";
+import { Input } from "@heroui/input";
+import { RadioGroup, Radio } from "@heroui/radio";
+import { Textarea } from "@heroui/input";
+import { ScrollShadow } from "@heroui/scroll-shadow";
+
+const mockRestaurant = {
+    banner: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,w_1537,h_480/f_auto/q_auto/dpr_1.0/d_it:cuisines:pollo-6.jpg/v1/it/restaurants/282166.jpg",
+    icon: "https://upload.wikimedia.org/wikipedia/sco/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png",
+    address: "Via Cassanese 1, 20090 Segrate MI, Italy",
+    phone: "+39 02 2131 1234",
+    restaurantname: "KFC - Abruzzi",
+    minDeliveryTime: 10,
+    maxDeliveryTime: 20,
+    minTakeawayTime: 5,
+    maxTakeawayTime: 10,
+    courses: ["Fast Food", "Miscellaneous"],
+    area: ["American"],
+    isOpenNow: true,
+    orderType: "both",
+    times: {
+        monday: { open: "10:00", close: "23:00" },
+        tuesday: { open: "", close: "" },
+        wednesday: { open: "10:00", close: "23:00" },
+        thursday: { open: "10:00", close: "23:00" },
+        friday: { open: "10:00", close: "23:00" },
+        saturday: { open: "10:00", close: "23:00" },
+        sunday: { open: "10:00", close: "23:00" }
+    }
+}
+
+const mockAddresses = [
+    {
+      id: 1,
+      address: "Via Tiburtina 1361, Roma, 00131, Italy"
+    },
+    {
+      id: 2,
+      address: "Piazzale Loreto 9, Milano, 20131, Italy"
+    },
+    {
+      id: 3,
+      address: "Via Dante 20, Poggibonsi, 53036, Italy"
+    },
+];
+
+const mockOrder = {
+    id: "1234567890",
+    restaurant: mockRestaurant,
+    items: [
+        {
+            id: "1",
+            name: "Chicken Burger",
+            price: 5.99,
+            quantity: 2
+        },
+        {
+            id: "2",
+            name: "French Fries",
+            price: 2.49,
+            quantity: 1
+        }
+    ],
+    subtotal: 14.47,
+    deliveryFee: 2.00,
+    total: 16.47,
+    orderType: "delivery",
+    address: mockAddresses[0].address,
+}
+
+// Carte mockate
+const mockCards = [
+    {
+        _id: { $oid: "686638fc45f7d1d7545044cf" },
+        name: "Mastercard",
+        holder: "Mario",
+        number: "1234567890124568",
+        expiry: "12/24",
+        cvv: "123"
+    },
+    {
+        _id: { $oid: "686683e546b696669be2a6ac" },
+        name: "Visa",
+        holder: "Mario Rossi",
+        number: "1234123412341234",
+        expiry: "07/25",
+        cvv: "123"
+    }
+];
+
+function cn(...classes) {
+  return classes.filter(Boolean).join(' ');
+}
+
+export default function Checkout({ params }) {
+    const id = params;
+    const router = useRouter();
+    const { user } = useAuth();
+
+    const validatePhone = (phone) => phone.match(/^\+(?:[0-9] ?){6,14}[0-9]$/);
+    // Regex validazione carta (base)
+    const validateCardNumber = (num) => num.replace(/\s/g, '').match(/^\d{16}$/);
+    const validateCardExpiry = (exp) => exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
+    
+    // Aggiunta validazione che la data di scadenza non sia nel passato
+    const isExpiryDateValid = (expiry) => {
+      if (!validateCardExpiry(expiry)) return false;
+      
+      const [month, year] = expiry.split('/');
+      const expiryDate = new Date(2000 + parseInt(year), parseInt(month), 0); // Day 0 of next month is last day of current month
+      const today = new Date();
+      
+      return expiryDate >= today;
+    };
+
+    // Order data
+    const [name, setName] = useState(user?.name);
+    const [surname, setSurname] = useState(user?.surname);
+    const [phone, setPhone] = useState(user?.phone);
+    const [tempName, setTempName] = useState("");
+    const [tempSurname, setTempSurname] = useState("");
+    const [tempPhone, setTempPhone] = useState("");
+    const [infoErrors, setInfoErrors] = useState({});
+
+    const [address, setAddress] = useState(mockOrder.address);
+    const [filteredAddresses, setFilteredAddresses] = useState([]);
+    const [addresses, setAddresses] = useState(mockAddresses);
+    const [selectedAddress, setSelectedAddress] = useState(mockOrder.address);
+    const [newAddress, setNewAddress] = useState("");
+    const [newAddressError, setNewAddressError] = useState("");
+    const [notes, setNotes] = useState("");
+    const [tempNotes, setTempNotes] = useState("");
+
+    // Payment data
+    const [paymentMethod, setPaymentMethod] = useState("cash"); // 'cash' or 'card'
+    const [paymentCards, setPaymentCards] = useState(mockCards);
+    const [selectedCardId, setSelectedCardId] = useState(mockCards.length > 0 ? mockCards[0]._id.$oid : null);
+    const [newCard, setNewCard] = useState({ name: "", holder: "", number: "", expiry: "", cvv: "" });
+    const [newCardErrors, setNewCardErrors] = useState({});
+    const [tempPaymentMethod, setTempPaymentMethod] = useState('cash');
+    const [tempSelectedCardId, setTempSelectedCardId] = useState(null);
+
+    const orderType = mockOrder.orderType;
+    const [isModalOpen, setIsModalOpen] = useState(null);
+
+    const getSelectedCard = () => {
+        if (paymentMethod !== 'card' || !selectedCardId) return null;
+        return paymentCards.find(c => extractId(c._id) === selectedCardId);
+    }
+
+    //  campi obbligatori
+    const infoMissing     = !(name && surname && phone);
+    const addressMissing  = !address;
+    const paymentMissing  = paymentMethod === 'card'
+      ? !getSelectedCard()        
+      : false;                    
+
+    const isCheckoutDisabled = infoMissing || addressMissing || paymentMissing;
+
+    // Carica le carte dell'utente all'inizio e quando cambiano
+    useEffect(() => {
+        if (user?.cards?.length) {
+            setPaymentCards(user.cards);
+            if (!selectedCardId) {
+                const firstId = typeof user.cards[0]._id === 'string'
+                  ? user.cards[0]._id
+                  : user.cards[0]._id.$oid;
+                setSelectedCardId(firstId);
+            }
+        }
+    }, [user?.cards]);
+    
+    useEffect(() => {
+        if (!address) return;
+
+        const addressParts = address.split(',');
+        setFilteredAddresses([addressParts[0], addressParts.slice(1).join(',')]);
+    }, [address]);
+
+    const cards = [
+        { key: "info", title: `${name || "Name"} ${surname || "Surname"}`, subtitle: phone || "Phone Number", icon: <Profile />, missing: infoMissing },
+        { key: "address", title: filteredAddresses[0], subtitle: filteredAddresses[1], icon: <MapPin />, missing: addressMissing },
+        { key: "time", title: orderType === "delivery" ? "Delivery Time" : "Takeaway Time", 
+            subtitle: orderType === "delivery" ? `${mockRestaurant.minDeliveryTime} - ${mockRestaurant.maxDeliveryTime}` : `${mockRestaurant.minTakeawayTime} - ${mockRestaurant.maxTakeawayTime}`, icon: <Time />, missing: false },
+        { key: "notes", title: "Additional Notes", subtitle: notes || "Add a note for your order", icon: <Notes />, missing: false },
+    ]
+
+    const handleAddressSave = () => {
+        if (selectedAddress === "new_address") {
+            if (newAddress) {
+                const addressRegex = /^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u;
+                if (!addressRegex.test(newAddress)) {
+                    setNewAddressError("Format: Road, City, ZIP, Country");
+                    return;
+                }
+                const newAddr = { id: addresses.length + 1, address: newAddress };
+                setAddresses([...addresses, newAddr]);
+                setAddress(newAddress);
+                setSelectedAddress(newAddress);
+                setNewAddress("");
+                setNewAddressError("");
+            } else {
+                setNewAddressError("Address cannot be empty.");
+                return;
+            }
+        } else {
+            setAddress(selectedAddress);
+        }
+        setIsModalOpen(null);
+    };
+
+    const handleNotesSave = () => {
+        setNotes(tempNotes);
+        setIsModalOpen(null);
+    };
+
+    const handleInfoSave = () => {
+        const errors = {};
+        if (!tempName) errors.name = "Name is required.";
+        if (!tempSurname) errors.surname = "Surname is required.";
+        if (!tempPhone) {
+            errors.phone = "Phone number is required.";
+        } else if (!validatePhone(tempPhone)) {
+            errors.phone = "Invalid phone number format";
+        }
+
+        if (Object.keys(errors).length > 0) {
+            setInfoErrors(errors);
+            return;
+        }
+
+        setName(tempName);
+        setSurname(tempSurname);
+        setPhone(tempPhone);
+        setIsModalOpen(null);
+        setInfoErrors({});
+    };
+
+    const handlePaymentSave = () => {
+        if (tempPaymentMethod === "card") {
+            let nextSelected = tempSelectedCardId;
+            if (tempSelectedCardId === 'new_card') {
+                const errors = {};
+                // Validazioni per nuova carta
+                if (!newCard.name) errors.name = "Card name is required.";
+                if (!newCard.holder) errors.holder = "Card holder name is required.";
+                if (!newCard.number) {
+                    errors.number = "Card number is required.";
+                } else if (!validateCardNumber(newCard.number)) {
+                    errors.number = "Invalid card number format.";
+                }
+                if (!newCard.expiry) {
+                    errors.expiry = "Expiry date is required.";
+                } else if (!isExpiryDateValid(newCard.expiry)) {
+                    errors.expiry = "Invalid or expired date.";
+                }
+                if (!newCard.cvv) errors.cvv = "CVV is required.";
+                
+                if (Object.keys(errors).length > 0) {
+                    setNewCardErrors(errors);
+                    return;
+                }
+
+                const uniqueId = crypto.randomUUID();
+                const newCardWithId = { ...newCard, _id: { $oid: uniqueId } };
+                setPaymentCards(prev => [...prev, newCardWithId]);
+                nextSelected = uniqueId;
+                setNewCard({ name: "", holder: "", number: "", expiry: "", cvv: "" });
+                setNewCardErrors({});
+            }
+            setSelectedCardId(nextSelected);
+        }
+        setPaymentMethod(tempPaymentMethod);
+        setIsModalOpen(null);
+    };
+
+    const openModal = (modalKey) => {
+        if (modalKey === 'notes') {
+            setTempNotes(notes);
+        }
+        if (modalKey === 'info') {
+            setTempName(name);
+            setTempSurname(surname);
+            setTempPhone(phone);
+            setInfoErrors({});
+        }
+        if (modalKey === 'payment') {
+            setTempPaymentMethod(paymentMethod);
+            setTempSelectedCardId(selectedCardId);
+            setNewCardErrors({});
+        }
+        setIsModalOpen(modalKey);
+    }
+
+    const extractId = id =>
+      typeof id === 'string'
+        ? id
+        : id?.$oid;
+
+    // const getSelectedCard = () => {
+    //     if (paymentMethod !== 'card' || !selectedCardId) return null;
+    //     return paymentCards.find(c => extractId(c._id) === selectedCardId);
+    // }
+
+    // 🛠️ helper per key/value univoci
+    const getCardKey = (card, idx) =>
+      typeof card._id === 'string'
+        ? card._id
+        : card._id?.$oid ?? String(idx);
+
+    return (
+        <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
+            <AccountHeader
+                title="Order Checkout"
+                subtitle="Complete your order"
+            />
+            <div className="w-full flex flex-wrap sm:flex-nowrap justify-center items-stretch mt-8 px-3 gap-4">
+                <div className="flex flex-col flex-1 max-w-3xl gap-4">
+                    <Card>
+                        <CardHeader>
+                            <h2 className="text-xl font-bold">Order Details</h2>
+                        </CardHeader>
+                        <CardBody>
+                            {cards.map((card) => (
+                                <Card 
+                                    key={card.key}
+                                    className={cn(
+                                        "mx-3 border-b rounded-md hover:bg-gray-100 shadow-none last:border-b-0",
+                                        card.missing && "bg-red-50"
+                                    )}
+                                    onPress={() => openModal(card.key)}
+                                    isPressable={card.key !== "time"}
+                                >
+                                    <CardBody className="flex flex-row items-center gap-4">
+                                        { card.icon && (
+                                            <div className="flex-shrink-0 text-[#083d77]">
+                                                {card.icon}
+                                            </div>
+                                        )}
+                                        <div className="flex-1 overflow-hidden">
+                                            <h3 className="text-md font-medium">{card.title}</h3>
+                                            <p className="text-sm text-gray-600 truncate">{card.subtitle}</p>
+                                        </div>
+                                        {card.key !== "time" && <ChevronRight className="text-gray-400 ml-auto" />}
+                                    </CardBody>
+                                </Card>
+                            ))}
+                        </CardBody>
+                    </Card>
+                    <Card>
+                        <CardHeader>
+                            <h2 className="text-xl font-bold">Payment</h2>
+                        </CardHeader>
+                        <CardBody>
+                            <Card 
+                                className={cn(
+                                    "mx-3 border-b rounded-md hover:bg-gray-100 shadow-none last:border-b-0",
+                                    paymentMissing && "bg-red-50"
+                                )}
+                                onPress={() => setIsModalOpen("payment")}
+                                isPressable
+                            >
+                                <CardBody className="flex flex-row items-center gap-4">
+                                    <div className="flex-shrink-0 text-[#083d77]">
+                                        {paymentMethod === 'cash' ? <Cash /> : <CreditCard />}
+                                    </div>
+                                        <div className="flex-1 overflow-hidden">
+                                            <h3 className="text-md font-medium">
+                                                {paymentMethod === 'cash' && "Cash"}
+                                                {paymentMethod === 'card' && getSelectedCard() && `${getSelectedCard().name} **** ${getSelectedCard().number.slice(-4)}`}
+                                                {paymentMethod === 'card' && !getSelectedCard() && "Choose Credit Card"}
+                                            </h3>
+                                            {paymentMethod === 'cash' && <p className="text-sm text-gray-600">Pay with cash</p>}
+                                        </div>
+                                        <ChevronRight className="text-gray-400 ml-auto" />
+                                    </CardBody>
+                                </Card>
+                        </CardBody>
+                    </Card>
+                </div>
+                <div className="flex flex-col flex-1 max-w-md">
+                    <Card className="h-full">
+                        <CardHeader>
+                            <h2 className="text-xl font-bold">Summary</h2>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="border-t p-4">
+                                {/* Informazioni sul ristorante */}
+                                <div className="mb-4 pb-3 border-b flex items-center gap-5">
+                                    <img 
+                                        src={mockRestaurant.icon} 
+                                        alt={mockRestaurant.restaurantname} 
+                                        className="w-10 h-10 object-contain" 
+                                    />
+                                    <div>
+                                        <h3 className="font-semibold text-lg mb-1">{mockRestaurant.restaurantname}</h3>
+                                        <p className="text-sm text-gray-600">{mockRestaurant.address}</p>
+                                    </div>
+                                </div>
+
+                                {/* Card cliccabile per gli order items */}
+                                <div className="w-full mb-4 pb-3 border-b">
+                                    <Card 
+                                        className="w-full rounded-md hover:bg-gray-100 shadow-none"
+                                        isPressable
+                                        onPress={() => setIsModalOpen("items")}
+                                    >
+                                        <CardBody className="flex flex-row items-center justify-between">
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-[#083d77]">
+                                                    <img />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-medium">Order items</h4>
+                                                    <p className="text-sm text-gray-600">{mockOrder.items.length} items</p>
+                                                </div>
+                                            </div>
+                                            <ChevronRight className="text-gray-400" />
+                                        </CardBody>
+                                    </Card>
+                                </div>
+
+                                <div className="flex flex-col gap-2 mb-4">
+                                    <div className="flex justify-between">
+                                    <span className="text-gray-600">Subtotal</span>
+                                    <span>{mockOrder.subtotal.toFixed(2)}€</span>
+                                    </div>
+                                    
+                                    {orderType === 'delivery' && (
+                                    <>
+                                        <div className="flex justify-between">
+                                        <span className="text-gray-600">Delivery fee</span>
+                                        <span>{mockOrder.deliveryFee.toFixed(2)}€</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm text-gray-500">
+                                        <span>Estimated delivery time</span>
+                                        <span>{mockRestaurant.minDeliveryTime} - {mockRestaurant.maxDeliveryTime} min</span>
+                                        </div>
+                                    </>
+                                    )}
+                                    
+                                    <div className="flex justify-between pt-2 border-t mt-1">
+                                    <span className="font-semibold">Total</span>
+                                    <span className="font-bold text-lg">
+                                        {mockOrder.total.toFixed(2)}€
+                                    </span>
+                                    </div>
+                                </div>
+                                <Button 
+                                    className={`
+                                        w-full py-3 rounded-xl font-medium
+                                        ${isCheckoutDisabled
+                                        ? "cursor-not-allowed"
+                                        : "bg-[#083d77] text-white hover:bg-[#062f5c]"}
+                                    `}
+                                    onPress={""}
+                                    size='lg'
+                                    isDisabled={isCheckoutDisabled}
+                                >
+                                    {paymentMethod === 'cash' ? <Cash /> : <CreditCard />}
+                                    Proceed to checkout
+                                </Button>
+                            </div>
+                        </CardBody>
+                    </Card>
+                </div>
+            </div>
+
+            {/* Modale per la selezione dell'indirizzo */}
+            <Modal
+                isOpen={isModalOpen === "address"}
+                onClose={() => setIsModalOpen(null)}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        <h2 className="text-xl font-bold">Select Delivery Address</h2>
+                    </ModalHeader>
+                    <ModalBody>
+                        <RadioGroup
+                            label="Your addresses"
+                            value={selectedAddress}
+                            onValueChange={setSelectedAddress}
+                        >
+                            {addresses.map((addr) => (
+                                <Radio key={addr.id} value={addr.address}>{addr.address}</Radio>
+                            ))}
+                            <Radio value="new_address">Add a new address</Radio>
+                        </RadioGroup>
+                        {selectedAddress === "new_address" && (
+                            <div className="mt-4">
+                                <Input
+                                    label="New address"
+                                    placeholder="Street, City, ZIP, Country"
+                                    value={newAddress}
+                                    onChange={(e) => {
+                                        setNewAddress(e.target.value);
+                                        if (newAddressError) setNewAddressError("");
+                                    }}
+                                    isInvalid={!!newAddressError}
+                                    errorMessage={newAddressError}
+                                />
+                            </div>
+                        )}
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button variant="ghost" onPress={() => setIsModalOpen(null)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            className="bg-[#083d77] text-white"
+                            onPress={handleAddressSave}
+                        >
+                            Save
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Modale per le informazioni personali */}
+            <Modal
+                isOpen={isModalOpen === "info"}
+                onClose={() => setIsModalOpen(null)}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        <h2 className="text-xl font-bold">Contact Information</h2>
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className="flex flex-col gap-4">
+                            <Input
+                                label="Name"
+                                placeholder="Enter your name"
+                                value={tempName}
+                                onValueChange={setTempName}
+                                isInvalid={!!infoErrors.name}
+                                errorMessage={infoErrors.name}
+                            />
+                            <Input
+                                label="Surname"
+                                placeholder="Enter your surname"
+                                value={tempSurname}
+                                onValueChange={setTempSurname}
+                                isInvalid={!!infoErrors.surname}
+                                errorMessage={infoErrors.surname}
+                            />
+                            <Input
+                                label="Phone Number"
+                                placeholder="Enter your phone number"
+                                value={tempPhone}
+                                onValueChange={setTempPhone}
+                                isInvalid={!!infoErrors.phone}
+                                errorMessage={infoErrors.phone}
+                            />
+                        </div>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button variant="ghost" onPress={() => setIsModalOpen(null)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            className="bg-[#083d77] text-white"
+                            onPress={handleInfoSave}
+                        >
+                            Save
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Modale per il metodo di pagamento */}
+            <Modal isOpen={isModalOpen === "payment"} onClose={() => setIsModalOpen(null)}>
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        <h2 className="text-xl font-bold">Payment Method</h2>
+                    </ModalHeader>
+                    <ModalBody>
+                      <ScrollShadow hideScrollBar className="overflow-y-auto max-h-[60vh]">
+                        <RadioGroup
+                            name="pay-kind"
+                            label="Select a payment method"
+                            value={tempPaymentMethod}
+                            onValueChange={(value) => {
+                                setTempPaymentMethod(value);
+                                if (value === 'card' && paymentCards.length > 0) {
+                                    if (!tempSelectedCardId || !paymentCards.find(c => c._id.$oid === tempSelectedCardId)) {
+                                        setTempSelectedCardId(paymentCards[0]._id.$oid);
+                                    }
+                                }
+                            }}
+                        >
+                            <Radio value="cash">Cash</Radio>
+                            <Radio value="card">Credit Card</Radio>
+                        </RadioGroup>
+  
+                        {tempPaymentMethod === 'card' && (
+                            <div className="mt-4 pt-4 border-t">
+                                <RadioGroup
+                                    name="pay-card"
+                                    label="Your cards"
+                                    value={tempSelectedCardId}
+                                    onValueChange={setTempSelectedCardId}
+                                >
+                                    {paymentCards.map((card, idx) => {
+                                      const k = getCardKey(card, idx);
+                                      return (
+                                        <Radio key={k} value={k}>
+                                          {card.name} **** {card.number.slice(-4)}
+                                        </Radio>
+                                      );
+                                    })}
+                                    <Radio key="new_card" value="new_card">Add a new card</Radio>
+                                </RadioGroup>
+  
+                                {tempSelectedCardId === 'new_card' && (
+                                    <div className="mt-4 space-y-3">
+                                        <Input label="Card Name (e.g. Visa)" value={newCard.name} onValueChange={(v) => setNewCard({ ...newCard, name: v })} isInvalid={!!newCardErrors.name} errorMessage={newCardErrors.name} />
+                                        <Input label="Card Holder" value={newCard.holder} onValueChange={(v) => setNewCard({ ...newCard, holder: v })} isInvalid={!!newCardErrors.holder} errorMessage={newCardErrors.holder} />
+                                        <Input label="Card Number" value={newCard.number} onValueChange={(v) => setNewCard({ ...newCard, number: v })} isInvalid={!!newCardErrors.number} errorMessage={newCardErrors.number} />
+                                        <div className="flex gap-3">
+                                            <Input label="Expiry (MM/YY)" value={newCard.expiry} onValueChange={(v) => setNewCard({ ...newCard, expiry: v })} isInvalid={!!newCardErrors.expiry} errorMessage={newCardErrors.expiry} />
+                                            <Input label="CVV" value={newCard.cvv} onValueChange={(v) => setNewCard({ ...newCard, cvv: v })} isInvalid={!!newCardErrors.cvv} errorMessage={newCardErrors.cvv} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                      </ScrollShadow>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button variant="ghost" onPress={() => setIsModalOpen(null)}>Cancel</Button>
+                        <Button className="bg-[#083d77] text-white" onPress={handlePaymentSave}>Save</Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+            
+            {/* Modale per le note aggiuntive */}
+            <Modal
+                isOpen={isModalOpen === "notes"}
+                onClose={() => setIsModalOpen(null)}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        <h2 className="text-xl font-bold">Additional Notes</h2>
+                    </ModalHeader>
+                    <ModalBody>
+                        <Textarea
+                            label="Your notes"
+                            placeholder="Add any special requests for your order here..."
+                            value={tempNotes}
+                            onValueChange={setTempNotes}
+                            minRows={4}
+                            maxLength={100}
+                        />
+                        <div className="text-right text-sm text-gray-500 mt-1">
+                            {tempNotes.length} / 100
+                        </div>
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button variant="ghost" onPress={() => setIsModalOpen(null)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            className="bg-[#083d77] text-white"
+                            onPress={handleNotesSave}
+                        >
+                            Save
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+
+            {/* Modale per order items */}
+            <Modal 
+                isOpen={isModalOpen === "items"} 
+                onClose={() => setIsModalOpen(null)}
+            >
+                <ModalContent>
+                    <ModalHeader className="flex flex-col gap-1">
+                        <h2 className="text-xl font-bold">Order Items</h2>
+                    </ModalHeader>
+                    <ModalBody>
+                        <div className="flex flex-col gap-3">
+                            {mockOrder.items.map((item) => (
+                                <div key={item.id} className="flex justify-between items-center p-3 border-b last:border-b-0">
+                                    <div className="flex items-center">
+                                        <span className="text-lg font-medium mr-2 bg-[#083d77] text-white rounded-full w-7 h-7 flex items-center justify-center">
+                                            {item.quantity}
+                                        </span>
+                                        <span className="text-md font-medium">{item.name}</span>
+                                    </div>
+                                    <span className="font-semibold">{(item.price * item.quantity).toFixed(2)}€</span>
+                                </div>
+                            ))}
+                        </div>
+                    </ModalBody>
+                    <ModalFooter className="flex flex-col items-center">
+                        <div className="flex justify-between w-full pt-2">
+                            <span className="font-semibold">Total</span>
+                            <span className="font-bold">{mockOrder.subtotal.toFixed(2)}€</span>
+                        </div>
+                        <Button 
+                            className="w-full mt-3 bg-[#083d77] text-white py-2 rounded-xl font-medium hover:bg-[#062f5c]"
+                            onPress={() => setIsModalOpen(null)}
+                        >
+                            Close
+                        </Button>
+                    </ModalFooter>
+                </ModalContent>
+            </Modal>
+        </div>
+    );
+}

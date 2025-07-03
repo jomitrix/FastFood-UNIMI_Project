@@ -86,6 +86,20 @@ function ProfilePage() {
   // Regex validazione carta (base)
   const validateCardNumber = (num) => num.replace(/\s/g, '').match(/^\d{16}$/);
   const validateCardExpiry = (exp) => exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
+  
+  // Aggiunta validazione che la data di scadenza non sia nel passato
+  const isExpiryDateValid = (expiry) => {
+    if (!validateCardExpiry(expiry)) return false;
+    
+    const [month, year] = expiry.split('/');
+    const expiryDate = new Date(2000 + parseInt(year), parseInt(month) - 1, 1);
+    const today = new Date();
+    today.setDate(1); // Per confrontare solo anno e mese
+    today.setHours(0, 0, 0, 0);
+    
+    return expiryDate >= today;
+  };
+  
   const validateCardCVC = (cvc) => cvc.match(/^\d{3,4}$/);
 
   const editAccount = async (e) => {
@@ -908,8 +922,14 @@ function ProfilePage() {
                       placeholder="MM/YY"
                       value={cardExpiry}
                       onChange={(e) => setCardExpiry(e.target.value.replace(/[^\d/]/g, ""))}
-                      isInvalid={cardExpiry !== "" && !validateCardExpiry(cardExpiry)}
-                      errorMessage="MM/YY Format"
+                      isInvalid={cardExpiry !== "" && (!validateCardExpiry(cardExpiry) || !isExpiryDateValid(cardExpiry))}
+                      errorMessage={
+                        cardExpiry && !validateCardExpiry(cardExpiry) 
+                          ? "MM/YY Format" 
+                          : cardExpiry && !isExpiryDateValid(cardExpiry) 
+                            ? "Expiry date has passed" 
+                            : "MM/YY Format"
+                      }
                       maxLength={5}
                       radius="sm"
                       size="lg"
@@ -940,6 +960,7 @@ function ProfilePage() {
                         !cardHolder ||
                         !validateCardNumber(cardNumber) ||
                         !validateCardExpiry(cardExpiry) ||
+                        !isExpiryDateValid(cardExpiry) ||
                         !validateCardCVC(cardCVC)
                       }
                     >
