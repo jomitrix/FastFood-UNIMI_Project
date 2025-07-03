@@ -200,8 +200,8 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                                         <div className="relative mr-3 w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
                                             <Skeleton className="absolute w-full h-full rounded-xl" />
                                             <img 
-                                                src={`${process.env.NEXT_PUBLIC_API_URL}/uploads/${meal.image}`}
                                                 className="absolute w-full h-full rounded-xl object-cover"
+                                                className="absolute w-full h-full rounded-xl bg-white object-cover"
                                             />
                                         </div>
                                         <div className="flex flex-col h-full justify-around min-w-0">

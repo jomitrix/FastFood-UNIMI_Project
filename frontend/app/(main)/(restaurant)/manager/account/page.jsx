@@ -12,6 +12,7 @@ import { Chip } from "@heroui/chip";
 import { RadioGroup, Radio } from "@heroui/radio";
 import { addToast } from "@heroui/toast";
 import { weekDays } from "@/utils/lists";
+import { optimizeImage } from "@/utils/optimizeImage";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import ConfirmDelete from "@/components/ConfirmDelete";
 import Image from "next/image";
@@ -207,37 +208,60 @@ export default function ProfilePage() {
     setStagedServiceMode(serviceMode);
   };
 
-  const handleProfileImageChange = (e) => {
+  const handleProfileImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setProfileImage(file);
-      setProfileImagePreview(URL.createObjectURL(file));
+      try {
+        const optimizedImage = await optimizeImage(file);
+        setProfileImage(optimizedImage);
+        setProfileImagePreview(URL.createObjectURL(optimizedImage));
+      } catch (error) {
+        addToast({
+          title: "Error",
+          description: error.message,
+          color: "danger",
+          timeout: 4000,
+        });
+      }
     }
   };
 
-  const handleBannerImageChange = (e) => {
+  const handleBannerImageChange = async (e) => {
     const file = e.target.files[0];
     if (file) {
-      setBannerImage(file);
-      setBannerImagePreview(URL.createObjectURL(file));
+      try {
+        const optimizedImage = await optimizeImage(file);
+        setBannerImage(optimizedImage);
+        setBannerImagePreview(URL.createObjectURL(optimizedImage));
+      } catch (error) {
+        addToast({
+          title: "Error",
+          description: error.message,
+          color: "danger",
+          timeout: 4000,
+        });
+      }
     }
   };
 
   const handleImageUpload = (type) => {
     addToast({
-      title: "Success",
-      description: `${type} image uploaded successfully.`,
-      color: "success",
-      timeout: 4000,
+        title: "Success",
+        description: `${type} image uploaded successfully.`,
+        color: "success",
+        timeout: 4000,
     });
+    
     if (type === 'Profile') {
-      setProfileImage(null);
-      setProfileImagePreview(null);
+        console.log("Profilo pronto per invio:", profileImage);
+        setProfileImage(null);
+        setProfileImagePreview(null);
     } else {
-      setBannerImage(null);
-      setBannerImagePreview(null);
+        console.log("Banner pronto per invio:", bannerImage);
+        setBannerImage(null);
+        setBannerImagePreview(null);
     }
-  };
+};
 
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">

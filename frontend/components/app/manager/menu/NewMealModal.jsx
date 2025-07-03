@@ -9,9 +9,11 @@ import { Modal, ModalHeader, ModalContent, ModalBody, ModalFooter } from "@herou
 import { Select, SelectItem } from "@heroui/select";
 import { RestaurantService } from '@/services/restaurantService';
 import { addToast } from "@heroui/toast";
+import { optimizeImage } from "@/utils/optimizeImage";
 
 export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], areas = [], allergens = [], restaurantId }) {
     const [image, setImage] = useState(null);
+    const [imageFile, setImageFile] = useState(null);
     const [name, setName] = useState('');
     const [ingredients, setIngredients] = useState([]);
     const [newIngredient, setNewIngredient] = useState('');
@@ -25,10 +27,10 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
     const scrollContainerRef = useRef(null);
     const fileInputRef = useRef(null);
 
-    // Reset form when modal is opened
     useEffect(() => {
         if (isOpen) {
             setImage(null);
+            setImageFile(null);
             setName('');
             setIngredients([]);
             setNewIngredient('');
@@ -43,13 +45,24 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        setImage(file);
+        
+        try {
+            const optimizedImage = await optimizeImage(file);
+            setImage(URL.createObjectURL(optimizedImage));
+            setImageFile(optimizedImage);
+        } catch (error) {
+            addToast({
+                title: "Error",
+                description: error.message,
+                color: "danger",
+                timeout: 4000,
+            });
+        }
     };
 
     const addIngredient = () => {
         const trimmedIngredient = newIngredient.trim();
         if (trimmedIngredient !== '') {
-            // (case insensitive)
             const exists = ingredients.some(
                 ing => ing.toLowerCase() === trimmedIngredient.toLowerCase()
             );
@@ -57,7 +70,6 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
             if (!exists) {
                 setIngredients([...ingredients, trimmedIngredient]);
                 setNewIngredient('');
-                // Il focus torna al campo di input
                 if (newIngredientInputRef.current) {
                     newIngredientInputRef.current.focus();
                 }
@@ -69,7 +81,6 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
         setIngredients(ingredients.filter((_, i) => i !== index));
     };
 
-    // Aggiungere ingredienti anche con Enter
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -77,7 +88,6 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
         }
     };
 
-    // Scorrein basso quando cambiano gli ingredienti (focus sull'ultimo ingrediente)
     useEffect(() => {
         if (scrollContainerRef.current && ingredients.length > 0) {
             const scrollElement = scrollContainerRef.current;
@@ -85,12 +95,9 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
         }
     }, [ingredients]);
 
-    // Gestione submit
     const handleSubmitNewMeal = async () => {
-        // Reset errors
         setErrors({});
 
-        // Validazione solo per name e price
         const newErrors = {};
         if (!name.trim()) newErrors.name = "Meal name is required";
         if (!price) newErrors.price = "Meal price is required";
@@ -100,40 +107,33 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
             return;
         }
 
-        const data = await RestaurantService.addMeal(
-            restaurantId,
-            name,
-            category,
-            area,
-            Array.from(selectedAllergens),
-            ingredients,
-            price,
-            image
-        );
+        try {
+            const data = await RestaurantService.addMeal(
+                restaurantId,
+                name,
+                category,
+                area,
+                Array.from(selectedAllergens),
+                ingredients,
+                price,
+                imageFile 
+            );
 
-        if (!data || data.status !== "success") {
-            return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+            if (!data || data.status !== "success") {
+                throw new Error(data.error || "Server Error");
+            }
+
+            onSubmit(data.meal);
+
+            onClose();
+        } catch (error) {
+            addToast({ 
+                title: "Error", 
+                description: error.message, 
+                color: "danger", 
+                timeout: 4000 
+            });
         }
-
-
-        // Creazione oggetto meal per la submission
-        // const newMeal = {
-        //     id: Date.now().toString(),
-        //     name: name,
-        //     image: image || "https://placehold.co/500x500?text=No+Image",
-        //     price: price,
-        //     currency: "€",
-        //     ingredients: ingredients,
-        //     category: category,
-        //     area: area,
-        //     allergens: Array.from(selectedAllergens)
-        // };
-
-        // Invio del nuovo pasto al componente padre
-        onSubmit(data.meal);
-
-        // Chiusura del modale
-        onClose();
     };
 
     return (

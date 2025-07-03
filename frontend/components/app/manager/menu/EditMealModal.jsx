@@ -8,6 +8,8 @@ import { ScrollShadow } from '@heroui/scroll-shadow';
 import { Modal, ModalHeader, ModalContent, ModalBody, ModalFooter } from "@heroui/modal";
 import { Select, SelectItem } from "@heroui/select";
 import ConfirmDelete from '@/components/ConfirmDelete';
+import { optimizeImage } from "@/utils/optimizeImage";
+import { addToast } from "@heroui/toast";
 
 export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mealData, courses = [], areas = [], allergens = [] }) {
     const [image, setImage] = useState(null);
@@ -26,7 +28,6 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
     const [mealId, setMealId] = useState(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    // Carica i dati del pasto quando viene aperto il modale o cambia mealData
     useEffect(() => {
         if (isOpen && mealData) {
             setMealId(mealData.id);
@@ -43,8 +44,26 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
         }
     }, [isOpen, mealData]);
     
-    const handleImageUpload = (e) => {
-        // Mock 
+    const [imageFile, setImageFile] = useState(null);
+    
+    const handleImageUpload = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        try {
+            const optimizedImage = await optimizeImage(file);
+            const imageUrl = URL.createObjectURL(optimizedImage);
+            setImage(imageUrl);
+            
+            setImageFile(optimizedImage);
+        } catch (error) {
+            addToast({
+                title: "Error",
+                description: error.message,
+                color: "danger",
+                timeout: 4000,
+            });
+        }
     };
 
     const addIngredient = () => {
@@ -102,9 +121,10 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
         }
 
         // Creazione oggetto meal aggiornato per la submission
+        // Include il file dell'immagine se è stato modificato
         const updatedMeal = {
             name: name,
-            image: image || "https://placehold.co/500x500?text=No+Image",
+            image: imageFile ? imageFile : image, // Passa il file o l'URL esistente
             ingredients: ingredients,
             id: mealId, 
             price: price,
