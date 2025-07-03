@@ -3,7 +3,27 @@ const { ALLOWED_ALLERGENS, ALLOWED_FOOD_TYPES, ALLOWED_CUISINES } = require("@ut
 
 const restaurantEditSchema = Joi.object({
     name: Joi.string().min(2).max(50).trim().optional(),
-    phoneNumber: Joi.string().min(10).max(15).trim().optional(),
+    phoneNumber: Joi.string()
+        .custom((value, helpers) => {
+            const cleaned = value.replace(/\s+/g, '');
+
+            if (cleaned.length < 10 || cleaned.length > 15) {
+                return helpers.error('string.min', {
+                    limit: 10,
+                    value: cleaned
+                });
+            }
+
+            if (!/^\+?\d+$/.test(cleaned)) {
+                return helpers.error('string.pattern.base', {
+                    name: 'phoneNumber',
+                    regex: '/^\\+?\\d+$/'
+                });
+            }
+
+            return cleaned;
+        })
+        .optional(),
     address: Joi.string().min(5).max(100).trim().optional(),
     vat: Joi.string().length(11).trim().optional(),
 });

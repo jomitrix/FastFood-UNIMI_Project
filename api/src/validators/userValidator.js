@@ -29,8 +29,28 @@ const deliveryEditSchema = Joi.object({
 const cardsEditSchema = Joi.object({
     name: Joi.string().min(2).max(30).trim().required(),
     holder: Joi.string().min(2).max(30).trim().required(),
-    number: Joi.string().length(16).pattern(/^[0-9]+$/).trim().required(),
-    expiry: Joi.string().length(5).pattern(/^(0[1-9]|1[0-2])\/\d{2}$/).trim().required(), // MM/YY format
+    number: Joi.string()
+        .custom((value, helpers) => {
+            const digits = value.replace(/\s+/g, '');
+            if (!/^[0-9]{16}$/.test(digits)) return helpers.error('any.invalid', { message: 'Invalid card number' });
+            return digits;
+        })
+        .required(),
+    expiry: Joi.string()
+        .pattern(/^(0[1-9]|1[0-2])\/\d{2}$/)  // controllo formato MM/YY
+        .custom((value, helpers) => {
+            const [mm, yy] = value.split('/').map(s => parseInt(s, 10));
+            const now = new Date();
+            const expiryDate = new Date(
+                2000 + yy,
+                mm,
+                0,
+                23, 59, 59
+            );
+            if (expiryDate < now) return helpers.error('any.invalid', { message: 'Card expired' });
+            return value;
+        })
+        .required(),
     cvv: Joi.string().length(3).pattern(/^[0-9]+$/).trim().required()
 });
 
