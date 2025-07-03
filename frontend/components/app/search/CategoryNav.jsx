@@ -30,19 +30,21 @@ export default function CategoryNav({ onCategoriesChange }) {
     const container = scrollContainerRef.current;
     setShowLeftArrow(container.scrollLeft > 0);
     setShowRightArrow(
-      container.scrollLeft < container.scrollWidth - container.clientWidth - 10
+      container.scrollLeft < container.scrollWidth - container.clientWidth
     );
   };
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
-      container.addEventListener('scroll', checkScrollPosition);
       checkScrollPosition();
+      window.addEventListener('resize', checkScrollPosition);
+      container.addEventListener('scroll', checkScrollPosition);
     }
     
     return () => {
       if (container) {
+        window.removeEventListener('resize', checkScrollPosition);
         container.removeEventListener('scroll', checkScrollPosition);
       }
     };
@@ -61,7 +63,7 @@ export default function CategoryNav({ onCategoriesChange }) {
       {showLeftArrow && (
         <button
           onClick={() => scroll("left")}
-          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full shadow-md p-2 z-10"
+          className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full shadow-md p-2 z-20"
           aria-label="Left scroll"
         >
           <ChevronRight className="text-gray-700 rotate-180" />
@@ -86,12 +88,12 @@ export default function CategoryNav({ onCategoriesChange }) {
               <div className={`relative p-1 h-12 w-12 sm:h-16 sm:w-16 rounded-full mb-1 ${isSelected ? 'bg-green-100' : 'bg-gray-100'}`}>
                 <img src={icon} alt={name} className="rounded-full object-cover h-full w-full" />
                 {isSelected && (
-                  <div className="absolute bottom-0 right-0 bg-[#07760d] rounded-full p-1">
+                  <div className="absolute bottom-0 right-0 bg-[#083d77] rounded-full p-1">
                     <CheckMark size={16} className="text-white text-xs" />
                   </div>
                 )}
               </div>
-              <span className={`text-xs text-center ${isSelected ? 'text-[#07760d] font-medium' : ''}`}>
+              <span className={`text-xs text-center ${isSelected ? 'text-[#083d77] font-medium' : ''}`}>
                 {name}
               </span>
             </button>
@@ -102,7 +104,7 @@ export default function CategoryNav({ onCategoriesChange }) {
       {showRightArrow && (
         <button
           onClick={() => scroll("right")}
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full shadow-md p-2 z-10"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 rounded-full shadow-md p-2 z-20"
           aria-label="Right scroll"
         >
           <ChevronRight className="text-gray-700" />

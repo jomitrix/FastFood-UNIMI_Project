@@ -6,7 +6,6 @@ import { Card, CardBody, CardHeader } from "@heroui/card";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
 import { Link } from "@heroui/link";
-import { Tabs, Tab } from "@heroui/tabs";
 import { Eye, EyeClosed } from "@/components/icons/heroicons";
 import { WaveClean } from "@/components/waves";
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,7 +15,6 @@ export default function Login() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [accountType, setAccountType] = useState("user");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -82,15 +80,6 @@ export default function Login() {
                   {errors.general}
                 </div>
               )}
-
-              <Tabs
-                className="items-center justify-center mb-2"
-                selectedKey={accountType}
-                onSelectionChange={(value) => setAccountType(value)}
-              >
-                <Tab key="user" title="User" />
-                <Tab key="restaurant" title="Restaurant" />
-              </Tabs>
 
               <Input
                 type="email"

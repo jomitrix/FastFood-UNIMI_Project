@@ -5,11 +5,11 @@ import RestaurantCard from '@/components/app/search/RestaurantCard';
 import MealCard from '@/components/app/search/MealCard';
 import HorizontalScroller from '@/components/app/search/HorizontalScroller';
 import DeliveryAddressesSection from '@/components/app/home/DeliveryAddressesSection';
+import AddressOrderType from '@/components/app/search/AddressOrderType';
 
 import { useState, useEffect, useMemo } from 'react';
-import { Tabs, Tab } from '@heroui/tabs';
 import { Button } from '@heroui/button';
-import { MapPin, Takeaway, Delivery, Search, Funnel } from '@/components/icons/heroicons';
+import { Search, Funnel } from '@/components/icons/heroicons';
 import {
   Autocomplete,
   AutocompleteSection,
@@ -37,6 +37,7 @@ const mockAddresses = [
 
   const mockTastesRest = [
     {
+      id: 1,
       img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
       restaurantname: "Sushi Feltre",
       minDeliveryTime: 10,
@@ -47,8 +48,10 @@ const mockAddresses = [
       rating: 4.5,
       isOpenNow: true,
       orderType: "both",
+      addressReference: {id: 1}
     },
     {
+      id: 2,
       img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
       restaurantname: "Pizzeria da Mario",
       minDeliveryTime: 20,
@@ -59,6 +62,7 @@ const mockAddresses = [
       rating: 4.8,
       isOpenNow: false,
       orderType: "delivery",
+      addressReference: {id: 2}
     }
   ];
 // filtro richiesto dal prof (i ristoranti devono essere mostrati per vicinanza dall'indirizzo selezionato
@@ -66,6 +70,7 @@ const mockAddresses = [
 // inoltre al caricamento della pagina mettere già tra i filtri di esclusione gli allergeni onboarding
 const mockRestaurants = [
   {
+    id: 1,
     img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
     restaurantname: "Sushi Feltre",
     minDeliveryTime: 10,
@@ -78,6 +83,7 @@ const mockRestaurants = [
     orderType: "both",
   },
   {
+    id: 2,
     img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
     restaurantname: "Pizzeria da Mario",
     minDeliveryTime: 20,
@@ -90,6 +96,7 @@ const mockRestaurants = [
     orderType: "delivery",
   },
   {
+    id: 3,
     img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:pollo-6.jpg/v1/it/restaurants/282166.jpg",
     restaurantname: "KFC - Abruzzi",
     minDeliveryTime: 15,
@@ -102,6 +109,7 @@ const mockRestaurants = [
     orderType: "takeaway",
   },
   {
+    id: 4,
     img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:hamburger-9.jpg/v1/it/restaurants/270039.jpg",
     restaurantname: "Burger King",
     minDeliveryTime: 25,
@@ -181,55 +189,18 @@ export default function Home() {
   const [orderType, setOrderType] = useState("takeaway");
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addresses, setAddresses] = useState(mockAddresses);
-  const [addressQuery, setAddressQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     isOpenNow: false,
     selectedAllergens: [],
-    selectedCuisines: []
+    selectedCuisines: [],
+    priceRange: { min: '', max: '' }
   });
   const [searchValue, setSearchValue] = useState("");
   const [searchType, setSearchType] = useState("restaurant");
   
-  const filtered = useMemo(
-    () =>
-      addressQuery
-        ? addresses.filter((addr) =>
-            addr.address.toLowerCase().includes(addressQuery.toLowerCase())
-          )
-        : addresses,
-    [addressQuery, addresses]
-  );
-
-  const getQueryParam = (param) => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const paramValue = urlParams.get(param);
-      
-      if (paramValue) {
-        const foundAddress = addresses.find(addr => addr.id === Number(paramValue));
-        if (foundAddress) {
-          setSelectedAddress(foundAddress);
-          setAddressQuery(foundAddress.address);
-        }
-      }
-      
-      const newUrl = `${window.location.pathname}`;
-      window.history.replaceState({}, document.title, newUrl);
-    }
-  };
-
-  useEffect(() => {
-    getQueryParam('addressId');
-  }, []);
-
-  const handleSelect = (addr) => {
-    setSelectedAddress(addr);
-    setAddressQuery(addr.address);
-  };
-
   const handleCategoriesChange = (categories) => {
     setSelectedCategories(categories);
     console.log("Categorie filtrate:", categories);
@@ -246,30 +217,57 @@ export default function Home() {
     console.log("Search query:", query);
   }
 
+  const handleAddressSelect = (address) => {
+    setSelectedAddress(address);
+    if (address && address.id) {
+      localStorage.setItem('selectedAddressId', address.id);
+    }
+  };
+
   const activeFilterCount = useMemo(() => {
     let count = 0;
     if (activeFilters.isOpenNow) count++;
     if (activeFilters.selectedAllergens.length > 0) count++;
     if (activeFilters.selectedCuisines.length > 0) count++;
+    if (searchType === 'dishes' && (activeFilters.priceRange.min || activeFilters.priceRange.max)) count++;
     return count;
-  }, [activeFilters]);
+  }, [activeFilters, searchType]);
 
   // Aggiungi questa funzione per filtrare i risultati
   const getFilteredResults = useMemo(() => {
+    let results;
+
+    if (searchType === "restaurant") {
+      // Per ora, i filtri si applicano solo ai piatti.
+      // Aggiungere qui la logica per i filtri dei ristoranti se necessario.
+      results = mockRestaurants;
+    } else { // searchType === 'dishes'
+      results = mockMeals.filter(meal => {
+        const { priceRange } = activeFilters;
+        const minPrice = priceRange.min !== '' ? parseFloat(priceRange.min) : -Infinity;
+        const maxPrice = priceRange.max !== '' ? parseFloat(priceRange.max) : Infinity;
+
+        if (meal.price < minPrice || meal.price > maxPrice) {
+          return false;
+        }
+        return true;
+      });
+    }
+
     if (!searchValue) {
-      return searchType === "restaurant" ? mockRestaurants : mockMeals;
+      return results;
     }
     
     const query = searchValue.toLowerCase();
     
     if (searchType === "restaurant") {
-      return mockRestaurants.filter(restaurant => 
+      return results.filter(restaurant => 
         restaurant.restaurantname.toLowerCase().includes(query) ||
         restaurant.area.some(area => area.toLowerCase().includes(query))
       );
-    } else {
-      // Filtra i piatti per nome o ingredienti
-      return mockMeals.filter(meal => {
+    } else { // searchType === 'dishes'
+      // Filtra ulteriormente i risultati già filtrati per prezzo
+      return results.filter(meal => {
         // Controlla il nome del piatto
         if (meal.name.toLowerCase().includes(query)) {
           return true;
@@ -285,85 +283,28 @@ export default function Home() {
         return false;
       });
     }
-  }, [searchValue, searchType]);
+  }, [searchValue, searchType, activeFilters]);
 
   return (
     <div className='bg-[#f5f3f5] w-full flex flex-col min-h-screen overflow-x-hidden'>
       {/* Header fisso */}
       <header className="fixed w-full top-16 z-40 bg-[#ff8844] shadow-sm">
-        <div className="w-full py-3 px-4 gap-3 flex flex-wrap sm:flex-nowrap items-center justify-center">
-          <Autocomplete
-            inputValue={addressQuery}
-            selectorIcon={null}
-            defaultItems={addresses}
-            value={addressQuery}
-            onInputChange={value => {
-              setAddressQuery(value);
-              if (!value) setSelectedAddress(null);
-            }}
-            placeholder="Select an address"
-            radius="full"
-            size="md"
-            className="w-full sm:w-1/2"
-            selectorButtonProps={{ className: "hidden" }}
-            startContent={<MapPin size={20} className="text-[#083d77]" />}
-            openOnFocus
-            inputProps={{
-              classNames: {
-                inputWrapper: "bg-[#ECEAE7] h-10",
-                input: "text-sm font-semibold",
-              }
-            }}
-          >
-            <AutocompleteSection title="Your Addresses">
-              {filtered.map(addr => (
-                <AutocompleteItem
-                  key={addr.id}
-                  value={addr.address}
-                  textValue={addr.address}
-                  onPress={() => handleSelect(addr)}
-                  className={selectedAddress?.id === addr.id ? "bg-[#ffe0c2]" : ""}
-                >
-                  {addr.address}
-                </AutocompleteItem>
-              ))}
-              <AutocompleteItem
-                key="add-new"
-                className="text-[#083d77] mt-1"
-                classNames={{title: "font-semibold"}}
-                title="+ Add new Address"
-                onPress={() => { setIsModalOpen(true), setTimeout(() => setAddressQuery(""), 100); }}
-              />
-            </AutocompleteSection>
-          </Autocomplete>
-
-          <Tabs
-            color="white"
-            radius="full"
-            size='md'
-            className="h-10 w-full sm:w-auto"
-            classNames={{
-                tabList: "bg-[#ECEAE7] w-full h-10",
-                tabContent: "text-black h-full flex items-center",
-                tab: "data-[selected=true]:font-bold h-full"
-            }}
-            selectedKey={orderType}
-            onSelectionChange={(key) => setOrderType(String(key))}
-          >
-              <Tab key="takeaway" title={
-                <div className='flex justify-center items-center gap-2'>
-                  <Takeaway size={16} className="text-[#083d77]" />
-                  <span>Takeaway</span>
-                </div>}
-              />
-              <Tab key="delivery" title={
-                <div className='flex justify-center items-center gap-2'>
-                  <Delivery size={16} className="text-[#083d77]" />
-                  <span>Delivery</span>
-                </div>}
-              />
-          </Tabs>
-        </div>
+        <AddressOrderType 
+          addresses={addresses}
+          onAddressSelect={handleAddressSelect}
+          onOrderTypeChange={setOrderType}
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
+          onAddressesSave={(newAddresses) => {
+            setAddresses(
+              newAddresses.map((address, idx) => ({
+                id: addresses[idx]?.id || Date.now() + idx,
+                address,
+              }))
+            );
+          }}
+          initialOrderType={orderType}
+        />
         <CategoryNav onCategoriesChange={handleCategoriesChange} />
       </header>
 
@@ -374,7 +315,8 @@ export default function Home() {
             onFiltersChange={handleFiltersChange}
             isDrawerOpen={isFilterDrawerOpen}
             setIsDrawerOpen={setIsFilterDrawerOpen}
-            isMobile={false}
+            searchType={searchType}
+            activeFilters={activeFilters}
           />
   
           <div className="flex-1 pt-6 w-full">
@@ -406,7 +348,8 @@ export default function Home() {
                     setActiveFilters({
                       isOpenNow: false,
                       selectedAllergens: [],
-                      selectedCuisines: []
+                      selectedCuisines: [],
+                      priceRange: { min: '', max: '' }
                     });
                     setSelectedCategories([]);
                     console.log(`Switched to ${newSearchType} search, filters reset`);
@@ -424,13 +367,13 @@ export default function Home() {
                 
                 <Button 
                   onPress={() => setIsFilterDrawerOpen(true)} 
-                  className="lg:hidden flex items-center justify-center gap-2 border rounded-lg px-3 py-2 bg-gray-200 shrink-0 relative"
+                  className="lg:hidden flex items-center overflow-auto justify-center gap-2 border rounded-lg px-3 py-2 bg-gray-200 shrink-0 relative"
                   size="lg"
                 >
                   <Funnel className="h-5 w-5" />
                   <span className="hidden sm:inline">Filters</span>
                   {activeFilterCount > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-[#ff8844] text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    <span className="absolute -top-2 -right-2 bg-[#083d77] overflow text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                       {activeFilterCount}
                     </span>
                   )}
@@ -486,25 +429,13 @@ export default function Home() {
         </main>
       </div>
   
-      <DeliveryAddressesSection
-        addresses={addresses.map(a => a.address)}
-        isOpen={isModalOpen}
-        setIsModalOpen={setIsModalOpen}
-        onSave={(newAddresses) => {
-          setAddresses(
-            newAddresses.map((address, idx) => ({
-              id: addresses[idx]?.id || Date.now() + idx,
-              address,
-            }))
-          );
-        }}
-      />
-      
       <FilterSidebar 
         onFiltersChange={handleFiltersChange}
         isDrawerOpen={isFilterDrawerOpen}
         setIsDrawerOpen={setIsFilterDrawerOpen}
         isMobile={true}
+        searchType={searchType}
+        activeFilters={activeFilters}
       />
     </div>
   );

@@ -1,0 +1,199 @@
+import { ScrollShadow } from '@heroui/scroll-shadow';
+import { Cart, Trash } from "@/components/icons/heroicons";
+import { useState, useEffect } from 'react';
+import AddressOrderType from '@/components/app/search/AddressOrderType';
+
+export default function CartComponent({ 
+  isDesktop = false, 
+  cartItems, 
+  cartTotal, 
+  removeFromCart, 
+  updateCartItemQuantity,
+  setIsCartOpen,
+  onCheckout,
+  deliveryFee = 2.50, // valore predefinito
+  estimatedDeliveryTime = { min: 20, max: 35 } // valore predefinito
+}) {
+  // Inizializza l'orderType dal localStorage
+  const [orderType, setOrderType] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('orderType') || 'takeaway';
+    }
+    return 'takeaway';
+  });
+  
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  const [addresses, setAddresses] = useState([
+    {
+      id: 1,
+      address: "Via Tiburtina 1361, Roma, 00131, Italy"
+    },
+    {
+      id: 2,
+      address: "Piazzale Loreto 9, Milano, 20131, Italy"
+    },
+    {
+      id: 3,
+      address: "Via Dante 20, Poggibonsi, 53036, Italy"
+    },
+  ]
+  );
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Carica l'indirizzo selezionato dal localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined' && addresses.length > 0) {
+      const savedAddressId = localStorage.getItem('selectedAddressId');
+      if (savedAddressId) {
+        const foundAddress = addresses.find(addr => addr.id === Number(savedAddressId));
+        if (foundAddress) {
+          setSelectedAddress(foundAddress);
+        }
+      }
+    }
+  }, [addresses]);
+
+  // Funzione per gestire il cambio di orderType
+  const handleOrderTypeChange = (newType) => {
+    setOrderType(newType);
+    localStorage.setItem('orderType', newType);
+  };
+
+  // Funzione per gestire la selezione dell'indirizzo
+  const handleAddressSelect = (address) => {
+    setSelectedAddress(address);
+    if (address && address.id) {
+      localStorage.setItem('selectedAddressId', address.id);
+    } else if (address === null) {
+      localStorage.removeItem('selectedAddressId');
+    }
+  };
+
+  return (
+    <div className={`bg-white flex flex-col ${isDesktop ? 'h-screen border-l border-gray-200' : 'h-full'}`}>
+      <div className="p-4 border-b flex justify-between items-center">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <Cart />
+          Your cart
+        </h2>
+        {!isDesktop && (
+          <button 
+            onClick={() => setIsCartOpen(false)}
+            className="p-2 rounded-full hover:bg-gray-100"
+          >
+          </button>
+        )}
+      </div>
+
+      <AddressOrderType
+        addresses={addresses}
+        onAddressSelect={handleAddressSelect}
+        onOrderTypeChange={handleOrderTypeChange}
+        initialOrderType={orderType}
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        isCartComponent={true}
+        onAddressesSave={(newAddresses) => {
+          setAddresses(
+            newAddresses.map((address, idx) => ({
+              id: addresses[idx]?.id || Date.now() + idx,
+              address,
+            }))
+          );
+        }}
+      />
+      
+      {cartItems.length > 0 ? (
+        <ScrollShadow className="flex-1 overflow-y-auto">
+          <div className="divide-y">
+            {cartItems.map((item) => (
+              <div key={item.id} className="p-4 flex gap-3">
+                <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
+                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between">
+                    <h3 className="font-medium">{item.name}</h3>
+                    <button 
+                      onClick={() => removeFromCart(item.id)}
+                      className="text-red-500 p-1 hover:bg-red-50 rounded-full"
+                    >
+                      <Trash className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <p className="text-gray-600">{item.price.toFixed(2)}{item.currency}</p>
+                  <div className="flex justify-between items-center mt-2">
+                    <div className="flex border rounded-lg">
+                      <button 
+                        onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                        className={`px-2 py-1 ${item.quantity <= 1 ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                        disabled={item.quantity <= 1}
+                      >
+                        -
+                      </button>
+                      <span className="px-3 py-1">{item.quantity}</span>
+                      <button 
+                        onClick={() => updateCartItemQuantity(item.id, Math.min(item.quantity + 1, 10))}
+                        className={`px-2 py-1 ${item.quantity >= 10 ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                        disabled={item.quantity >= 10}
+                      >
+                        +
+                      </button>
+                    </div>
+                    <p className="font-semibold">{(item.price * item.quantity).toFixed(2)}{item.currency}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </ScrollShadow>
+      ) : (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center text-gray-500">
+          <Cart className="w-16 h-16 mb-4 opacity-30" />
+          <p className="text-lg font-medium mb-2">Your cart is empty</p>
+          <p>Add something from the menu to start your order</p>
+        </div>
+      )}
+      
+      {cartItems.length > 0 && (
+        <div className="border-t p-4">
+          <div className="flex flex-col gap-2 mb-4">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Subtotal</span>
+              <span>{cartTotal.toFixed(2)}€</span>
+            </div>
+            
+            {orderType === 'delivery' && (
+              <>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Delivery fee</span>
+                  <span>{deliveryFee.toFixed(2)}€</span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Estimated delivery time</span>
+                  <span>{estimatedDeliveryTime.min}-{estimatedDeliveryTime.max} min</span>
+                </div>
+              </>
+            )}
+            
+            <div className="flex justify-between pt-2 border-t mt-1">
+              <span className="font-semibold">Total</span>
+              <span className="font-bold text-lg">
+                {(cartTotal + (orderType === 'delivery' ? deliveryFee : 0)).toFixed(2)}€
+              </span>
+            </div>
+          </div>
+          <button 
+            className="w-full bg-[#083d77] text-white py-3 rounded-xl font-medium hover:bg-[#062f5c] disabled:bg-gray-300 disabled:cursor-not-allowed"
+            onClick={onCheckout}
+            disabled={orderType === 'delivery' && !selectedAddress}
+          >
+            {orderType === 'delivery' && !selectedAddress 
+              ? "Please select an address" 
+              : "Proceed to checkout"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};

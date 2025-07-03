@@ -53,6 +53,7 @@ export const courses = [
     { name: "Breakfast", icon: "https://www.frontrangefed.com/wp-content/uploads/2024/02/cottage-cheese-with-fruit-breakfast-bowl-featured-500x500.jpg" },
     { name: "Chicken", icon: "https://wp-cdn.typhur.com/wp-content/uploads/2024/02/roasted-chicken-500x500.jpg" },
     { name: "Dessert", icon: "https://www.cookingclassy.com/wp-content/uploads/2022/08/tiramisu-17-500x500.jpg" },
+    { name: "Fast Food", icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRun-DAT-A5evjeT_7urrgrukORB3C9gAZ57Q&s" },
     { name: "First Course", icon: "https://www.ristoranteselmi22.it/wp-content/uploads/2023/09/gnocchi-patate-gamberi.jpg" },
     { name: "Fish", icon: "https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Finsanelygoodrecipes.com%2Fwp-content%2Fuploads%2F2022%2F08%2FVegan-Salmon-Sushi-Sashimi-and-Maki-Rolls-500x500.jpg&f=1&nofb=1&ipt=1ebee3d6b29ce405c08a21a7ce3a7ec2875ed77bfe967b9dc537ffbe3dcb51ad" },
     { name: "Goat", icon: "https://www.indiansimmer.com/wp-content/uploads/2011/11/GoatCurry-500x500.jpg" },

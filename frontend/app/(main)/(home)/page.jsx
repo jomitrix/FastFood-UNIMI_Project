@@ -37,6 +37,7 @@ export default function Home() {
 
   const mockTastesRest = [
     {
+      id: 1,
       img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
       restaurantname: "Sushi Feltre",
       minDeliveryTime: 10,
@@ -46,8 +47,10 @@ export default function Home() {
       allergens: ["Milk", "Egg", "Peanut"],
       isOpenNow: true,
       orderType: "both",
+      addressReference: {id: 1}
     },
     {
+      id: 2,
       img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
       restaurantname: "Pizzeria da Mario",
       minDeliveryTime: 20,
@@ -57,6 +60,7 @@ export default function Home() {
       allergens: ["Gluten", "Milk"],
       isOpenNow: false,
       orderType: "delivery",
+      addressReference: {id: 2}
     }
   ];
 
@@ -84,6 +88,7 @@ export default function Home() {
   const handleSelect = (addr) => {
     setSelectedAddress(addr);
     setAddressQuery(addr.address);
+    localStorage.setItem('selectedAddressId', addr.id);
   };
 
   // Il bottone è abilitato solo se l'indirizzo selezionato è valido
@@ -168,7 +173,7 @@ export default function Home() {
                       startContent={<Search className="text-white flex-shrink-0 m-0" />}
                       radius="md"
                       isDisabled={!isAddressValid}
-                      onPress={() => router.push(`/search?addressId=${selectedAddress.id}`)}
+                      onPress={() => router.push("/search")}
                     >
                       <span className="hidden sm:block">Search</span>
                     </Button>
