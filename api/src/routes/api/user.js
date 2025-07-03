@@ -2,6 +2,9 @@ const router = require("express").Router();
 const { authStrict } = require("@middleware/authMiddleware");
 const Users = require("@models/Users");
 const Restaurants = require("@models/Users.Restaurants");
+const Menus = require("@models/Restaurants/Restaurants.Menus");
+const Orders = require("@models/Restaurants/Restaurants.Orders");
+const Meals = require("@models/Restaurants/Restaurants.Meals");
 const { validate } = require("@middleware/validationMiddleware");
 const validator = require("@validators/userValidator");
 const bcrypt = require("bcrypt");
@@ -160,9 +163,15 @@ router.delete("/account/delete", authStrict, async (req, res, next) => {
         const user = await Users.findById(req.user._id);
         if (!user) return res.status(404).send({ status: "error", error: "User not found" });
 
-        user.deleted = true;
-        user.deletedAt = new Date();
-        await user.save();
+        await Users.deleteOne({ _id: req.user._id });
+        if (req.user.role === "restaurant") {
+            const restaurant = await Restaurants.deleteOne({ user: req.user._id });
+            if (restaurant) {
+                const menus = await Menus.deleteMany({ restaurant: req.user._id });
+                const meals = await Meals.deleteMany({ restaurant: req.user._id });
+                const orders = await Orders.deleteMany({ restaurant: req.user._id });
+            }
+        }
 
         res.send({ status: "success" });
     } catch (err) { next(err); }

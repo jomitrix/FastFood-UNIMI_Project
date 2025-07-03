@@ -20,8 +20,7 @@ app.use(cors({
 }));
 
 // --- STATIC FILES ---
-console.log(path.join(__dirname, 'uploads'));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // --- DATABASE CONNECTION ---
 db.then(async () => console.log("Connected to MongoDB")).catch((err) => console.log(err));

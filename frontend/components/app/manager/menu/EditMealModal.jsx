@@ -10,8 +10,9 @@ import { Select, SelectItem } from "@heroui/select";
 import ConfirmDelete from '@/components/ConfirmDelete';
 import { optimizeImage } from "@/utils/optimizeImage";
 import { addToast } from "@heroui/toast";
+import { RestaurantService } from '@/services/restaurantService';
 
-export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mealData, courses = [], areas = [], allergens = [] }) {
+export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mealData, courses = [], areas = [], allergens = [], restaurantId }) {
     const [image, setImage] = useState(null);
     const [name, setName] = useState('');
     const [ingredients, setIngredients] = useState([]);
@@ -30,7 +31,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
 
     useEffect(() => {
         if (isOpen && mealData) {
-            setMealId(mealData.id);
+            setMealId(mealData._id);
             setImage(mealData?.image || null);
             setName(mealData?.name || '');
             setIngredients(mealData?.ingredients || []);
@@ -43,18 +44,18 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             setNewIngredient('');
         }
     }, [isOpen, mealData]);
-    
+
     const [imageFile, setImageFile] = useState(null);
-    
+
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
         if (!file) return;
-        
+
         try {
             const optimizedImage = await optimizeImage(file);
             const imageUrl = URL.createObjectURL(optimizedImage);
             setImage(imageUrl);
-            
+
             setImageFile(optimizedImage);
         } catch (error) {
             addToast({
@@ -73,7 +74,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             const exists = ingredients.some(
                 ing => ing.toLowerCase() === trimmedIngredient.toLowerCase()
             );
-            
+
             if (!exists) {
                 setIngredients([...ingredients, trimmedIngredient]);
                 setNewIngredient('');
@@ -106,10 +107,10 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
     }, [ingredients]);
 
     // Gestione submit per l'aggiornamento del pasto
-    const handleSubmitEditMeal = () => {
+    const handleSubmitEditMeal = async (mealId) => {
         // Reset errors
         setErrors({});
-        
+
         // Validazione solo per name e price
         const newErrors = {};
         if (!name.trim()) newErrors.name = "Meal name is required";
@@ -120,32 +121,43 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             return;
         }
 
-        // Creazione oggetto meal aggiornato per la submission
-        // Include il file dell'immagine se è stato modificato
-        const updatedMeal = {
-            name: name,
-            image: imageFile ? imageFile : image, // Passa il file o l'URL esistente
-            ingredients: ingredients,
-            id: mealId, 
-            price: price,
-            currency: "€",
-            category: category,
-            area: area,
-            allergens: Array.from(selectedAllergens)
-        };
+        try {
+            console.log(imageFile);
+            const data = await RestaurantService.editMeal(
+                restaurantId,
+                mealId,
+                name,
+                category,
+                area,
+                Array.from(selectedAllergens),
+                ingredients,
+                price,
+                imageFile
+            );
 
-        // Invio del pasto aggiornato al componente padre
-        onSubmit(updatedMeal);
-        
-        // Chiusura del modale
-        onClose();
+            if (!data || data.status !== "success") {
+                throw new Error(data.error || "Server Error");
+            }
+
+            onSubmit(data.meal);
+
+            onClose();
+        } catch (error) {
+            console.error("Error editing meal:", error);
+            addToast({
+                title: "Error",
+                description: error.message,
+                color: "danger",
+                timeout: 4000
+            });
+        }
     };
 
     // Modifica la funzione di eliminazione per aprire la modale di conferma
     const handleDeleteClick = () => {
         setIsDeleteModalOpen(true);
     };
-    
+
     // Funzione per confermare l'eliminazione
     const confirmDelete = () => {
         if (onDelete && mealId) {
@@ -154,7 +166,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             onClose();
         }
     };
-    
+
     // Funzione per annullare l'eliminazione
     const cancelDelete = () => {
         setIsDeleteModalOpen(false);
@@ -178,8 +190,8 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                             <div className="flex gap-4 items-center">
                                 <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border relative">
                                     {image && (
-                                        <img 
-                                            src={image}
+                                        <img
+                                            src={`${process.env.NEXT_PUBLIC_API_URL}${image}`}
                                             className="w-full h-full object-cover rounded-xl"
                                         />
                                     )}
@@ -191,7 +203,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                     >
                                         <Upload size={24} />
                                     </Button>
-                                    
+
                                     <input
                                         type="file"
                                         accept="image/*"
@@ -216,7 +228,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                         onChange={(e) => {
                                             setName(e.target.value);
                                             if (errors.name) {
-                                                setErrors({...errors, name: undefined});
+                                                setErrors({ ...errors, name: undefined });
                                             }
                                         }}
                                         isInvalid={!!errors.name}
@@ -242,7 +254,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                     {description.length}/200
                                 </div>
                             </div>*/}
-                                
+
                             {/* Categoria e Area */}
                             <div className="flex flex-col sm:flex-row gap-4 w-full">
                                 <Select
@@ -307,36 +319,36 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                 <p className="text-sm">Ingredients</p>
                                 <div className="max-h-[8rem] sm:max-h-40 overflow-y-auto flex flex-col">
                                     {ingredients.length > 0 ? (
-                                        <ScrollShadow 
-                                            ref={scrollContainerRef} 
-                                            size={30} 
-                                            hideScrollBar 
+                                        <ScrollShadow
+                                            ref={scrollContainerRef}
+                                            size={30}
+                                            hideScrollBar
                                             className='gap-2'
                                         >
-                                        {ingredients.map((ingredient, index) => (
-                                            <div key={index} className="w-full flex gap-2 items-end justify-center mt-2">
-                                                <Input
-                                                    placeholder="Ingredient"
-                                                    className="flex-grow"
-                                                    variant="faded"
-                                                    value={ingredient}
-                                                    onChange={(e) => {
-                                                        const updatedIngredients = [...ingredients];
-                                                        updatedIngredients[index] = e.target.value;
-                                                        setIngredients(updatedIngredients);
-                                                    }}
-                                                />
-                                                <Button 
-                                                    isIconOnly 
-                                                    isPressable
-                                                    className="bg-red-500 text-white" 
-                                                    size="md"
-                                                    onPress={() => removeIngredient(index)}
-                                                >
-                                                    <Plus className="rotate-[45deg]" size={24} />
-                                                </Button>
-                                            </div>
-                                        ))}
+                                            {ingredients.map((ingredient, index) => (
+                                                <div key={index} className="w-full flex gap-2 items-end justify-center mt-2">
+                                                    <Input
+                                                        placeholder="Ingredient"
+                                                        className="flex-grow"
+                                                        variant="faded"
+                                                        value={ingredient}
+                                                        onChange={(e) => {
+                                                            const updatedIngredients = [...ingredients];
+                                                            updatedIngredients[index] = e.target.value;
+                                                            setIngredients(updatedIngredients);
+                                                        }}
+                                                    />
+                                                    <Button
+                                                        isIconOnly
+                                                        isPressable
+                                                        className="bg-red-500 text-white"
+                                                        size="md"
+                                                        onPress={() => removeIngredient(index)}
+                                                    >
+                                                        <Plus className="rotate-[45deg]" size={24} />
+                                                    </Button>
+                                                </div>
+                                            ))}
                                         </ScrollShadow>
                                     ) : (
                                         ""
@@ -352,10 +364,10 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                         onKeyDown={handleKeyDown}
                                         ref={newIngredientInputRef}
                                     />
-                                    <Button 
-                                        isIconOnly 
+                                    <Button
+                                        isIconOnly
                                         isPressable
-                                        className="bg-[#083d77] text-white" 
+                                        className="bg-[#083d77] text-white"
                                         size="md"
                                         onPress={addIngredient}
                                     >
@@ -363,7 +375,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                     </Button>
                                 </div>
                             </div>
-                                
+
                             {/* Prezzo */}
                             <div className="flex gap-4 items-center">
                                 <NumberInput
@@ -395,7 +407,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                         }
                                         setPrice(numValue);
                                         if (errors.price) {
-                                            setErrors({...errors, price: undefined});
+                                            setErrors({ ...errors, price: undefined });
                                         }
                                     }}
                                     isInvalid={!!errors.price}
@@ -405,22 +417,22 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                         </div>
                     </ModalBody>
                     <ModalFooter className="flex justify-between">
-                        <Button 
-                            className="bg-danger text-white" 
+                        <Button
+                            className="bg-danger text-white"
                             onPress={handleDeleteClick}
                         >
                             Delete
                         </Button>
                         <div className="flex gap-2">
-                            <Button 
-                                variant="ghost" 
+                            <Button
+                                variant="ghost"
                                 onPress={onClose}
                             >
                                 Cancel
                             </Button>
-                            <Button 
+                            <Button
                                 className="bg-[#083d77] text-white"
-                                onPress={handleSubmitEditMeal}
+                                onPress={() => handleSubmitEditMeal(mealId)}
                             >
                                 Save
                             </Button>
@@ -428,7 +440,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            
+
             {/* Modale di conferma per l'eliminazione */}
             <ConfirmDelete
                 type="this meal"

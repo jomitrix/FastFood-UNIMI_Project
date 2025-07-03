@@ -149,4 +149,36 @@ export const ApiService = {
       return text;
     }
   },
+
+  async multipartPatch(path, { fields = {}, files = [], filesFieldName = 'files', useAuth = true } = {}) {
+    const url = `${baseUrl}${path}`;
+    const formData = new FormData();
+
+    Object.entries(fields).forEach(([key, value]) => {
+      formData.append(key, value);
+    });
+
+    files.forEach((file) => {
+      if (file) formData.append(filesFieldName, file, file.name);
+    });
+
+    const headers = {};
+    if (useAuth) {
+      const token = this.getToken();
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(url, {
+      method: 'PATCH',
+      // credentials: 'include',
+      headers,
+      body: formData,
+    });
+    const text = await res.text();
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
+  },
 };

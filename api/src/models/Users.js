@@ -7,8 +7,6 @@ const UserSchema = new mongoose.Schema({
     name: { type: String, require: true, trim: true },
     surname: { type: String, required: true, trim: true },
     role: { type: String, enum: ["user", "restaurant"], default: "user" },
-    deleted: { type: Boolean, default: false },
-    deletedAt: { type: Date, default: null },
 
     preferences: {
         allergens: { type: [String], default: [] },
@@ -39,7 +37,5 @@ const UserSchema = new mongoose.Schema({
         default: [],
     }
 }, { timestamps: true });
-
-UserSchema.index({ deletedAt: 1 }, { expireAfterSeconds: 1 * 24 * 60 * 60 }); // 1 day
 
 module.exports = mongoose.model("Users", UserSchema, "Users");
