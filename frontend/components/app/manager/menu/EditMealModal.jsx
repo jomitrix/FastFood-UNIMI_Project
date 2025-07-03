@@ -122,7 +122,6 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
         }
 
         try {
-            console.log(imageFile);
             const data = await RestaurantService.editMeal(
                 restaurantId,
                 mealId,
@@ -136,7 +135,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             );
 
             if (!data || data.status !== "success") {
-                throw new Error(data.error || "Server Error");
+                return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
             }
 
             onSubmit(data.meal);
@@ -159,8 +158,13 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
     };
 
     // Funzione per confermare l'eliminazione
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (onDelete && mealId) {
+            const data = await RestaurantService.deleteMeal(restaurantId, mealId);
+            if (!data || data.status !== "success") {
+                return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+            }
+
             onDelete(mealId);
             setIsDeleteModalOpen(false);
             onClose();

@@ -26,4 +26,8 @@ export const RestaurantService = {
             filesFieldName: 'mealImage'
         });
     },
+
+    deleteMeal(restaurantId, mealId) {
+        return ApiService.delete(`/restaurant/${restaurantId}/menu/meals/${mealId}/delete`);
+    }
 };

@@ -93,7 +93,7 @@ router.post("/:restaurantId/menu/meals/add", authStrict, validate(validator.addM
             category,
             area,
             allergens,
-            ingredients,
+            ingredients: Array.isArray(ingredients) ? ingredients : [],
             price,
             image: imageFilename
         };
@@ -111,9 +111,9 @@ router.post("/:restaurantId/menu/meals/add", authStrict, validate(validator.addM
     } catch (err) { next(err); }
 });
 
-router.patch("/:restaurantId/menu/meals/:mealId/edit", authStrict, validate(validator.addMealSchema), upload.fields([
+router.patch("/:restaurantId/menu/meals/:mealId/edit", authStrict, upload.fields([
     { name: 'mealImage', maxCount: 1 },
-]), async (req, res, next) => {
+]), validate(validator.addMealSchema), async (req, res, next) => {
     try {
         const { restaurantId, mealId } = req.params;
         const { name, category, area, allergens, ingredients, price } = req.body;
@@ -132,7 +132,7 @@ router.patch("/:restaurantId/menu/meals/:mealId/edit", authStrict, validate(vali
         const meal = await Meals.findOne({ _id: mealId }).lean();
         if (!meal) return res.status(404).send({ status: "error", error: "Meal not found" });
 
-        let imageFilename = null;
+        let imageFilename = meal.image;
         if (files?.mealImage) {
             const file = files.mealImage[0];
             const tmpPath = file.path;
@@ -142,13 +142,12 @@ router.patch("/:restaurantId/menu/meals/:mealId/edit", authStrict, validate(vali
 
             if (meal.image) {
                 const oldImagePath = path.join(__dirname, `../..${meal.image}`);
-                console.log(oldImagePath);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
                 }
             }
 
-            fs.renameSync(tmpPath,  path.join(destDir, file.filename));
+            fs.renameSync(tmpPath, path.join(destDir, file.filename));
             imageFilename = `/uploads/restaurants/${restaurant._id}/menus/${menu._id}/meals/${file.filename}`;
         }
 
@@ -157,9 +156,9 @@ router.patch("/:restaurantId/menu/meals/:mealId/edit", authStrict, validate(vali
             category,
             area,
             allergens,
-            ingredients,
+            ingredients: Array.isArray(ingredients) ? ingredients : [],
             price,
-            image: imageFilename || null
+            image: imageFilename
         };
 
         const updatedDbMeal = await Meals.findOneAndUpdate(
@@ -186,13 +185,17 @@ router.delete("/:restaurantId/menu/meals/:mealId/delete", authStrict, async (req
         const menu = await Menus.findOne({ restaurant: restaurantId }).lean();
         if (!menu) return res.status(404).send({ status: "error", error: "Menu not found for this restaurant" });
 
-        const mealToDelete = menu.meals.find(meal => meal._id.toString() === mealId);
+        const mealToDelete = await Meals.findOne({ _id: mealId }).lean();
         if (!mealToDelete) return res.status(404).send({ status: "error", error: "Meal not found" });
 
-        const destDir = path.join(__dirname, `../../uploads/restaurants/${restaurant._id}/menus/${menu._id}/meals`);
-        if (mealToDelete.image && fs.existsSync(path.join(destDir, mealToDelete.image))) {
-            fs.unlinkSync(path.join(destDir, mealToDelete.image));
+        if (mealToDelete.image) {
+            const oldImagePath = path.join(__dirname, `../..${mealToDelete.image}`);
+            if (fs.existsSync(oldImagePath)) {
+                fs.unlinkSync(oldImagePath);
+            }
         }
+
+        await Meals.deleteOne({ _id: mealId });
 
         await Menus.findOneAndUpdate(
             { _id: menu._id },
