@@ -58,16 +58,16 @@ const addMealSchema = Joi.object({
             })
         )
         .default([]),
-    ingredients: Joi.alternatives()
-        .try(Joi.array().items(Joi.string().trim()), Joi.string().default(""))
-        .custom((value) => {
-            if (Array.isArray(value)) return value;
+    ingredients: Joi.string()
+        .allow('')
+        .default('')
+        .custom((value, helpers) => {
+            if (!value || value.trim() === '') return [];
             return value
-                .split(",")
-                .map((s) => s.trim())
-                .filter((s) => s);
-        })
-        .default([]),
+                .split(',')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+        }, 'Split comma-separated ingredients'),
     price: Joi.number().min(0).required(),
 });
 

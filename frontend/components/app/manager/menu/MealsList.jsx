@@ -88,12 +88,12 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
     };
     
     const findMealById = (id) => {
-        return localMeals.find(meal => meal.id === id);
+        return localMeals.find(meal => meal._id === id);
     };
     
     const handleUpdateMeal = (updatedMeal) => {
         const updatedMeals = localMeals.map(meal => 
-            meal.id === updatedMeal.id ? updatedMeal : meal
+            meal._id === updatedMeal._id ? updatedMeal : meal
         );
         
         setLocalMeals(updatedMeals);
@@ -102,7 +102,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
     
 
     const handleDeleteMeal = (mealId) => {
-        const updatedMeals = localMeals.filter(meal => meal.id !== mealId);
+        const updatedMeals = localMeals.filter(meal => meal._id !== mealId);
         setLocalMeals(updatedMeals);
         setIsModified(true);
     };
@@ -190,7 +190,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                 <div className="w-full max-w-3xl flex flex-col gap-3">
                     {localMeals.map((meal, index) => (
                         <Card 
-                            key={meal.id}
+                            key={meal._id}
                             className="w-full p-3 sm:p-5"
                         >
                             <CardBody className="p-0">
@@ -200,8 +200,9 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                                         <div className="relative mr-3 w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
                                             <Skeleton className="absolute w-full h-full rounded-xl" />
                                             <img 
-                                                className="absolute w-full h-full rounded-xl object-cover"
+                                                // className="absolute w-full h-full rounded-xl object-cover"
                                                 className="absolute w-full h-full rounded-xl bg-white object-cover"
+                                                src={`${process.env.NEXT_PUBLIC_API_URL}${meal.image}`}
                                             />
                                         </div>
                                         <div className="flex flex-col h-full justify-around min-w-0">
@@ -275,7 +276,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                                                 variant="trasparent"
                                                 className="p-1"
                                                 onPress={() => {
-                                                    setSelectedMeal(findMealById(meal.id));
+                                                    setSelectedMeal(findMealById(meal._id));
                                                     setIsModalOpen("edit");
                                                 }}
                                             >
@@ -311,6 +312,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                 courses={formattedCourses}
                 areas={areas}
                 allergens={allergens}
+                restaurantId={restaurantId}
             />
 
             {/* Modal per l'aggiunta di pasti esistenti */}
