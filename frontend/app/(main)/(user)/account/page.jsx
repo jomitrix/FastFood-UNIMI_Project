@@ -827,12 +827,12 @@ function ProfilePage() {
                     >
                       <div className="flex-1">
                         <div className="font-semibold">
-                          {card.cardName}
+                          {card.name}
                         </div>
                         <div className="text-sm">
-                          Holder: {card.cardHolder}
+                          Holder: {card.holder}
                         </div>
-                        <div className="text-sm">•••• •••• •••• {card.last4} – {card.exp}</div>
+                        <div className="text-sm">•••• •••• •••• {card.number.substr(-4)} – {card.expiry}</div>
                       </div>
                       <Button
                         color="danger"
