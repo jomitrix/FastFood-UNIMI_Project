@@ -28,15 +28,16 @@ export default function ExistingModal({ isOpen, onClose, searchMeals, setQueryRe
         const mealToAdd = queryResult.find(meal => meal.idMeal === selectedMealId);
         if (!mealToAdd) return;
 
+        const ingredients = mealToAdd.ingredients || [];
+
         const formattedMeal = {
-            id: Date.now().toString(),
             name: mealToAdd.strMeal,
             image: mealToAdd.strMealThumb || "https://placehold.co/500x500?text=No+Image",
-            ingredients: mealToAdd.ingredients,
+            ingredients: ingredients,
             category: mealToAdd.strCategory,
             area: mealToAdd.strArea,
-            price: 0.49, // Default price, can be adjusted later
-            currency: "€"
+            price: 0.49,
+            allergens: [],
         };
 
         onAddMeal(formattedMeal);

@@ -19,6 +19,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
     const [isModified, setIsModified] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(null);
     const [selectedMeal, setSelectedMeal] = useState(null);
+    const [newMealInitialData, setNewMealInitialData] = useState(null);
     const [mealFormData, setMealFormData] = useState({});
     const [queryResult, setQueryResult] = useState([]);
     const [searchQuery, setSearchQuery] = useState("");
@@ -68,21 +69,16 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
     };
 
     
-    const handleAddMeal = (meal) => {
-        // API
+    const handleAddMeal = (meal, fromExisting = false) => {
+        if (fromExisting) {
+            setNewMealInitialData(meal);
+            setIsModalOpen("new");
+            return;
+        }
 
-        if (!meal.category) meal.category = "Miscellaneous";
-        if (!meal.area) meal.area = "Unknown";
-
+        // API call is in NewMealModal/EditMealModal
         const newMeals = [...localMeals, meal];
         setLocalMeals(newMeals);
-        
-        if (isModalOpen !== "existing") return setIsModalOpen(null); 
-        setTimeout(() => {
-            setSelectedMeal(meal);
-            setIsModalOpen("edit");
-        }, 100); 
-
         setIsModalOpen(null);
     };
     
@@ -278,7 +274,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                                             ) : (
                                                 <Button
                                                     isIconOnly
-                                                    variant="trasparent"
+                                                    variant="transparent"
                                                     className="p-1"
                                                     onPress={() => {
                                                         setSelectedMeal(findMealById(meal._id));
@@ -300,12 +296,16 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
             {/* Modal per i nuovi pasti */}
             <NewMealModal
                 isOpen={isModalOpen === "new"} 
-                onClose={() => setIsModalOpen(null)}
+                onClose={() => {
+                    setIsModalOpen(null);
+                    setNewMealInitialData(null);
+                }}
                 onSubmit={(newMeal) => handleAddMeal(newMeal)}
                 courses={formattedCourses}
                 areas={areas}
                 allergens={allergens}
                 restaurantId={restaurantId}
+                initialData={newMealInitialData}
             />
 
             {/* Modal per la modifica dei pasti */}
@@ -329,7 +329,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                 queryResult={queryResult}
                 setQueryResult={setQueryResult}
                 onSearch={handleSearch}
-                onAddMeal={(selectedMeal) => handleAddMeal(selectedMeal)}
+                onAddMeal={(selectedMeal) => handleAddMeal(selectedMeal, true)}
             />
 
             {/* Pulsanti fissi in fondo alla pagina */}

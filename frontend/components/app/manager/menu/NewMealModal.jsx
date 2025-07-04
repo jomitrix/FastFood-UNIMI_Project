@@ -11,7 +11,13 @@ import { RestaurantService } from '@/services/restaurantService';
 import { addToast } from "@heroui/toast";
 import { optimizeImage } from "@/utils/optimizeImage";
 
-export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], areas = [], allergens = [], restaurantId }) {
+async function urlToImageFile(url, filename) {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new File([blob], filename, { type: blob.type });
+}
+
+export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], areas = [], allergens = [], restaurantId, initialData = null }) {
     const [image, setImage] = useState(null);
     const [imageFile, setImageFile] = useState(null);
     const [name, setName] = useState('');
@@ -29,18 +35,51 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
 
     useEffect(() => {
         if (isOpen) {
-            setImage(null);
-            setImageFile(null);
-            setName('');
-            setIngredients([]);
-            setNewIngredient('');
-            setPrice(9.99);
-            setCategory("Miscellaneous");
-            setArea("Unknown");
-            setSelectedAllergens(new Set([]));
-            setErrors({});
+            const processInitialData = async () => {
+                if (initialData) {
+                    setImage(initialData.image || null);
+                    setName(initialData.name || '');
+                    setIngredients(initialData.ingredients || []);
+                    setPrice(initialData.price || 9.99);
+                    setCategory(initialData.category || "Miscellaneous");
+                    setArea(initialData.area || "Unknown");
+                    setSelectedAllergens(new Set(initialData.allergens || []));
+
+                    if (initialData.image) {
+                        try {
+                            const filename = initialData.name ? `${initialData.name.replace(/\s+/g, '_')}.jpg` : 'image.jpg';
+                            const file = await urlToImageFile(initialData.image, filename);
+                            const optimizedImage = await optimizeImage(file);
+                            setImageFile(optimizedImage);
+                        } catch (error) {
+                            console.error("Error converting URL to image file:", error);
+                            addToast({
+                                title: "Error",
+                                description: "Could not load image from URL.",
+                                color: "danger",
+                                timeout: 4000,
+                            });
+                            setImageFile(null);
+                        }
+                    } else {
+                        setImageFile(null);
+                    }
+                } else {
+                    setImage(null);
+                    setImageFile(null);
+                    setName('');
+                    setIngredients([]);
+                    setPrice(9.99);
+                    setCategory("Miscellaneous");
+                    setArea("Unknown");
+                    setSelectedAllergens(new Set([]));
+                }
+                setNewIngredient('');
+                setErrors({});
+            };
+            processInitialData();
         }
-    }, [isOpen]);
+    }, [isOpen, initialData]);
 
     const handleImageUpload = async (e) => {
         const file = e.target.files?.[0];
@@ -136,10 +175,14 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
         }
     };
 
+    const handleClose = () => {
+        onClose();
+    };
+
     return (
         <Modal
             isOpen={isOpen}
-            onClose={onClose}
+            onClose={handleClose}
             size="2xl"
             className="bg-white shadow-lg m-0"
         >
@@ -381,7 +424,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                 <ModalFooter>
                     <Button
                         variant="ghost"
-                        onPress={onClose}
+                        onPress={handleClose}
                     >
                         Cancel
                     </Button>
