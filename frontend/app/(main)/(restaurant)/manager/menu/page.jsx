@@ -16,8 +16,8 @@ function MealsPage() {
   const { user } = useAuth();
 
   const mealsPaginator = usePaginator(useCallback(
-    (page, _) => RestaurantService.getMenu(user.restaurant._id, page)
-      .then(data => data.status !== 'success' ? [] : data.meals), [user.restaurant._id]),
+    (page, _) => RestaurantService.getMenu(user?.restaurant._id, page)
+      .then(data => data.status !== 'success' ? [] : data.meals), [user?.restaurant._id]),
     10
   );
 
@@ -38,7 +38,7 @@ function MealsPage() {
           <MealsList
             searchMeals={meals}
             meals={mealsPaginator.items}
-            restaurantId={user.restaurant._id}
+            restaurantId={user?.restaurant._id}
           />
         }
       </div>

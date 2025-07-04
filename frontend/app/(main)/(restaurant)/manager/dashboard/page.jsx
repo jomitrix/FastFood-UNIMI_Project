@@ -92,10 +92,10 @@ function DashboardPage() {
       { day: "Sat", orders: 12, revenue: 285.40 },
       { day: "Sun", orders: 10, revenue: 230.20 }
     ],
-    name: user.name,
-    surname: user.surname,
-    email: user.email,
-    username: user.restaurant.name,
+    name: user?.name,
+    surname: user?.surname,
+    email: user?.email,
+    username: user?.restaurant.name,
     accountType: "restaurant"
   }), []);
 

@@ -96,10 +96,6 @@ const mockCards = [
     }
 ];
 
-function cn(...classes) {
-  return classes.filter(Boolean).join(' ');
-}
-
 export default function Checkout({ params }) {
     const id = params;
     const router = useRouter();
@@ -140,7 +136,7 @@ export default function Checkout({ params }) {
     const [tempNotes, setTempNotes] = useState("");
 
     // Payment data
-    const [paymentMethod, setPaymentMethod] = useState("cash"); // 'cash' or 'card'
+    const [paymentMethod, setPaymentMethod] = useState(null); // 'cash' or 'card'
     const [paymentCards, setPaymentCards] = useState(mockCards);
     const [selectedCardId, setSelectedCardId] = useState(mockCards.length > 0 ? mockCards[0]._id.$oid : null);
     const [newCard, setNewCard] = useState({ name: "", holder: "", number: "", expiry: "", cvv: "" });
@@ -151,6 +147,11 @@ export default function Checkout({ params }) {
     const orderType = mockOrder.orderType;
     const [isModalOpen, setIsModalOpen] = useState(null);
 
+    const extractId = id =>
+      typeof id === 'string'
+        ? id
+        : id?.$oid;
+
     const getSelectedCard = () => {
         if (paymentMethod !== 'card' || !selectedCardId) return null;
         return paymentCards.find(c => extractId(c._id) === selectedCardId);
@@ -158,21 +159,20 @@ export default function Checkout({ params }) {
 
     //  campi obbligatori
     const infoMissing     = !(name && surname && phone);
-    const addressMissing  = !address;
-    const paymentMissing  = paymentMethod === 'card'
+    const addressMissing  = orderType === "delivery" ? !address : false;
+    const paymentMissing  = !paymentMethod || (paymentMethod === 'card'
       ? !getSelectedCard()        
-      : false;                    
+      : false);                    
 
     const isCheckoutDisabled = infoMissing || addressMissing || paymentMissing;
 
-    // Carica le carte dell'utente all'inizio e quando cambiano
     useEffect(() => {
         if (user?.cards?.length) {
-            setPaymentCards(user.cards);
+            setPaymentCards(user?.cards);
             if (!selectedCardId) {
-                const firstId = typeof user.cards[0]._id === 'string'
-                  ? user.cards[0]._id
-                  : user.cards[0]._id.$oid;
+                const firstId = typeof user?.cards[0]._id === 'string'
+                  ? user?.cards[0]._id
+                  : user?.cards[0]._id.$oid;
                 setSelectedCardId(firstId);
             }
         }
@@ -187,7 +187,9 @@ export default function Checkout({ params }) {
 
     const cards = [
         { key: "info", title: `${name || "Name"} ${surname || "Surname"}`, subtitle: phone || "Phone Number", icon: <Profile />, missing: infoMissing },
-        { key: "address", title: filteredAddresses[0], subtitle: filteredAddresses[1], icon: <MapPin />, missing: addressMissing },
+        ...(orderType === "delivery" ? [
+            { key: "address", title: filteredAddresses[0], subtitle: filteredAddresses[1], icon: <MapPin />, missing: addressMissing }
+        ] : []),
         { key: "time", title: orderType === "delivery" ? "Delivery Time" : "Takeaway Time", 
             subtitle: orderType === "delivery" ? `${mockRestaurant.minDeliveryTime} - ${mockRestaurant.maxDeliveryTime}` : `${mockRestaurant.minTakeawayTime} - ${mockRestaurant.maxTakeawayTime}`, icon: <Time />, missing: false },
         { key: "notes", title: "Additional Notes", subtitle: notes || "Add a note for your order", icon: <Notes />, missing: false },
@@ -297,13 +299,12 @@ export default function Checkout({ params }) {
             setTempSelectedCardId(selectedCardId);
             setNewCardErrors({});
         }
+        // Assicuriamoci che la modale dell'indirizzo sia disponibile solo per la consegna
+        if (modalKey === 'address' && orderType !== 'delivery') {
+            return;
+        }
         setIsModalOpen(modalKey);
     }
-
-    const extractId = id =>
-      typeof id === 'string'
-        ? id
-        : id?.$oid;
 
     // const getSelectedCard = () => {
     //     if (paymentMethod !== 'card' || !selectedCardId) return null;
@@ -322,7 +323,7 @@ export default function Checkout({ params }) {
                 title="Order Checkout"
                 subtitle="Complete your order"
             />
-            <div className="w-full flex flex-wrap sm:flex-nowrap justify-center items-stretch mt-8 px-3 gap-4">
+            <div className={`w-full flex flex-wrap sm:flex-nowrap justify-center ${mockOrder.orderType === "delivery" ? "items-stretch" : "items-start"} mt-8 px-3 gap-4`}>
                 <div className="flex flex-col flex-1 max-w-3xl gap-4">
                     <Card>
                         <CardHeader>
@@ -332,10 +333,7 @@ export default function Checkout({ params }) {
                             {cards.map((card) => (
                                 <Card 
                                     key={card.key}
-                                    className={cn(
-                                        "mx-3 border-b rounded-md hover:bg-gray-100 shadow-none last:border-b-0",
-                                        card.missing && "bg-red-50"
-                                    )}
+                                    className={`mx-3 border-b rounded-md hover:bg-gray-100 shadow-none last:border-b-0 ${card.missing ? "bg-red-50" : ""}`}
                                     onPress={() => openModal(card.key)}
                                     isPressable={card.key !== "time"}
                                 >
@@ -361,10 +359,7 @@ export default function Checkout({ params }) {
                         </CardHeader>
                         <CardBody>
                             <Card 
-                                className={cn(
-                                    "mx-3 border-b rounded-md hover:bg-gray-100 shadow-none last:border-b-0",
-                                    paymentMissing && "bg-red-50"
-                                )}
+                                className={`mx-3 border-b rounded-md hover:bg-gray-100 shadow-none last:border-b-0 ${paymentMissing ? "bg-red-50" : ""}`}
                                 onPress={() => setIsModalOpen("payment")}
                                 isPressable
                             >
@@ -374,6 +369,7 @@ export default function Checkout({ params }) {
                                     </div>
                                         <div className="flex-1 overflow-hidden">
                                             <h3 className="text-md font-medium">
+                                                {!paymentMethod && "Select Payment Method"}
                                                 {paymentMethod === 'cash' && "Cash"}
                                                 {paymentMethod === 'card' && getSelectedCard() && `${getSelectedCard().name} **** ${getSelectedCard().number.slice(-4)}`}
                                                 {paymentMethod === 'card' && !getSelectedCard() && "Choose Credit Card"}
@@ -407,9 +403,9 @@ export default function Checkout({ params }) {
                                 </div>
 
                                 {/* Card cliccabile per gli order items */}
-                                <div className="w-full mb-4 pb-3 border-b">
+                                <div className={`w-full mb-4 ${mockOrder.orderType === "delivery" ? "border-b pb-3" : ""}`}>
                                     <Card 
-                                        className="w-full rounded-md hover:bg-gray-100 shadow-none"
+                                        className={`w-full rounded-md hover:bg-gray-100 shadow-none`}
                                         isPressable
                                         onPress={() => setIsModalOpen("items")}
                                     >
@@ -428,14 +424,13 @@ export default function Checkout({ params }) {
                                     </Card>
                                 </div>
 
-                                <div className="flex flex-col gap-2 mb-4">
-                                    <div className="flex justify-between">
-                                    <span className="text-gray-600">Subtotal</span>
-                                    <span>{mockOrder.subtotal.toFixed(2)}€</span>
-                                    </div>
-                                    
+                                <div className="flex flex-col gap-2 mb-4">  
                                     {orderType === 'delivery' && (
                                     <>
+                                        <div className="flex justify-between">
+                                            <span className="text-gray-600">Subtotal</span>
+                                            <span>{mockOrder.subtotal.toFixed(2)}€</span>
+                                        </div>
                                         <div className="flex justify-between">
                                         <span className="text-gray-600">Delivery fee</span>
                                         <span>{mockOrder.deliveryFee.toFixed(2)}€</span>

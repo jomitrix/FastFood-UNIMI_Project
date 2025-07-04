@@ -56,8 +56,6 @@ function ProfilePage() {
 
   // Stato per indirizzi di spedizione (lista)
   const [deliveryAddresses, setDeliveryAddresses] = useState(user?.delivery || []);
-  const [newShippingName, setNewShippingName] = useState("");
-  const [newShippingSurname, setNewShippingSurname] = useState("");
   const [newDeliveryAddress, setNewDeliveryAddress] = useState("");
   const [deliveryAddressError, setDeliveryAddressError] = useState("");
   const [isAddingDeliveryAddress, setIsAddingDeliveryAddress] = useState(false);
@@ -197,7 +195,7 @@ function ProfilePage() {
 
   const handleAddDeliveryAddress = async (e) => {
     e.preventDefault();
-    if (!newShippingName || !newShippingSurname || !newDeliveryAddress) {
+    if (!newDeliveryAddress) {
       setDeliveryAddressError("All fields required");
       return;
     }
@@ -206,7 +204,7 @@ function ProfilePage() {
       return;
     }
 
-    const data = await UserService.editDelivery(newShippingName, newShippingSurname, newDeliveryAddress);
+    const data = await UserService.editDelivery(newDeliveryAddress);
 
     if (!data || data.status !== "success") {
       return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
@@ -214,8 +212,6 @@ function ProfilePage() {
 
     setDeliveryAddresses(data.delivery);
 
-    setNewShippingName("");
-    setNewShippingSurname("");
     setNewDeliveryAddress("");
     setDeliveryAddressError("");
     setIsAddingDeliveryAddress(false);
@@ -714,9 +710,6 @@ function ProfilePage() {
                     className="flex flex-col gap-2 sm:flex-row sm:items-center border p-2 rounded-sm bg-gray-50"
                   >
                     <div className="flex-1">
-                      <div className="font-semibold">
-                        {addr.name} {addr.surname}
-                      </div>
                       <div className="text-sm">{addr.address}</div>
                     </div>
                     <Button
@@ -748,28 +741,6 @@ function ProfilePage() {
               )}
               {isAddingDeliveryAddress && (
                 <form onSubmit={handleAddDeliveryAddress} className="flex flex-col gap-4">
-                  <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
-                    <Input
-                      label="Name"
-                      labelPlacement="outside"
-                      placeholder="Name"
-                      value={newShippingName}
-                      onChange={(e) => setNewShippingName(e.target.value)}
-                      radius="sm"
-                      size="lg"
-                      className="w-full md:w-1/2"
-                    />
-                    <Input
-                      label="Surname"
-                      labelPlacement="outside"
-                      placeholder="Surname"
-                      value={newShippingSurname}
-                      onChange={(e) => setNewShippingSurname(e.target.value)}
-                      radius="sm"
-                      size="lg"
-                      className="w-full md:w-1/2"
-                    />
-                  </div>
                   <Input
                     label="Delivery Address"
                     placeholder="Example: Via Roma 1, Roma, 00100, Italy"
@@ -794,8 +765,6 @@ function ProfilePage() {
                       radius="sm"
                       isDisabled={
                         invalidNewDeliveryAddress ||
-                        !newShippingName ||
-                        !newShippingSurname ||
                         !newDeliveryAddress
                       }
                     >
@@ -807,8 +776,6 @@ function ProfilePage() {
                       radius="sm"
                       onPress={() => {
                         setIsAddingDeliveryAddress(false);
-                        setNewShippingName("");
-                        setNewShippingSurname("");
                         setNewDeliveryAddress("");
                         setDeliveryAddressError("");
                       }}

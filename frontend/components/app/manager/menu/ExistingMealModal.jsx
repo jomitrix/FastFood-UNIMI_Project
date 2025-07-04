@@ -51,13 +51,13 @@ export default function ExistingModal({ isOpen, onClose, searchMeals, setQueryRe
         >
             <ModalContent className='rounded-t-xl rounded-b-none sm:rounded-b-xl'>
                 <ModalHeader className="flex flex-col gap-1">
-                    Add existing meal
+                    Add existing dish
                 </ModalHeader>
                 <ModalBody>
                     <div className="flex flex-col gap-4">
                         <Input
                             type="search"
-                            label="Search an existing meal"
+                            label="Search an existing dish"
                             placeholder="Start typing..."
                             size="lg"
                             classNames={{
@@ -73,7 +73,7 @@ export default function ExistingModal({ isOpen, onClose, searchMeals, setQueryRe
                                 <p className="text-gray-500 text-sm text-center flex items-center justify-center h-full">
                                     {searchValue.trim() === "" ? 
                                         "Start typing to search." : 
-                                        "No meals found matching your search."}
+                                        "No dishes found matching your search."}
                                 </p>
                             ) : (
                                 queryResult.map((meal) => (

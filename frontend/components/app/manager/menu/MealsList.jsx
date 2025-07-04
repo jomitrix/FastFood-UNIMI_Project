@@ -76,7 +76,6 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
 
         const newMeals = [...localMeals, meal];
         setLocalMeals(newMeals);
-        setIsModified(true);
         
         if (isModalOpen !== "existing") return setIsModalOpen(null); 
         setTimeout(() => {
@@ -97,14 +96,12 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
         );
         
         setLocalMeals(updatedMeals);
-        setIsModified(true);
     };
     
 
     const handleDeleteMeal = (mealId) => {
         const updatedMeals = localMeals.filter(meal => meal._id !== mealId);
         setLocalMeals(updatedMeals);
-        setIsModified(true);
     };
 
     const handleSearch = (query) => {
@@ -135,6 +132,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                             className="text-sm sm:text-base"
                             size="sm"
                             onPress={() => setIsMoveable(!isMoveable)}
+                            isDisabled={localMeals.length === 0}
                         >
                             { !isMoveable ? (
                                 <>
@@ -158,21 +156,21 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                                 className="bg-[#083d77] text-white text-sm sm:text-base"
                                 size="sm"
                             >
-                                <span className="inline">Add a Meal</span>
+                                <span className="inline">Add a Dish</span>
                                 <Plus size={16} className="block sm:hidden text-white"/>
                                 <Plus size={20} className="hidden sm:block"/>
                             </Button>
                         </DropdownTrigger>
                     <DropdownMenu>
-                        <DropdownSection title="Add a meal">
+                        <DropdownSection title="Add a dish">
                         <DropdownItem 
                             key="new"
                             isPressable
-                            description="Create a new meal"
+                            description="Create a new dish"
                             startContent={<ChefHat size={23} className="text-[#083d77]"/>}
                             onPress={() => setIsModalOpen("new")}
                         >
-                            New Meal
+                            New Dish
                         </DropdownItem>
                         <DropdownItem
                             key="existing"
@@ -181,113 +179,121 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                             startContent={<Pizza size={23} className="text-[#083d77]"/>}
                             onPress={() => setIsModalOpen("existing")}
                         >
-                            Existing Meal
+                            Existing Dish
                         </DropdownItem>
                         </DropdownSection>
                     </DropdownMenu>
                     </Dropdown>
                 </div>
                 <div className="w-full max-w-3xl flex flex-col gap-3">
-                    {localMeals.map((meal, index) => (
-                        <Card 
-                            key={meal._id}
-                            className="w-full p-3 sm:p-5"
-                        >
-                            <CardBody className="p-0">
-                                <div className="flex flex-col sm:flex-row w-full">
-                                    {/* Meal info section */}
-                                    <div className="flex flex-row items-center w-full sm:w-[70%]">
-                                        <div className="relative mr-3 w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
-                                            <Skeleton className="absolute w-full h-full rounded-xl" />
-                                            <img 
-                                                // className="absolute w-full h-full rounded-xl object-cover"
-                                                className="absolute w-full h-full rounded-xl bg-white object-cover"
-                                                src={`${process.env.NEXT_PUBLIC_API_URL}${meal.image}`}
-                                            />
-                                        </div>
-                                        <div className="flex flex-col h-full justify-around min-w-0">
-                                            <CardHeader className="p-0">
-                                                <h2 className="text-base sm:text-lg text-black font-semibold truncate"><span className="font-normal">{index+1}. </span>{meal.name}</h2>
-                                            </CardHeader>
-                                            <div className="flex flex-wrap gap-1">
-                                                <Chip
-                                                    color="warning"
-                                                    className="pl-2"
-                                                    classNames={{ content: "text-xs" }}
-                                                    startContent={<ForkKnife size={14} className="mr-0.5" />}
-                                                    variant="flat"
-                                                    size="sm"
-                                                    >
-                                                        {meal.category}
-                                                </Chip>
-                                                <Chip
-                                                    color="primary"
-                                                    className="pl-2"
-                                                    classNames={{ content: "text-xs" }}
-                                                    startContent={<Flag size={14} className="mr-0.5" />}
-                                                    variant="flat"
-                                                    size="sm"
-                                                    >
-                                                        {meal.area}
-                                                </Chip>
-                                                { meal.allergens && meal.allergens.length > 0 && (
+                    {localMeals.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center p-10 bg-white rounded-xl border border-gray-200">
+                            <ForkKnife size={40} className="text-gray-300 mb-3" />
+                            <h3 className="text-xl font-medium text-gray-700">Your menu is empty</h3>
+                            <p className="text-gray-500 mt-1">Add dishes using the "Add a Dish" button above</p>
+                        </div>
+                    ) : (
+                        localMeals.map((meal, index) => (
+                            <Card 
+                                key={meal._id}
+                                className="w-full p-3 sm:p-5"
+                            >
+                                <CardBody className="p-0">
+                                    <div className="flex flex-col sm:flex-row w-full">
+                                        {/* Meal info section */}
+                                        <div className="flex flex-row items-center w-full sm:w-[70%]">
+                                            <div className="relative mr-3 w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0">
+                                                <Skeleton className="absolute w-full h-full rounded-xl" />
+                                                <img 
+                                                    // className="absolute w-full h-full rounded-xl object-cover"
+                                                    className="absolute w-full h-full rounded-xl bg-white object-cover"
+                                                    src={`${process.env.NEXT_PUBLIC_API_URL}${meal.image}`}
+                                                />
+                                            </div>
+                                            <div className="flex flex-col h-full justify-around min-w-0">
+                                                <CardHeader className="p-0">
+                                                    <h2 className="text-base sm:text-lg text-black font-semibold truncate"><span className="font-normal">{index+1}. </span>{meal.name}</h2>
+                                                </CardHeader>
+                                                <div className="flex flex-wrap gap-1">
                                                     <Chip
-                                                    color="danger"
-                                                    classNames={{ content: "text-xs" }}
-                                                    startContent={<ExclShield size={14} className="ml-[0.375rem]"/>}
-                                                    variant="flat"
-                                                    size="sm"
-                                                    />
-                                                )}
+                                                        color="warning"
+                                                        className="pl-2"
+                                                        classNames={{ content: "text-xs" }}
+                                                        startContent={<ForkKnife size={14} className="mr-0.5" />}
+                                                        variant="flat"
+                                                        size="sm"
+                                                        >
+                                                            {meal.category}
+                                                    </Chip>
+                                                    <Chip
+                                                        color="primary"
+                                                        className="pl-2"
+                                                        classNames={{ content: "text-xs" }}
+                                                        startContent={<Flag size={14} className="mr-0.5" />}
+                                                        variant="flat"
+                                                        size="sm"
+                                                        >
+                                                            {meal.area}
+                                                    </Chip>
+                                                    { meal.allergens && meal.allergens.length > 0 && (
+                                                        <Chip
+                                                        color="danger"
+                                                        classNames={{ content: "text-xs" }}
+                                                        startContent={<ExclShield size={14} className="ml-[0.375rem]"/>}
+                                                        variant="flat"
+                                                        size="sm"
+                                                        />
+                                                    )}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    
-                                    {/* Controls section */}
-                                    <div className="flex flex-row items-center justify-between mt-3 sm:mt-0 sm:justify-end w-full sm:w-[30%]">
-                                        {/* Price */}
-                                        <p className="text-base sm:text-lg font-semibold text-black">{meal.price.toFixed(2)}{meal.currency}</p>
                                         
-                                        {/* Order controls and Edit*/}
-                                        {isMoveable ? (
-                                            <div className="flex flex-col ml-3">
+                                        {/* Controls section */}
+                                        <div className="flex flex-row items-center justify-between mt-3 sm:mt-0 sm:justify-end w-full sm:w-[30%]">
+                                            {/* Price */}
+                                            <p className="text-base sm:text-lg font-semibold text-black">{meal.price.toFixed(2)}{meal.currency}</p>
+                                            
+                                            {/* Order controls and Edit*/}
+                                            {isMoveable ? (
+                                                <div className="flex flex-col ml-3">
+                                                    <Button
+                                                        isIconOnly
+                                                        variant="transparent"
+                                                        className="h-min w-min"
+                                                        onPress={() => handleMoveUp(index)}
+                                                        isDisabled={index === 0}
+                                                    >
+                                                        <MoveUp size={20} className={index === 0 ? "text-black/10" : "text-black/40 hover:text-black/70"} />
+                                                    </Button>
+                                                    <Button
+                                                        isIconOnly
+                                                        variant="transparent"
+                                                        className="h-min w-min"
+                                                        onPress={() => handleMoveDown(index)}
+                                                        isDisabled={index === localMeals.length - 1}
+                                                    >
+                                                        <MoveDown size={20} className={index === localMeals.length - 1 ? "text-black/10" : "text-black/40 hover:text-black/70"} />
+                                                    </Button>
+                                                </div>
+                                            ) : (
                                                 <Button
                                                     isIconOnly
-                                                    variant="transparent"
-                                                    className="h-min w-min"
-                                                    onPress={() => handleMoveUp(index)}
-                                                    isDisabled={index === 0}
+                                                    variant="trasparent"
+                                                    className="p-1"
+                                                    onPress={() => {
+                                                        setSelectedMeal(findMealById(meal._id));
+                                                        setIsModalOpen("edit");
+                                                    }}
                                                 >
-                                                    <MoveUp size={20} className={index === 0 ? "text-black/10" : "text-black/40 hover:text-black/70"} />
+                                                    <Edit className="text-[#083d77]" size={22}/>
                                                 </Button>
-                                                <Button
-                                                    isIconOnly
-                                                    variant="transparent"
-                                                    className="h-min w-min"
-                                                    onPress={() => handleMoveDown(index)}
-                                                    isDisabled={index === localMeals.length - 1}
-                                                >
-                                                    <MoveDown size={20} className={index === localMeals.length - 1 ? "text-black/10" : "text-black/40 hover:text-black/70"} />
-                                                </Button>
-                                            </div>
-                                        ) : (
-                                            <Button
-                                                isIconOnly
-                                                variant="trasparent"
-                                                className="p-1"
-                                                onPress={() => {
-                                                    setSelectedMeal(findMealById(meal._id));
-                                                    setIsModalOpen("edit");
-                                                }}
-                                            >
-                                                <Edit className="text-[#083d77]" size={22}/>
-                                            </Button>
-                                        )}
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            </CardBody>
-                        </Card>
-                    ))}
+                                </CardBody>
+                            </Card>
+                        ))
+                    )}
                 </div>
             </div>
 

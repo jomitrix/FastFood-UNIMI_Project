@@ -214,7 +214,7 @@ export default function RestaurantPage({ params }) {
 
     const handleCheckout = () => {
         // Logica per procedere all'ordine
-        router.push('/checkout');
+        router.push('/checkout/id');
         console.log('Procedi all\'ordine', cartItems);
     };
 

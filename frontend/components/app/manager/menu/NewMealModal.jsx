@@ -99,8 +99,8 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
         setErrors({});
 
         const newErrors = {};
-        if (!name.trim()) newErrors.name = "Meal name is required";
-        if (!price) newErrors.price = "Meal price is required";
+        if (!name.trim()) newErrors.name = "Dish name is required";
+        if (!price) newErrors.price = "Dish price is required";
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -145,7 +145,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
         >
             <ModalContent className='rounded-t-xl rounded-b-none sm:rounded-b-xl'>
                 <ModalHeader className="flex flex-col gap-1">
-                    Create new meal
+                    Create new dish
                 </ModalHeader>
                 <ModalBody>
                     <div className="flex flex-col gap-4">
@@ -178,12 +178,12 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                 <Input
                                     label={
                                         <span>
-                                            Meal Name
+                                            Dish Name
                                             <span className="text-danger ml-1">*</span>
                                         </span>
                                     }
                                     className="h-full w-full"
-                                    placeholder="Insert meal name"
+                                    placeholder="Insert dish name"
                                     labelPlacement="outside"
                                     variant="faded"
                                     value={name}

@@ -14,6 +14,7 @@ import { RestaurantService } from '@/services/restaurantService';
 
 export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mealData, courses = [], areas = [], allergens = [], restaurantId }) {
     const [image, setImage] = useState(null);
+    const [isNewImage, setIsNewImage] = useState(false); // Nuova variabile di stato
     const [name, setName] = useState('');
     const [ingredients, setIngredients] = useState([]);
     const [newIngredient, setNewIngredient] = useState('');
@@ -33,6 +34,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
         if (isOpen && mealData) {
             setMealId(mealData._id);
             setImage(mealData?.image || null);
+            setIsNewImage(false); // Resetta il flag quando il modal viene aperto
             setName(mealData?.name || '');
             setIngredients(mealData?.ingredients || []);
             //setDescription(mealData?.description || '');
@@ -55,7 +57,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             const optimizedImage = await optimizeImage(file);
             const imageUrl = URL.createObjectURL(optimizedImage);
             setImage(imageUrl);
-
+            setIsNewImage(true); // Imposta il flag quando viene caricata una nuova immagine
             setImageFile(optimizedImage);
         } catch (error) {
             addToast({
@@ -113,8 +115,8 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
 
         // Validazione solo per name e price
         const newErrors = {};
-        if (!name.trim()) newErrors.name = "Meal name is required";
-        if (!price) newErrors.price = "Meal price is required";
+        if (!name.trim()) newErrors.name = "Dish name is required";
+        if (!price) newErrors.price = "Dish price is required";
 
         if (Object.keys(newErrors).length > 0) {
             setErrors(newErrors);
@@ -142,7 +144,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
 
             onClose();
         } catch (error) {
-            console.error("Error editing meal:", error);
+            console.error("Error editing dish:", error);
             addToast({
                 title: "Error",
                 description: error.message,
@@ -186,7 +188,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             >
                 <ModalContent className='rounded-t-xl rounded-b-none sm:rounded-b-xl'>
                     <ModalHeader className="flex flex-col gap-1">
-                        Edit meal
+                        Edit dish
                     </ModalHeader>
                     <ModalBody>
                         <div className="flex flex-col gap-4">
@@ -195,7 +197,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                 <div className="flex-shrink-0 w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center border relative">
                                     {image && (
                                         <img
-                                            src={`${process.env.NEXT_PUBLIC_API_URL}${image}`}
+                                            src={isNewImage ? image : `${process.env.NEXT_PUBLIC_API_URL}${image}`}
                                             className="w-full h-full object-cover rounded-xl"
                                         />
                                     )}
@@ -220,12 +222,12 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                     <Input
                                         label={
                                             <span>
-                                                Meal Name
+                                                Dish Name
                                                 <span className="text-danger ml-1">*</span>
                                             </span>
                                         }
                                         className="h-full w-full"
-                                        placeholder="Insert meal name"
+                                        placeholder="Insert dish name"
                                         labelPlacement="outside"
                                         variant="faded"
                                         value={name}
@@ -447,7 +449,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
 
             {/* Modale di conferma per l'eliminazione */}
             <ConfirmDelete
-                type="this meal"
+                type="this dish"
                 isModalOpen={isDeleteModalOpen}
                 setIsModalOpen={setIsDeleteModalOpen}
                 onDelete={confirmDelete}

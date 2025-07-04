@@ -12,10 +12,9 @@ export default function CartComponent({
   updateCartItemQuantity,
   setIsCartOpen,
   onCheckout,
-  deliveryFee = 2.50, // valore predefinito
-  estimatedDeliveryTime = { min: 20, max: 35 } // valore predefinito
+  deliveryFee = 2.50,
+  estimatedDeliveryTime = { min: 20, max: 35 }
 }) {
-  // Inizializza l'orderType dal localStorage
   const [orderType, setOrderType] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('orderType') || 'takeaway';
@@ -41,7 +40,6 @@ export default function CartComponent({
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Carica l'indirizzo selezionato dal localStorage
   useEffect(() => {
     if (typeof window !== 'undefined' && addresses.length > 0) {
       const savedAddressId = localStorage.getItem('selectedAddressId');
@@ -54,13 +52,11 @@ export default function CartComponent({
     }
   }, [addresses]);
 
-  // Funzione per gestire il cambio di orderType
   const handleOrderTypeChange = (newType) => {
     setOrderType(newType);
     localStorage.setItem('orderType', newType);
   };
 
-  // Funzione per gestire la selezione dell'indirizzo
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
     if (address && address.id) {
