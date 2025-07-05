@@ -1,7 +1,7 @@
 'use client';
 import { withAuth } from '@/utils/withAuth';
 import { notFound } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import MealsList from "@/components/app/manager/menu/MealsList";
@@ -15,11 +15,24 @@ function MealsPage() {
   const router = useRouter();
   const { user } = useAuth();
 
+  const scrollController = useRef(null);
+
   const mealsPaginator = usePaginator(useCallback(
     (page, _) => RestaurantService.getMenu(user?.restaurant._id, page)
       .then(data => data.status !== 'success' ? [] : data.meals), [user?.restaurant._id]),
     10
   );
+
+  const lastElementRef = (node) => {
+    if (mealsPaginator.isLoading) return;
+    if (scrollController.current) scrollController.current.disconnect();
+    scrollController.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && mealsPaginator.hasMore) {
+        mealsPaginator.loadNext();
+      }
+    });
+    if (node) scrollController.current.observe(node);
+  };
 
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
@@ -39,6 +52,7 @@ function MealsPage() {
             searchMeals={meals}
             meals={mealsPaginator.items}
             restaurantId={user?.restaurant._id}
+            lastElementRef={lastElementRef}
           />
         }
       </div>

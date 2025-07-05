@@ -13,7 +13,7 @@ import ExistingMealModal from "./ExistingMealModal";
 import EditMealModal from "./EditMealModal";
 import { areas, courses, allergens } from "@/utils/lists";
 
-export default function MealsList({ meals, searchMeals, onMealsReorder, restaurantId }) {
+export default function MealsList({ meals, searchMeals, onMealsReorder, restaurantId, lastElementRef }) {
     const [isMoveable, setIsMoveable] = useState(false);
     const [localMeals, setLocalMeals] = useState([]);
     const [isModified, setIsModified] = useState(false);
@@ -193,6 +193,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                             <Card 
                                 key={meal._id}
                                 className="w-full p-3 sm:p-5"
+                                ref={index === localMeals.length - 1 ? lastElementRef : null}
                             >
                                 <CardBody className="p-0">
                                     <div className="flex flex-col sm:flex-row w-full">

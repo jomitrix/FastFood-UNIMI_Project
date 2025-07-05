@@ -127,7 +127,7 @@ export const ApiService = {
     });
 
     files.forEach((file) => {
-      formData.append(filesFieldName, file, file.name);
+      if (file) formData.append(filesFieldName, file, file.name);
     });
 
     const headers = {};

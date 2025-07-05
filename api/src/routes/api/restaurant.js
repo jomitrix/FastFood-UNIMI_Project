@@ -76,7 +76,7 @@ router.post("/:restaurantId/menu/meals/add", authStrict, validate(validator.addM
         let menu = await Menus.findOne({ restaurant: restaurantId }).lean();
         if (!menu) menu = await Menus.create({ restaurant: restaurantId });
 
-        let imageFilename = null;
+        let imageFilename = "/uploads/restaurants/default_meal.png";
         if (files?.mealImage) {
             const file = files.mealImage[0];
             const tmpPath = file.path;
@@ -92,7 +92,7 @@ router.post("/:restaurantId/menu/meals/add", authStrict, validate(validator.addM
             name,
             category,
             area,
-            allergens,
+            allergens: Array.isArray(allergens) ? allergens : [],
             ingredients: Array.isArray(ingredients) ? ingredients : [],
             price,
             image: imageFilename
@@ -155,7 +155,7 @@ router.patch("/:restaurantId/menu/meals/:mealId/edit", authStrict, upload.fields
             name,
             category,
             area,
-            allergens,
+            allergens: Array.isArray(allergens) ? allergens : [],
             ingredients: Array.isArray(ingredients) ? ingredients : [],
             price,
             image: imageFilename
