@@ -48,15 +48,6 @@ export default function ProfilePage() {
   const [profileImagePreview, setProfileImagePreview] = useState(`${process.env.NEXT_PUBLIC_API_URL}${user.restaurant.logo || null}`);
   const [bannerImagePreview, setBannerImagePreview] = useState(`${process.env.NEXT_PUBLIC_API_URL}${user.restaurant.banner || null}`);
 
-  const restaurantData = {
-    name: user.name,
-    surname: user.surname,
-    email: user.email,
-    username: user.username,
-    restaurantName: user.restaurant.name,
-    accountType: "restaurant"
-  };
-
   const [name, setName] = useState(user.name);
   const [surname, setSurname] = useState(user.surname);
   const [username, setUsername] = useState(user.username);
@@ -64,12 +55,10 @@ export default function ProfilePage() {
   const [email, setEmail] = useState(user.email);
   const [phone, setPhone] = useState(user.restaurant.phoneNumber);
   const [address, setAddress] = useState(user.restaurant.address);
-  const [iva, setIva] = useState(restaurantData.iva || "");
+  const [iva, setIva] = useState(user.restaurant.vat || "");
 
-  const [openingHours, setOpeningHours] = useState(
-    weekDays.map(() => ({ open: "09:00", close: "22:00", closed: false }))
-  );
-  const [serviceMode, setServiceMode] = useState("all");
+  const [openingHours, setOpeningHours] = useState(Object.values(user.restaurant.openingHours));
+  const [serviceMode, setServiceMode] = useState(user.restaurant.serviceMode || "all");
 
   const [stagedHours, setStagedHours] = useState(openingHours);
   const [stagedServiceMode, setStagedServiceMode] = useState(serviceMode);
@@ -341,7 +330,7 @@ export default function ProfilePage() {
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
         accountType="restaurant"
-        title={`Welcome, ${restaurantData.name}`}
+        title={`Welcome, ${user.name}`}
         subtitle="Manage your Restaurant Info and Settings"
       />
 
