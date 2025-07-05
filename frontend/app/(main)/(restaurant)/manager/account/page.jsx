@@ -28,6 +28,7 @@ export default function ProfilePage() {
   const toggleConfNewVisibility = () => setIsConfNewVisible(!isConfNewVisible);
 
   const [isUserChanged, setIsUserChanged] = useState(false);
+  const [isRestaurantChanged, setIsRestaurantChanged] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
@@ -50,11 +51,14 @@ export default function ProfilePage() {
     accountType: "restaurant"
   };
 
+  // Manager personal info states
   const [name, setName] = useState(restaurantData.name);
   const [surname, setSurname] = useState(restaurantData.surname);
   const [username, setUsername] = useState(restaurantData.username);
-  const [restaurantName, setRestaurantName] = useState(restaurantData.restaurantName);
   const [email, setEmail] = useState(restaurantData.email);
+  
+  // Restaurant info states
+  const [restaurantName, setRestaurantName] = useState(restaurantData.restaurantName);
   const [phone, setPhone] = useState(restaurantData.phone || "");
   const [address, setAddress] = useState(restaurantData.address || "");
   const [iva, setIva] = useState(restaurantData.iva || "");
@@ -75,6 +79,7 @@ export default function ProfilePage() {
     [stagedHours]
   );
 
+  // Validation functions for restaurant info
   const validateEmail = (email) =>
     email.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
   const invalidEmail = useMemo(() => {
@@ -90,7 +95,7 @@ export default function ProfilePage() {
   }, [phone]);
 
   const validateAddress = (address) => 
-    address.match(/^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u);
+    address.match(/^(?=.{15,200}$)([\p{L}0-9.''\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u);
   const invalidAddress = useMemo(() => {
     if (address === "") return false;
     return validateAddress(address) ? false : true;
@@ -106,18 +111,12 @@ export default function ProfilePage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     const newErrors = {};
-    if (!restaurantName) newErrors.restaurantName = "Restaurant Name required";
     if (!name) newErrors.name = "Name required";
     if (!surname) newErrors.surname = "Surname required";
     if (!username) newErrors.username = "Username required";
     if (!email) newErrors.email = "Email required";
     else if (invalidEmail) newErrors.email = "Invalid email";
-    if (!phone) newErrors.phone = "Phone number required";
-    else if (invalidPhone) newErrors.phone = "Invalid phone number";
-    if (!address) newErrors.address = "Address required";
-    else if (invalidAddress) newErrors.address = "Format: Road, City, ZIP, Country";
-    if (!iva) newErrors.iva = "VAT Number required";
-    else if (invalidIva) newErrors.iva = "Invalid VAT Number";
+    
     if (newPassword && newPassword.length < 6)
       newErrors.newPassword = "Password must be at least 6 characters";
     if (newPassword && newPassword !== confirmNewPassword)
@@ -142,7 +141,41 @@ export default function ProfilePage() {
     setConfirmNewPassword("");
     addToast({
       title: "Success",
-      description: "Changes saved successfully!",
+      description: "Account information updated successfully!",
+      color: "success",
+      timeout: 5000,
+      shouldShowTimeoutProgress: true,
+    })
+  };
+  
+  // Handle restaurant info form submission
+  const handleRestaurantSubmit = (e) => {
+    e.preventDefault();
+    const newErrors = {};
+    
+    if (!restaurantName) newErrors.restaurantName = "Restaurant Name required";
+    if (!phone) newErrors.phone = "Phone number required";
+    else if (invalidPhone) newErrors.phone = "Invalid phone number";
+    if (!address) newErrors.address = "Address required";
+    else if (invalidAddress) newErrors.address = "Format: Road, City, ZIP, Country";
+    if (!iva) newErrors.iva = "VAT Number required";
+    else if (invalidIva) newErrors.iva = "Invalid VAT Number";
+    
+    if (Object.keys(newErrors).length) {
+      setErrors(newErrors);
+      addToast({
+        title: "Error",
+        description: "Please fix the errors before saving.",
+        color: "danger",
+        timeout: 4000,
+      });
+      return;
+    }
+    
+    setIsRestaurantChanged(false); // Reset the change status after saving
+    addToast({
+      title: "Success",
+      description: "Restaurant information updated successfully!",
       color: "success",
       timeout: 5000,
       shouldShowTimeoutProgress: true,
@@ -261,7 +294,7 @@ export default function ProfilePage() {
         setBannerImage(null);
         setBannerImagePreview(null);
     }
-};
+  };
 
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
@@ -292,79 +325,6 @@ export default function ProfilePage() {
 
               <form onSubmit={handleSubmit}>
                 <CardBody className="flex flex-col gap-4">
-                  <h3 className="text-lg font-bold pt-2">
-                    Restaurant Details
-                  </h3>
-                  <Input
-                    value={restaurantName}
-                    onChange={(e) => {
-                      setRestaurantName(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, restaurantName: undefined }));
-                    }}
-                    isInvalid={!!errors.restaurantName}
-                    errorMessage={errors.restaurantName}
-                    type="text"
-                    label={
-                      <span>
-                        Restaurant Name
-                        <span className="text-danger ml-1">*</span>
-                      </span>
-                    }
-                    placeholder="Restaurant Name"
-                    labelPlacement="outside"
-                    endContent={<Storefront className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    radius="sm"
-                    size="lg"
-                  />
-                  <Input
-                    value={phone}
-                    onChange={(e) => {
-                      setPhone(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, phone: undefined }));
-                    }}
-                    isInvalid={!!errors.phone || invalidPhone}
-                    errorMessage={errors.phone || "Invalid phone number"}
-                    type="tel"
-                    label={
-                      <span>
-                        Restaurant Phone Number
-                        <span className="text-danger ml-1">*</span>
-                      </span>
-                    }
-                    placeholder="Example: +39 1234 567 890"
-                    labelPlacement="outside"
-                    endContent={<Phone className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    radius="sm"
-                    size="lg"
-                  />
-                  <Input
-                    value={address}
-                    onChange={(e) => {
-                      setAddress(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, address: undefined }));
-                    }}
-                    isInvalid={!!errors.address || invalidAddress}
-                    errorMessage={errors.address || "Format: Road, City, ZIP, Country"}
-                    type="text"
-                    label={
-                      <span>
-                        Restaurant Address
-                        <span className="text-danger ml-1">*</span>
-                      </span>
-                    }
-                    placeholder="Example: Via Roma 1, Roma, 00100, Italy"
-                    labelPlacement="outside"
-                    endContent={<MapPin className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    radius="sm"
-                    size="lg"
-                  />
-
-                  <h3 className="text-lg font-bold pt-2">
-                    Manager Information
-                  </h3>
                   <div className="flex flex-row gap-4 md:gap-2 flex-wrap md:flex-nowrap">
                     <Input
                       value={name}
@@ -455,29 +415,6 @@ export default function ProfilePage() {
                     placeholder="Email"
                     labelPlacement="outside"
                     endContent={<Email className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    radius="sm"
-                    size="lg"
-                  />
-
-                  <Input
-                    value={iva}
-                    onChange={(e) => {
-                      setIva(e.target.value);
-                      setIsUserChanged(true);
-                      setErrors((prev) => ({ ...prev, iva: undefined }));
-                    }}
-                    isInvalid={!!errors.iva || invalidIva}
-                    errorMessage={errors.iva || "Invalid VAT Number"}
-                    type="text"
-                    label={
-                      <span>
-                        VAT Number
-                        <span className="text-danger ml-1">*</span>
-                      </span>
-                    }
-                    placeholder="Example: 01234567890"
-                    labelPlacement="outside"
-                    endContent={<Briefcase className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
                     radius="sm"
                     size="lg"
                   />
@@ -614,6 +551,121 @@ export default function ProfilePage() {
                     </CardBody>
                   </>
                 )}
+              </form>
+            </Card>
+            
+            {/* New Restaurant Information card */}
+            <Card className="w-full p-4 sm:p-8">
+              <CardHeader className="w-full font-bold text-2xl flex justify-between">
+                <div>Restaurant Information</div>
+              </CardHeader>
+
+              <div className="w-full flex flex-col justify-center items-center my-4">
+                <Divider className="w-[90%] flex bg-black/10" />
+              </div>
+
+              <form onSubmit={handleRestaurantSubmit}>
+                <CardBody className="flex flex-col gap-4">
+                  <Input
+                    value={restaurantName}
+                    onChange={(e) => {
+                      setRestaurantName(e.target.value);
+                      setIsRestaurantChanged(true);
+                      setErrors((prev) => ({ ...prev, restaurantName: undefined }));
+                    }}
+                    isInvalid={!!errors.restaurantName}
+                    errorMessage={errors.restaurantName}
+                    type="text"
+                    label={
+                      <span>
+                        Restaurant Name
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Restaurant Name"
+                    labelPlacement="outside"
+                    endContent={<Storefront className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
+                  <Input
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      setIsRestaurantChanged(true);
+                      setErrors((prev) => ({ ...prev, phone: undefined }));
+                    }}
+                    isInvalid={!!errors.phone || invalidPhone}
+                    errorMessage={errors.phone || "Invalid phone number"}
+                    type="tel"
+                    label={
+                      <span>
+                        Restaurant Phone Number
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Example: +39 1234 567 890"
+                    labelPlacement="outside"
+                    endContent={<Phone className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
+                  <Input
+                    value={address}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      setIsRestaurantChanged(true);
+                      setErrors((prev) => ({ ...prev, address: undefined }));
+                    }}
+                    isInvalid={!!errors.address || invalidAddress}
+                    errorMessage={errors.address || "Format: Road, City, ZIP, Country"}
+                    type="text"
+                    label={
+                      <span>
+                        Restaurant Address
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Example: Via Roma 1, Roma, 00100, Italy"
+                    labelPlacement="outside"
+                    endContent={<MapPin className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
+                  <Input
+                    value={iva}
+                    onChange={(e) => {
+                      setIva(e.target.value);
+                      setIsRestaurantChanged(true);
+                      setErrors((prev) => ({ ...prev, iva: undefined }));
+                    }}
+                    isInvalid={!!errors.iva || invalidIva}
+                    errorMessage={errors.iva || "Invalid VAT Number"}
+                    type="text"
+                    label={
+                      <span>
+                        VAT Number
+                        <span className="text-danger ml-1">*</span>
+                      </span>
+                    }
+                    placeholder="Example: 01234567890"
+                    labelPlacement="outside"
+                    endContent={<Briefcase className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                    radius="sm"
+                    size="lg"
+                  />
+                  <div className="flex justify-end mt-2">
+                    <Button
+                      type="submit"
+                      color="primary"
+                      size="lg"
+                      radius="sm"
+                      isDisabled={!isRestaurantChanged}
+                    >
+                      Update Restaurant Info
+                    </Button>
+                  </div>
+                </CardBody>
               </form>
             </Card>
 
