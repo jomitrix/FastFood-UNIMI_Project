@@ -12,8 +12,9 @@ import NewMealModal from "./NewMealModal";
 import ExistingMealModal from "./ExistingMealModal";
 import EditMealModal from "./EditMealModal";
 import { areas, courses, allergens } from "@/utils/lists";
+import { Spinner } from "@heroui/spinner";
 
-export default function MealsList({ meals, searchMeals, onMealsReorder, restaurantId, lastElementRef }) {
+export default function MealsList({ meals, searchMeals, onMealsReorder, restaurantId, lastElementRef, isLoadingMore }) {
     const [isMoveable, setIsMoveable] = useState(false);
     const [localMeals, setLocalMeals] = useState([]);
     const [isModified, setIsModified] = useState(false);
@@ -290,6 +291,16 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                                 </CardBody>
                             </Card>
                         ))
+                    )}
+                    {localMeals.length > 0 && isLoadingMore && (
+                        <div className="w-full flex justify-center py-3">
+                            <Spinner 
+                                variant="dots" 
+                                classNames={{
+                                    dots: 'bg-[#083d77]',
+                                }} 
+                            />
+                        </div>
                     )}
                 </div>
             </div>

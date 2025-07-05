@@ -53,6 +53,7 @@ function MealsPage() {
             meals={mealsPaginator.items}
             restaurantId={user?.restaurant._id}
             lastElementRef={lastElementRef}
+            isLoadingMore={mealsPaginator.isLoadingMore}
           />
         }
       </div>
