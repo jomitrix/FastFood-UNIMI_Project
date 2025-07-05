@@ -201,9 +201,30 @@ export default function Home() {
   const [searchValue, setSearchValue] = useState("");
   const [searchType, setSearchType] = useState("restaurant");
   
-  const handleCategoriesChange = (categories) => {
-    setSelectedCategories(categories);
-    console.log("Categorie filtrate:", categories);
+  useEffect(() => {
+    const courseFromStorage = localStorage.getItem('course');
+    if (courseFromStorage) {
+      setSelectedCategories(prev => {
+        const newCategories = new Set(prev);
+        newCategories.add(courseFromStorage);
+        return Array.from(newCategories);
+      });
+      localStorage.removeItem('course');
+    }
+  }, []);
+
+  const handleCategoriesChange = (categoryName) => {
+    setSelectedCategories(prev => {
+      const newCategories = new Set(prev);
+      if (newCategories.has(categoryName)) {
+        newCategories.delete(categoryName);
+      } else {
+        newCategories.add(categoryName);
+      }
+      const updatedCategories = Array.from(newCategories);
+      console.log("Categorie filtrate:", updatedCategories);
+      return updatedCategories;
+    });
   };
 
   const handleFiltersChange = (filters) => {
@@ -305,7 +326,7 @@ export default function Home() {
           }}
           initialOrderType={orderType}
         />
-        <CategoryNav onCategoriesChange={handleCategoriesChange} />
+        <CategoryNav onCategoriesChange={handleCategoriesChange} selectedCategories={selectedCategories} />
       </header>
 
       {/* Contenuto - aumentato padding-top per evitare sovrapposizioni */}

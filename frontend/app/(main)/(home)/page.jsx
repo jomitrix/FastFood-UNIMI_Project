@@ -14,6 +14,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import HorizontalScroller from "@/components/app/search/HorizontalScroller";
 import RestaurantCard from "@/components/app/search/RestaurantCard";
 import DeliveryAddressesSection from "@/components/app/home/DeliveryAddressesSection";
+import Categories from "@/components/app/home/Categories";
 
 export default function Home() {
   const router = useRouter();
@@ -72,8 +73,13 @@ export default function Home() {
     // Recupera l'utente al caricamento della pagina
     getUser()
   }, [getUser]);
+
+  useEffect(() => {
+    if (user?.role === "restaurant") {
+      router.push("/manager/dashboard");
+    }
+  }, [user, router]);
   
-  // Memoizzazione del filtro per performance migliori
   const filtered = useMemo(
     () =>
       addressQuery
@@ -104,7 +110,7 @@ export default function Home() {
               Takeaway and delivery orders!
             </h1>
             <h3 className="text-xl md:text:3xl lg:text-4xl">
-              {user?.role !== "restaurant" ? "Order now!" : "Set up your menu now!"}
+              Order now!
             </h3>
             { !user && (
               <Button
@@ -180,21 +186,6 @@ export default function Home() {
                   </div>
                 </div>
               )}
-
-              {user?.role === "restaurant" && (
-                <Button
-                  placeholder="Search restaurants and dishes"
-                  variant="solid"
-                  color="default"
-                  className="w-full bg-black text-white"
-                  startContent={<Meals />}
-                  isClearable
-                  size="lg"
-                  onPress={() => router.push("/manager/menu")}
-                >
-                  Manage your menu
-                </Button>
-              )}
           </div>
         </div>
       </div>
@@ -232,6 +223,8 @@ export default function Home() {
           );
         }}
       />
+
+      <Categories />
     </div>
   );
 }

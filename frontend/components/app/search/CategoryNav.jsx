@@ -4,25 +4,16 @@ import { courses } from "@/utils/lists";
 import { ChevronRight, CheckMark } from "@/components/icons/heroicons";
 import { ScrollShadow } from "@heroui/scroll-shadow";
 
-export default function CategoryNav({ onCategoriesChange }) {
-  const [selectedCategories, setSelectedCategories] = useState([]);
+export default function CategoryNav({ onCategoriesChange, selectedCategories }) {
   const [showLeftArrow, setShowLeftArrow] = useState(false);
   const [showRightArrow, setShowRightArrow] = useState(true);
   const scrollContainerRef = useRef(null);
 
   const toggleCategory = (categoryName) => {
-    setSelectedCategories(prev =>
-      prev.includes(categoryName)
-        ? prev.filter(name => name !== categoryName)
-        : [...prev, categoryName]
-    );
-  };
-
-  useEffect(() => {
     if (onCategoriesChange) {
-      onCategoriesChange(selectedCategories);
+      onCategoriesChange(categoryName);
     }
-  }, [selectedCategories, onCategoriesChange]);
+  };
 
   const checkScrollPosition = () => {
     if (!scrollContainerRef.current) return;
