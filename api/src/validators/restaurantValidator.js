@@ -36,28 +36,16 @@ const addMealSchema = Joi.object({
     name: Joi.string().min(2).max(50).trim().required(),
     category: Joi.string().trim().valid(...ALLOWED_FOOD_TYPES).required(),
     area: Joi.string().trim().valid(...ALLOWED_CUISINES).required(),
-    allergens: Joi.alternatives()
-        .try(
-            // se è già un array
-            Joi.array()
-                .items(Joi.string().trim().valid(...ALLOWED_ALLERGENS)),
-            // o se è una stringa, la trasformo
-            Joi.string().custom((value, helpers) => {
-                // prova JSON.parse
-                try {
-                    const arr = JSON.parse(value);
-                    if (!Array.isArray(arr)) throw new Error();
-                    return arr;
-                } catch {
-                    // altrimenti split
-                    return value
-                        .split(",")
-                        .map((s) => s.trim())
-                        .filter((s) => s);
-                }
-            })
-        )
-        .default([]),
+    allergens: Joi.string()
+        .allow('')
+        .default('')
+        .custom((value, helpers) => {
+            if (!value || value.trim() === '') return [];
+            return value
+                .split(',')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+        }, 'Split comma-separated allergens'),
     ingredients: Joi.string()
         .allow('')
         .default('')

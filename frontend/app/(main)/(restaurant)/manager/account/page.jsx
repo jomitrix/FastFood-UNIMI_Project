@@ -16,9 +16,11 @@ import { optimizeImage } from "@/utils/optimizeImage";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import ConfirmDelete from "@/components/ConfirmDelete";
 import Image from "next/image";
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { user } = useAuth();
 
   const [isVisible, setIsVisible] = useState(false);
   const toggleVisibility = () => setIsVisible(!isVisible);
@@ -42,21 +44,21 @@ export default function ProfilePage() {
   const [bannerImagePreview, setBannerImagePreview] = useState(null);
 
   const restaurantData = {
-    name: "Luca",
-    surname: "Toni",
-    email: "luca.toni@esempio.it",
-    username: "lucatoni",
-    restaurantName: "La Pizzeria di Luca",
+    name: user.name,
+    surname: user.surname,
+    email: user.email,
+    username: user.username,
+    restaurantName: user.restaurant.name,
     accountType: "restaurant"
   };
 
-  const [name, setName] = useState(restaurantData.name);
-  const [surname, setSurname] = useState(restaurantData.surname);
-  const [username, setUsername] = useState(restaurantData.username);
-  const [restaurantName, setRestaurantName] = useState(restaurantData.restaurantName);
-  const [email, setEmail] = useState(restaurantData.email);
-  const [phone, setPhone] = useState(restaurantData.phone || "");
-  const [address, setAddress] = useState(restaurantData.address || "");
+  const [name, setName] = useState(user.name);
+  const [surname, setSurname] = useState(user.surname);
+  const [username, setUsername] = useState(user.username);
+  const [restaurantName, setRestaurantName] = useState(user.restaurant.name);
+  const [email, setEmail] = useState(user.email);
+  const [phone, setPhone] = useState(user.restaurant.phoneNumber);
+  const [address, setAddress] = useState(user.restaurant.address);
   const [iva, setIva] = useState(restaurantData.iva || "");
 
   const [openingHours, setOpeningHours] = useState(
