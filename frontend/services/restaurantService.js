@@ -29,5 +29,25 @@ export const RestaurantService = {
 
     deleteMeal(restaurantId, mealId) {
         return ApiService.delete(`/restaurant/${restaurantId}/menu/meals/${mealId}/delete`);
-    }
+    },
+
+    editLogo(logo) {
+        return ApiService.multipartPatch('/restaurant/images/logo/edit', {
+            files: [logo],
+            filesFieldName: 'logo'
+        });
+    },
+
+    editBanner(banner) {
+        return ApiService.multipartPatch('/restaurant/images/banner/edit', {
+            files: [banner],
+            filesFieldName: 'banner'
+        });
+    },
+
+    editOpenings(monday, tuesday, wednesday, thursday, friday, saturday, sunday, serviceMode) {
+        return ApiService.patch('/restaurant/openings/edit', {
+            body: { monday, tuesday, wednesday, thursday, friday, saturday, sunday, serviceMode }
+        });
+    },
 };

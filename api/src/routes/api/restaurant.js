@@ -50,6 +50,7 @@ router.get("/:restaurantId/menu/meals/get", authStrict, validate(validator.getMe
 
         const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+        if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
 
         const meals = await Meals.find({ restaurant: restaurantId })
             .skip((page - 1) * 10)
@@ -72,6 +73,7 @@ router.post("/:restaurantId/menu/meals/add", authStrict, validate(validator.addM
 
         const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+        if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
 
         let menu = await Menus.findOne({ restaurant: restaurantId }).lean();
         if (!menu) menu = await Menus.create({ restaurant: restaurantId });
@@ -125,6 +127,7 @@ router.patch("/:restaurantId/menu/meals/:mealId/edit", authStrict, upload.fields
 
         const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+        if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
 
         const menu = await Menus.findOne({ restaurant: restaurantId }).lean();
         if (!menu) return res.status(404).send({ status: "error", error: "Menu not found for this restaurant" });
@@ -181,6 +184,7 @@ router.delete("/:restaurantId/menu/meals/:mealId/delete", authStrict, async (req
 
         const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+        if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
 
         const menu = await Menus.findOne({ restaurant: restaurantId }).lean();
         if (!menu) return res.status(404).send({ status: "error", error: "Menu not found for this restaurant" });
@@ -204,6 +208,112 @@ router.delete("/:restaurantId/menu/meals/:mealId/delete", authStrict, async (req
         );
 
         res.send({ status: "success", message: "Meal deleted successfully" });
+    } catch (err) { next(err); }
+});
+
+router.patch("/images/logo/edit", authStrict, upload.fields([
+    { name: 'logo', maxCount: 1 }
+]), async (req, res, next) => {
+    try {
+        const files = req.files;
+
+        const restaurant = await Restaurants.findOne({ user: req.user._id }).lean();
+        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+
+        let imageFilename = restaurant.logo || "/uploads/restaurants/default_logo.png";
+        if (files?.logo) {
+            const file = files.logo[0];
+            const tmpPath = file.path;
+
+            const destDir = path.join(__dirname, `../../uploads/restaurants/${restaurant._id}`);
+            if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
+            if (restaurant.logo) {
+                const oldImagePath = path.join(__dirname, `../..${restaurant.logo}`);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
+            }
+
+            fs.renameSync(tmpPath, path.join(destDir, file.filename));
+            imageFilename = `/uploads/restaurants/${restaurant._id}/${file.filename}`;
+        }
+
+        const updatedRestaurant = await Restaurants.findOneAndUpdate(
+            { user: req.user._id },
+            { $set: { logo: imageFilename } },
+            { new: true }
+        );
+
+        res.send({ status: "success", restaurant: updatedRestaurant });
+    } catch (err) { next(err); }
+});
+
+router.patch("/images/banner/edit", authStrict, upload.fields([
+    { name: 'banner', maxCount: 1 }
+]), async (req, res, next) => {
+    try {
+        const files = req.files;
+
+        const restaurant = await Restaurants.findOne({ user: req.user._id }).lean();
+        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+
+        let imageFilename = restaurant.banner || "/uploads/restaurants/default_banner.png";
+        if (files?.banner) {
+            const file = files.banner[0];
+            const tmpPath = file.path;
+
+            const destDir = path.join(__dirname, `../../uploads/restaurants/${restaurant._id}`);
+            if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
+            if (restaurant.banner) {
+                const oldImagePath = path.join(__dirname, `../..${restaurant.banner}`);
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                }
+            }
+
+            fs.renameSync(tmpPath, path.join(destDir, file.filename));
+            imageFilename = `/uploads/restaurants/${restaurant._id}/${file.filename}`;
+        }
+
+        const updatedRestaurant = await Restaurants.findOneAndUpdate(
+            { user: req.user._id },
+            { $set: { banner: imageFilename } },
+            { new: true }
+        );
+
+        res.send({ status: "success", restaurant: updatedRestaurant });
+    } catch (err) { next(err); }
+});
+
+router.patch("/openings/edit", authStrict, validate(validator.openingsEditSchema), async (req, res, next) => {
+    try {
+        const { monday, tuesday, wednesday, thursday, friday, saturday, sunday, serviceMode } = req.body;
+
+        const restaurant = await Restaurants.findOne({ user: req.user._id }).lean();
+        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+
+        const updateFields = {
+            openingHours: {
+                monday,
+                tuesday,
+                wednesday,
+                thursday,
+                friday,
+                saturday,
+                sunday
+            },
+            serviceMode: serviceMode || "all"
+        };
+
+        const updatedRestaurant = await Restaurants.findOneAndUpdate(
+            { user: req.user._id },
+            { $set: updateFields },
+            { new: true }
+        );
+
+        res.send({ status: "success", restaurant: updatedRestaurant });
     } catch (err) { next(err); }
 });
 

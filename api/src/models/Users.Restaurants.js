@@ -9,14 +9,15 @@ const RestaurantSchema = new mongoose.Schema({
     logo: { type: String, required: true, trim: true, default: "/uploads/restaurants/default_logo.png" },
     banner: { type: String, required: true, trim: true, default: "/uploads/restaurants/default_banner.png" },
     openingHours: {
-        monday: { open: { type: String, default: "08:00" }, close: { type: String, default: "22:00" } },
-        tuesday: { open: { type: String, default: "08:00" }, close: { type: String, default: "22:00" } },
-        wednesday: { open: { type: String, default: "08:00" }, close: { type: String, default: "22:00" } },
-        thursday: { open: { type: String, default: "08:00" }, close: { type: String, default: "22:00" } },
-        friday: { open: { type: String, default: "08:00" }, close: { type: String, default: "23:00" } },
-        saturday: { open: { type: String, default: "09:00" }, close: { type: String, default: "23:00" } },
-        sunday: { open: { type: String, default: "09:00" }, close: { type: String, default: "22:00" } }
-    }
+        monday: { open: { type: String, default: "09:00" }, close: { type: String, default: "22:00" }, closed: { type: Boolean, default: false } },
+        tuesday: { open: { type: String, default: "09:00" }, close: { type: String, default: "22:00" }, closed: { type: Boolean, default: false } },
+        wednesday: { open: { type: String, default: "09:00" }, close: { type: String, default: "22:00" }, closed: { type: Boolean, default: false } },
+        thursday: { open: { type: String, default: "09:00" }, close: { type: String, default: "22:00" }, closed: { type: Boolean, default: false } },
+        friday: { open: { type: String, default: "09:00" }, close: { type: String, default: "22:00" }, closed: { type: Boolean, default: false } },
+        saturday: { open: { type: String, default: "09:00" }, close: { type: String, default: "22:00" }, closed: { type: Boolean, default: false } },
+        sunday: { open: { type: String, default: "09:00" }, close: { type: String, default: "22:00" }, closed: { type: Boolean, default: false } }
+    },
+    serviceMode: { type: String, enum: ["delivery", "takeaway", "all"], default: "all" },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Users.Restaurants", RestaurantSchema, "Users.Restaurants");

@@ -14,40 +14,40 @@ export default function OnboardingPreferences() {
   const router = useRouter();
 
   const [restaurantName, setRestaurantName] = useState("");
-  const [address, setAddress]         = useState("");
-  const [phone, setPhone]         = useState("");
-  const [vat,   setVat]           = useState("");
-  const [errors, setErrors]       = useState({});
+  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [vat, setVat] = useState("");
+  const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
   const validateAddress = (v) => /^(?=.{15,200}$)([\p{L}0-9.''\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u.test(v);
-  const invalidAddress  = useMemo(() => address && !validateAddress(address), [address]);
+  const invalidAddress = useMemo(() => address && !validateAddress(address), [address]);
 
   const validatePhone = (v) => /^\+(?:[0-9] ?){6,14}[0-9]$/.test(v);
-  const invalidPhone  = useMemo(() => phone && !validatePhone(phone), [phone]);
+  const invalidPhone = useMemo(() => phone && !validatePhone(phone), [phone]);
 
-  const validateVat   = (v) => /^\d{11}$/.test(v);
-  const invalidVat    = useMemo(() => vat && !validateVat(vat), [vat]);
+  const validateVat = (v) => /^\d{11}$/.test(v);
+  const invalidVat = useMemo(() => vat && !validateVat(vat), [vat]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErr = {};
-    
+
     if (!restaurantName) newErr.restaurantName = "Restaurant name required";
-    
-    if (!address)           newErr.address = "Address required";
+
+    if (!address) newErr.address = "Address required";
     else if (invalidAddress) newErr.address = "Invalid address";
 
-    if (!phone)           newErr.phone = "Phone required";
+    if (!phone) newErr.phone = "Phone required";
     else if (invalidPhone) newErr.phone = "Invalid phone";
 
-    if (!vat)             newErr.vat = "VAT required";
-    else if (invalidVat)   newErr.vat = "Invalid VAT number";
+    if (!vat) newErr.vat = "VAT required";
+    else if (invalidVat) newErr.vat = "Invalid VAT number";
 
     if (Object.keys(newErr).length) { setErrors(newErr); return; }
 
     setIsLoading(true);
-    
+
     const data = await RestaurantService.editRestaurant(restaurantName, phone, address, vat);
     if (!data || data.status !== "success") {
       setIsLoading(false);
@@ -107,26 +107,26 @@ export default function OnboardingPreferences() {
               />
 
               <Input
-                    value={address}
-                    onChange={(e) => {
-                      setAddress(e.target.value);
-                      setErrors((prev) => ({ ...prev, address: undefined }));
-                    }}
-                    isInvalid={!!errors.address || invalidAddress}
-                    errorMessage={errors.address || "Format: Road, City, ZIP, Country"}
-                    type="text"
-                    label={
-                      <span>
-                        Restaurant Address
-                        <span className="text-danger ml-1">*</span>
-                      </span>
-                    }
-                    placeholder="Example: Via Roma 1, Roma, 00100, Italy"
-                    labelPlacement="outside"
-                    endContent={<MapPin className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
-                    radius="sm"
-                    size="lg"
-                  />
+                value={address}
+                onChange={(e) => {
+                  setAddress(e.target.value);
+                  setErrors((prev) => ({ ...prev, address: undefined }));
+                }}
+                isInvalid={!!errors.address || invalidAddress}
+                errorMessage={errors.address || "Format: Road, City, ZIP, Country"}
+                type="text"
+                label={
+                  <span>
+                    Restaurant Address
+                    <span className="text-danger ml-1">*</span>
+                  </span>
+                }
+                placeholder="Example: Via Roma 1, Roma, 00100, Italy"
+                labelPlacement="outside"
+                endContent={<MapPin className="text-2xl text-default-500 pointer-events-none flex-shrink-0" />}
+                radius="sm"
+                size="lg"
+              />
 
               <Input
                 type="text"

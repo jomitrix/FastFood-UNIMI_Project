@@ -59,8 +59,48 @@ const addMealSchema = Joi.object({
     price: Joi.number().min(0).required(),
 });
 
+const openingsEditSchema = Joi.object({
+    monday: Joi.object({
+        open: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("09:00"),
+        close: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("22:00"),
+        closed: Joi.boolean().default(false)
+    }).required(),
+    tuesday: Joi.object({
+        open: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("09:00"),
+        close: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("22:00"),
+        closed: Joi.boolean().default(false)
+    }).required(),
+    wednesday: Joi.object({
+        open: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("09:00"),
+        close: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("22:00"),
+        closed: Joi.boolean().default(false)
+    }).required(),
+    thursday: Joi.object({
+        open: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("09:00"),
+        close: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("22:00"),
+        closed: Joi.boolean().default(false)
+    }).required(),
+    friday: Joi.object({
+        open: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("09:00"),
+        close: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("22:00"),
+        closed: Joi.boolean().default(false)
+    }).required(),
+    saturday: Joi.object({
+        open: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("09:00"),
+        close: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("22:00"),
+        closed: Joi.boolean().default(false)
+    }).required(),
+    sunday: Joi.object({
+        open: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("09:00"),
+        close: Joi.string().pattern(/^(0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$/).default("22:00"),
+        closed: Joi.boolean().default(false)
+    }).required(),
+    serviceMode: Joi.string().valid("delivery", "takeaway", "all").default("all")
+});
+
 module.exports = {
     restaurantEditSchema,
     getMenuSchema,
-    addMealSchema
+    addMealSchema,
+    openingsEditSchema
 };
