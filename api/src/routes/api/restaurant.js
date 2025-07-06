@@ -164,7 +164,7 @@ router.patch("/:restaurantId/menu/meals/:mealId/edit", authStrict, upload.fields
             const destDir = path.join(__dirname, `../../uploads/restaurants/${restaurant._id}/menus/${menu._id}/meals`);
             if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
-            if (meal.image) {
+            if (meal.image && meal.image !== "/uploads/restaurants/default_meal.png") {
                 const oldImagePath = path.join(__dirname, `../..${meal.image}`);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
@@ -213,7 +213,7 @@ router.delete("/:restaurantId/menu/meals/:mealId/delete", authStrict, async (req
         const mealToDelete = await Meals.findOne({ _id: mealId }).lean();
         if (!mealToDelete) return res.status(404).send({ status: "error", error: "Meal not found" });
 
-        if (mealToDelete.image) {
+        if (mealToDelete.image && mealToDelete.image !== "/uploads/restaurants/default_meal.png") {
             const oldImagePath = path.join(__dirname, `../..${mealToDelete.image}`);
             if (fs.existsSync(oldImagePath)) {
                 fs.unlinkSync(oldImagePath);
@@ -249,7 +249,7 @@ router.patch("/images/logo/edit", authStrict, upload.fields([
             const destDir = path.join(__dirname, `../../uploads/restaurants/${restaurant._id}`);
             if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
-            if (restaurant.logo) {
+            if (restaurant.logo && restaurant.logo !== "/uploads/restaurants/default_logo.png") {
                 const oldImagePath = path.join(__dirname, `../..${restaurant.logo}`);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
@@ -287,7 +287,7 @@ router.patch("/images/banner/edit", authStrict, upload.fields([
             const destDir = path.join(__dirname, `../../uploads/restaurants/${restaurant._id}`);
             if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
 
-            if (restaurant.banner) {
+            if (restaurant.banner && restaurant.banner !== "/uploads/restaurants/default_banner.png") {
                 const oldImagePath = path.join(__dirname, `../..${restaurant.banner}`);
                 if (fs.existsSync(oldImagePath)) {
                     fs.unlinkSync(oldImagePath);
