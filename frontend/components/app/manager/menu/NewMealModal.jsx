@@ -177,6 +177,8 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
 
     const handleClose = () => {
         onClose();
+        setImage(null);
+        setImageFile(null);
     };
 
     return (

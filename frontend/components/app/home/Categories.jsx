@@ -29,7 +29,9 @@ export default function TopCategories() {
             className="px-6 py-3 text-lg text-white font-semibold bg-[#083d77]"
             onPress={() => {
               localStorage.setItem("course", course.name);
-              localStorage.setItem("selectedAddressId", 1);
+              if (localStorage.getItem("selectedAddressId") === null) {
+                localStorage.setItem("selectedAddressId", 1);
+              }
               router.push("/search");
             }}
           >

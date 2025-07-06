@@ -9,6 +9,7 @@ import CartComponent from '@/components/app/restaurant/CartComponent';
 import { Input } from '@heroui/input';
 import { Chip } from '@heroui/chip';
 import { Search, Time, Info, Storefront, ForkKnife, Flag, Cart, X } from "@/components/icons/heroicons";
+import { Skeleton } from '@heroui/skeleton';
 
 const mockRestaurant = {
     banner: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,w_1537,h_480/f_auto/q_auto/dpr_1.0/d_it:cuisines:pollo-6.jpg/v1/it/restaurants/282166.jpg",
@@ -38,7 +39,7 @@ const mockMeals = [
         id: "1",
         price: 6.50,
         currency: "€",
-        name: "Classic Burger",
+        name: "Classic Burger e il nome è molto lungo per testare il layout",
         category: "Fast Food",
         area: "American",
         allergens: ["Egg", "Wheat", "Sesame"],
@@ -123,6 +124,9 @@ export default function RestaurantPage({ params }) {
         min: mockRestaurant.minDeliveryTime,
         max: mockRestaurant.maxDeliveryTime
     });
+    const [isBannerLoaded, setIsBannerLoaded] = useState(false);
+    const [isIconLoaded, setIsIconLoaded] = useState(false);
+    const [isProductImageLoaded, setIsProductImageLoaded] = useState(false);
   
     const categories = [...new Set(mockMeals.map(meal => meal.category))];
     const [searchValue, setSearchValue] = useState('');
@@ -155,6 +159,7 @@ export default function RestaurantPage({ params }) {
         if (!foundProduct) return;
         
         setProduct(foundProduct);
+        setIsProductImageLoaded(false); // Reset on new product
         setIsModalOpen("product");
         setQuantity(1);
     }, [productId]);
@@ -221,17 +226,26 @@ export default function RestaurantPage({ params }) {
     return (
         <div>
             <div className="relative bg-[#f5f3f5] min-h-screen">
-                {/* Area principale con contenuto del ristorante */}
-                <div className="pr-0 md:pr-[350px]"> {/* Aggiunto padding-right per fare spazio al carrello fisso */}
+                <div className="pr-0 md:pr-[350px]"> 
                     <div className="w-full 2xl:w-4/5 mx-auto px-4 flex flex-col gap-7 pb-20">
                         <div className='flex flex-col gap-2'>
-                            <div className='relative h-[12rem] sm:h-[20rem] aspect-video w-full'>
-                                <img src={mockRestaurant.banner} className='object-cover w-full h-full rounded-b-xl' />
+                            <div className='relative h-[12rem] sm:h-[20rem] aspect-video w-full bg-gray-200 rounded-b-xl'>
+                                {!isBannerLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full rounded-b-xl" />}
                                 <img 
-                                    src={mockRestaurant.icon} 
-                                    alt={`${mockRestaurant.restaurantname} logo`}
-                                    className="absolute bottom-5 left-5 w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white bg-white shadow-lg"
+                                    src={mockRestaurant.banner} 
+                                    alt={`${mockRestaurant.restaurantname} banner`}
+                                    className={`object-cover w-full h-full rounded-b-xl transition-opacity duration-300 ${isBannerLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                    onLoad={() => setIsBannerLoaded(true)}
                                 />
+                                <div className="absolute bottom-5 left-5 w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
+                                    {!isIconLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
+                                    <img 
+                                        src={mockRestaurant.icon} 
+                                        alt={`${mockRestaurant.restaurantname} logo`}
+                                        className={`w-full h-full object-cover transition-opacity duration-300 ${isIconLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                        onLoad={() => setIsIconLoaded(true)}
+                                    />
+                                </div>
                             </div>
                             <div className='flex justify-between items-center mt-3'>
                                 <h1 className="font-bold text-3xl">{mockRestaurant.restaurantname}</h1>
@@ -416,10 +430,13 @@ export default function RestaurantPage({ params }) {
                                     <X />
                                 </button>
                             </ModalHeader>
-                            <div className='relative w-full h-48'>
+                            <div className='relative w-full h-48 bg-gray-200'>
+                                {!isProductImageLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
                                 <img
                                     src={product.image}
-                                    className="w-full h-full object-cover"
+                                    alt={product.name}
+                                    className={`w-full h-full object-cover transition-opacity duration-300 ${isProductImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+                                    onLoad={() => setIsProductImageLoaded(true)}
                                 />
                                 <div className='absolute inset-0 bg-gradient-to-t from-black/70 to-transparent'></div>
                                 <div className='absolute bottom-4 left-4 right-4'>

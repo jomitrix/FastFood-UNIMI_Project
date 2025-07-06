@@ -108,12 +108,12 @@ export default function CartComponent({
                 <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
                   <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex-1">
-                  <div className="flex justify-between">
-                    <h3 className="font-medium">{item.name}</h3>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-medium truncate">{item.name}</h3>
                     <button 
                       onClick={() => removeFromCart(item.id)}
-                      className="text-red-500 p-1 hover:bg-red-50 rounded-full"
+                      className="text-red-500 p-1 hover:bg-red-50 rounded-full flex-shrink-0"
                     >
                       <Trash className="w-4 h-4" />
                     </button>

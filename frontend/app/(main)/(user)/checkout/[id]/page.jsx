@@ -474,7 +474,7 @@ export default function Checkout({ params }) {
                 isOpen={isModalOpen === "address"}
                 onClose={() => setIsModalOpen(null)}
             >
-                <ModalContent>
+                <ModalContent className="m-0 rounded-b-none sm:rounded-lg">
                     <ModalHeader className="flex flex-col gap-1">
                         <h2 className="text-xl font-bold">Select Delivery Address</h2>
                     </ModalHeader>
@@ -524,7 +524,7 @@ export default function Checkout({ params }) {
                 isOpen={isModalOpen === "info"}
                 onClose={() => setIsModalOpen(null)}
             >
-                <ModalContent>
+                <ModalContent className="m-0 rounded-b-none sm:rounded-lg">
                     <ModalHeader className="flex flex-col gap-1">
                         <h2 className="text-xl font-bold">Contact Information</h2>
                     </ModalHeader>
@@ -572,12 +572,11 @@ export default function Checkout({ params }) {
 
             {/* Modale per il metodo di pagamento */}
             <Modal isOpen={isModalOpen === "payment"} onClose={() => setIsModalOpen(null)}>
-                <ModalContent>
+                <ModalContent className="m-0 rounded-b-none sm:rounded-lg">
                     <ModalHeader className="flex flex-col gap-1">
                         <h2 className="text-xl font-bold">Payment Method</h2>
                     </ModalHeader>
                     <ModalBody>
-                      <ScrollShadow hideScrollBar className="overflow-y-auto max-h-[60vh]">
                         <RadioGroup
                             name="pay-kind"
                             label="Select a payment method"
@@ -627,7 +626,6 @@ export default function Checkout({ params }) {
                                 )}
                             </div>
                         )}
-                      </ScrollShadow>
                     </ModalBody>
                     <ModalFooter>
                         <Button variant="ghost" onPress={() => setIsModalOpen(null)}>Cancel</Button>
@@ -641,7 +639,7 @@ export default function Checkout({ params }) {
                 isOpen={isModalOpen === "notes"}
                 onClose={() => setIsModalOpen(null)}
             >
-                <ModalContent>
+                <ModalContent className="m-0 rounded-b-none sm:rounded-lg">
                     <ModalHeader className="flex flex-col gap-1">
                         <h2 className="text-xl font-bold">Additional Notes</h2>
                     </ModalHeader>
@@ -677,7 +675,7 @@ export default function Checkout({ params }) {
                 isOpen={isModalOpen === "items"} 
                 onClose={() => setIsModalOpen(null)}
             >
-                <ModalContent>
+                <ModalContent className="m-0 rounded-b-none sm:rounded-lg">
                     <ModalHeader className="flex flex-col gap-1">
                         <h2 className="text-xl font-bold">Order Items</h2>
                     </ModalHeader>

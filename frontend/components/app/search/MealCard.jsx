@@ -1,5 +1,7 @@
 "use client"; 
 import { Time } from '@/components/icons/heroicons';
+import { useState } from 'react';
+import { Skeleton } from '@heroui/skeleton';
 
 export default function MealCard({
   img,
@@ -9,10 +11,18 @@ export default function MealCard({
   restaurant,
   className,
 }) {
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+
   return (
     <div className={`rounded-lg overflow-hidden shadow hover:shadow-lg transition ${className}`}>
       <div className="relative aspect-video bg-gray-200">
-        <img src={img} alt={mealName} className="w-full h-full object-cover" />
+        {!isImageLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
+        <img
+          src={img}
+          alt={mealName}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setIsImageLoaded(true)}
+        />
         <div className="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded text-sm font-semibold">
           €{price}
         </div>

@@ -2,6 +2,8 @@
 import { Time } from '@/components/icons/heroicons';
 import { useRouter } from 'next/navigation';
 import { Card } from '@heroui/card';
+import { Skeleton } from '@heroui/skeleton';
+import { useState } from 'react';
 
 export default function RestaurantCard({
   id,
@@ -13,6 +15,7 @@ export default function RestaurantCard({
   className,
 }) {
   const router = useRouter();
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
 
   return (
     <Card
@@ -21,7 +24,13 @@ export default function RestaurantCard({
       onPress={() => router.push(`/restaurant/${id}`)}
     >
       <div className="relative aspect-video bg-gray-200">
-        <img src={img} alt={restaurantname} className="w-full h-full object-cover" />
+        {!isImageLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
+        <img
+          src={img}
+          alt={restaurantname}
+          className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setIsImageLoaded(true)}
+        />
       </div>
 
       <div className="p-4 space-y-1">
