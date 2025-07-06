@@ -10,12 +10,13 @@ import { Pagination } from "@heroui/pagination";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/modal";
 import { Card, CardBody } from "@heroui/card";
 import { ScrollShadow } from "@heroui/scroll-shadow";
+import { Spinner } from "@heroui/spinner";
 
 import { formatCurrency } from "@/utils/format";
 import { statuses } from "@/utils/lists";
-import { RestaurantService } from "../../../../../services/restaurantService";
+import { RestaurantService } from "@/services/restaurantService";
 
-export default function OrderRestaurant({ orders, restaurant, totalOrders, loadPage }) {
+export default function OrderRestaurant({ orders, restaurant, totalOrders, loadPage, currentPage, isLoading }) {
   const statusOptions = useMemo(
     () => Object.keys(statuses).map(uid => ({ uid, name: statuses[uid].display })),
     []
@@ -28,7 +29,6 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [newStatus, setNewStatus] = useState("");
-  const [page, setPage] = useState(1);
   const pageSize = 10;
 
   useEffect(() => {
@@ -41,7 +41,8 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
 
     if (filterValue.trim()) {
       items = items.filter(o =>
-        o.customer.toLowerCase().includes(filterValue.toLowerCase())
+        o.customer?.toLowerCase().includes(filterValue.toLowerCase()) ||
+        (o.user && `${o.user.name} ${o.user.surname}`.toLowerCase().includes(filterValue.toLowerCase()))
       );
     }
 
@@ -52,10 +53,12 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
     return items;
   }, [orders, filterValue, statusFilter, statusOptions.length]);
 
-  // reset pagina al cambio dei filtri
-  // useEffect(() => {
-  //   setPage(1);
-  // }, [filterValue, statusFilter]);
+  // Reset dei filtri -> torna alla prima pagina
+  useEffect(() => {
+    if (filterValue.trim() || statusFilter.size !== statusOptions.length) {
+      loadPage(1);
+    }
+  }, [filterValue, statusFilter]);
 
   // order id
   const findOrderById = (orderId) => {
@@ -78,8 +81,8 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
       return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
-    loadPage(page);
-    setSelectedOrder(prev => ({ ...prev, status: newStatus })); // idea capire
+    loadPage(currentPage); // Mantiene la pagina corrente dopo l'aggiornamento
+    setSelectedOrder(prev => ({ ...prev, status: newStatus }));
   };
 
   // ritorno lo stato in base a quello attuale e al tipo
@@ -124,10 +127,6 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
   };
 
   const totalPages = Math.max(1, Math.ceil(totalOrders / pageSize));
-  const paginatedOrders = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredOrders.slice(start, start + pageSize);
-  }, [filteredOrders, page]);
 
   return (
     <div className="w-full 2xl:w-2/3 xl:w-3/4 lg:w-4/5 flex flex-col p-4 pb-10">
@@ -174,7 +173,6 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
 
       {/* Tabella */}
       <Table
-        key={page}
         isHeaderSticky
         bottomContentPlacement="outside"
         classNames={{
@@ -191,13 +189,24 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
           <TableColumn className="w-[4%]">Action</TableColumn>
         </TableHeader>
 
-        <TableBody items={paginatedOrders}>
-          {order => (
+        <TableBody 
+          items={filteredOrders}
+          emptyContent={
+            isLoading ? (
+              <div className="flex justify-center py-8 w-full">
+                <Spinner className="w-10 h-10" variant="dots" classNames={{
+                  dots: 'bg-[#083d77]',
+                }} />
+              </div>
+            ) : "No orders found"
+          }
+        >
+          {!isLoading && (order => (
             <TableRow key={order._id}>
               <TableCell className="font-medium">{order._id.substr(-6).toUpperCase()}</TableCell>
               <TableCell>{order.user.name} {order.user.surname}</TableCell>
               <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
-              <TableCell>{order.paymentMethod}</TableCell>
+              <TableCell>{order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1)}</TableCell>
               <TableCell>
                 <Chip
                   size="sm"
@@ -237,7 +246,7 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
                 </Dropdown>
               </TableCell>
             </TableRow>
-          )}
+          ))}
         </TableBody>
       </Table>
 
@@ -253,12 +262,9 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
           showControls
           showShadow
           color="primary"
-          page={page}
+          page={currentPage}
           total={totalPages}
-          onChange={(p) => {
-            setPage(p);
-            loadPage(p);
-          }}
+          onChange={(p) => loadPage(p)}
         />
       </div>
       

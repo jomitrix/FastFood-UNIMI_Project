@@ -16,6 +16,7 @@ function OrderPage() {
   const { user } = useAuth();
 
   const [totalOrders, setTotalOrders] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const ordersPaginator = usePaginator(useCallback(
     (page, _) => RestaurantService.getOrders(page)
@@ -25,6 +26,17 @@ function OrderPage() {
       }), [user?.restaurant._id]),
     10
   );
+
+  // Funzione per cambiare pagina che aggiorna entrambi gli stati
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    ordersPaginator.loadPage(page);
+  };
+
+  // Carica la prima pagina all'inizio
+  useEffect(() => {
+    handlePageChange(1);
+  }, []);
 
   // dati mock del ristorante
   const mockRestaurant = {
@@ -226,19 +238,15 @@ function OrderPage() {
         subtitle={"Manage orders for your restaurant."}
       />
 
-      {ordersPaginator.isLoading ?
-        <Spinner className='w-100 h-100' variant="dots" classNames={{
-          dots: 'bg-[#083d77]',
-        }} />
-        :
-        <Restaurant
-          orders={ordersPaginator.items}
-          totalOrders={totalOrders}
-          statuses={statuses}
-          restaurant={mockRestaurant}
-          loadPage={ordersPaginator.loadPage}
-        />
-      }
+      <Restaurant
+        orders={ordersPaginator.items}
+        totalOrders={totalOrders}
+        statuses={statuses}
+        restaurant={mockRestaurant}
+        loadPage={handlePageChange}
+        currentPage={currentPage}
+        isLoading={ordersPaginator.isLoading}
+      />
     </div>
   );
 }

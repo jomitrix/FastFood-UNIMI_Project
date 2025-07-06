@@ -134,7 +134,7 @@ export default function Checkout({ params }) {
     const [address, setAddress] = useState(cart.deliveryAddress);
     const [filteredAddresses, setFilteredAddresses] = useState([]);
     const [addresses, setAddresses] = useState(user.delivery);
-    const [selectedAddress, setSelectedAddress] = useState(cart.deliveryAddress);
+    const [selectedAddress, setSelectedAddress] = useState(cart.deliveryAddress?.address);
     const [newAddress, setNewAddress] = useState("");
     const [newAddressError, setNewAddressError] = useState("");
     const [notes, setNotes] = useState("");
@@ -220,7 +220,7 @@ export default function Checkout({ params }) {
                 }
                 const newAddr = { id: addresses.length + 1, address: newAddress };
                 setAddresses([...addresses, newAddr]);
-                setAddress(newAddress);
+                setAddress(newAddr);
                 setSelectedAddress(newAddress);
                 setNewAddress("");
                 setNewAddressError("");
@@ -229,7 +229,8 @@ export default function Checkout({ params }) {
                 return;
             }
         } else {
-            setAddress(selectedAddress);
+            const fullAddress = addresses.find(a => a.address === selectedAddress);
+            setAddress(fullAddress);
         }
         setIsModalOpen(null);
     };
@@ -323,6 +324,9 @@ export default function Checkout({ params }) {
             setTempPaymentMethod(paymentMethod);
             setTempSelectedCardId(selectedCardId);
             setNewCardErrors({});
+        }
+        if (modalKey === 'address') {
+            setSelectedAddress(address?.address);
         }
         // Assicuriamoci che la modale dell'indirizzo sia disponibile solo per la consegna
         if (modalKey === 'address' && orderType !== 'delivery') {
