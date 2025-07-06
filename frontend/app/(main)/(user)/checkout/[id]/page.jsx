@@ -333,7 +333,7 @@ export default function Checkout({ params }) {
                             {cards.map((card) => (
                                 <Card 
                                     key={card.key}
-                                    className={`mx-3 border-b rounded-md hover:bg-gray-100 shadow-none last:border-b-0 ${card.missing ? "bg-red-50" : ""}`}
+                                    className={`mx-3 border-b rounded-md ${card.key !== "time" && "hover:bg-gray-100"} shadow-none last:border-b-0 ${card.missing ? "bg-red-50" : ""}`}
                                     onPress={() => openModal(card.key)}
                                     isPressable={card.key !== "time"}
                                 >
