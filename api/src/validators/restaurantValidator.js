@@ -28,8 +28,10 @@ const restaurantEditSchema = Joi.object({
     vat: Joi.string().length(11).trim().optional(),
 });
 
-const getMenuSchema = Joi.object({
+const getMealsSchema = Joi.object({
     page: Joi.number().integer().min(1).default(1),
+    query: Joi.string().max(30).allow(null).trim().optional(),
+    category: Joi.string().valid(...ALLOWED_FOOD_TYPES).optional().allow(null),
 });
 
 const addMealSchema = Joi.object({
@@ -98,9 +100,60 @@ const openingsEditSchema = Joi.object({
     serviceMode: Joi.string().valid("delivery", "takeaway", "all").default("all")
 });
 
+const checkoutSchema = Joi.object({
+    orderType: Joi.string().valid("takeaway", "delivery").required(),
+    meals: Joi.array().items(
+        Joi.object({
+            meal: Joi.string().required(),
+            quantity: Joi.number().integer().min(1).required()
+        })
+    ).min(1).required(),
+    deliveryAddress: Joi.string().when('orderType', {
+        switch: [
+            {
+                is: 'delivery',
+                then: Joi.string().min(5).max(100).required()
+            },
+            {
+                is: 'takeaway',
+                then: Joi.string().allow(null).optional()
+            }
+        ]
+    }),
+    paymentMethod: Joi.string().valid("credit_card", "cash").required(),
+    specialInstructions: Joi.string().max(200).allow("").optional(),
+    phoneNumber: Joi.string()
+        .custom((value, helpers) => {
+            const cleaned = value.replace(/\s+/g, '');
+
+            if (cleaned.length < 10 || cleaned.length > 15) {
+                return helpers.error('string.min', {
+                    limit: 10,
+                    value: cleaned
+                });
+            }
+
+            if (!/^\+?\d+$/.test(cleaned)) {
+                return helpers.error('string.pattern.base', {
+                    name: 'phoneNumber',
+                    regex: '/^\\+?\\d+$/'
+                });
+            }
+
+            return cleaned;
+        })
+        .optional(),
+});
+
+const orderStatusEditSchema = Joi.object({
+    status: Joi.string().valid("ordered", "preparing", "out", "ready", "canceled", "completed").required()
+});
+
 module.exports = {
     restaurantEditSchema,
-    getMenuSchema,
+    getMealsSchema,
     addMealSchema,
-    openingsEditSchema
+    openingsEditSchema,
+    checkoutSchema,
+    orderStatusEditSchema
 };

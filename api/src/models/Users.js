@@ -19,9 +19,9 @@ const UserSchema = new mongoose.Schema({
 
     delivery: {
         type: [{
-            name: { type: String, trim: true, default: "" },
-            surname: { type: String, trim: true, default: "" },
             address: { type: String, trim: true, default: "" },
+            lat: { type: Number, default: null },
+            lng: { type: Number, default: null },
         }],
         default: [],
     },

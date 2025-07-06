@@ -4,7 +4,8 @@ import * as React from "react";
 import { HeroUIProvider } from "@heroui/system";
 import { ToastProvider } from "@heroui/toast";
 import { useRouter } from "next/navigation";
-import { AuthProvider } from '../contexts/AuthContext';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { CartProvider } from '@/contexts/CartContext';
 
 export function Providers({ children }) {
   const router = useRouter();
@@ -12,8 +13,10 @@ export function Providers({ children }) {
   return (
     <AuthProvider>
       <HeroUIProvider navigate={router.push}>
-        <ToastProvider />
-        {children}
+        <CartProvider>
+          <ToastProvider />
+          {children}
+        </CartProvider>
       </HeroUIProvider>
     </AuthProvider>
   );

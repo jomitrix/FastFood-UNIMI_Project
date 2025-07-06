@@ -1,21 +1,35 @@
 'use client';
 // import { notFound } from "next/navigation";
 import { withAuth } from '@/utils/withAuth';
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import User from "./User"
+import { usePaginator } from '@/utils/paginator';
+import { UserService } from '@/services/userService';
+import { Spinner } from '@heroui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
 
 function OrderPage() {
   const router = useRouter();
+  const { user } = useAuth();
 
-  // dati mock
-  const mockUser = {
-    name: "Mario",
-    surname: "Rossi",
-    email: "mario.rossi@example.com",
-    username: "MarioRossi",
-    accountType: "user"
+  const scrollController = useRef(null);
+  const ordersPaginator = usePaginator(useCallback(
+    (page, _) => UserService.getOrders(page)
+      .then(data => data.status !== 'success' ? [] : data.orders), [user?._id]),
+    10
+  );
+
+  const lastElementRef = (node) => {
+    if (ordersPaginator.isLoading) return;
+    if (scrollController.current) scrollController.current.disconnect();
+    scrollController.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && ordersPaginator.hasMore) {
+        ordersPaginator.loadNext();
+      }
+    });
+    if (node) scrollController.current.observe(node);
   };
 
   // dati iniziali mock
@@ -230,15 +244,23 @@ function OrderPage() {
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader
-        accountType={mockUser.accountType}
+        accountType={"user"}
         title="Order History"
         subtitle="View your past orders"
       />
 
-      <User
-        orders={mockOrders}
-        statuses={statuses}
-      />
+      {ordersPaginator.isLoading ?
+        <Spinner className='w-100 h-100' variant="dots" classNames={{
+          dots: 'bg-[#083d77]',
+        }} />
+        :
+        <User
+          orders={ordersPaginator.items}
+          statuses={statuses}
+          lastElementRef={lastElementRef}
+          isLoadingMore={ordersPaginator.isLoadingMore}
+        />
+      }
     </div>
   );
 }

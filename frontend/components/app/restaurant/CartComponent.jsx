@@ -3,6 +3,8 @@ import { Cart, Trash, Cash } from "@/components/icons/heroicons";
 import { useState, useEffect } from 'react';
 import AddressOrderType from '@/components/app/search/AddressOrderType';
 import { Button } from '@heroui/button';
+import { useCart } from '@/contexts/CartContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function CartComponent({ 
   isDesktop = false, 
@@ -15,6 +17,9 @@ export default function CartComponent({
   deliveryFee = 2.50,
   estimatedDeliveryTime = { min: 20, max: 35 }
 }) {
+  const { user } = useAuth();
+  const { cart, setCart } = useCart();
+
   const [orderType, setOrderType] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('orderType') || 'takeaway';
@@ -23,28 +28,14 @@ export default function CartComponent({
   });
   
   const [selectedAddress, setSelectedAddress] = useState(null);
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      address: "Via Tiburtina 1361, Roma, 00131, Italy"
-    },
-    {
-      id: 2,
-      address: "Piazzale Loreto 9, Milano, 20131, Italy"
-    },
-    {
-      id: 3,
-      address: "Via Dante 20, Poggibonsi, 53036, Italy"
-    },
-  ]
-  );
+  const [addresses, setAddresses] = useState(user.delivery || []);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined' && addresses.length > 0) {
       const savedAddressId = localStorage.getItem('selectedAddressId');
       if (savedAddressId) {
-        const foundAddress = addresses.find(addr => addr.id === Number(savedAddressId));
+        const foundAddress = addresses.find(addr => addr._id === savedAddressId);
         if (foundAddress) {
           setSelectedAddress(foundAddress);
         }
@@ -59,12 +50,20 @@ export default function CartComponent({
 
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
-    if (address && address.id) {
-      localStorage.setItem('selectedAddressId', address.id);
+    if (address && address._id) {
+      localStorage.setItem('selectedAddressId', address._id);
     } else if (address === null) {
       localStorage.removeItem('selectedAddressId');
     }
   };
+
+  useEffect(() => {
+    setCart(prevCart => ({
+      ...prevCart,
+      orderType: orderType,
+      deliveryAddress: orderType === 'delivery' ? selectedAddress : null,
+    }));
+  }, [orderType, selectedAddress, setCart]);
 
   return (
     <div className={`bg-white flex flex-col ${isDesktop ? 'h-screen border-l border-gray-200' : 'h-full'}`}>
@@ -91,12 +90,7 @@ export default function CartComponent({
         setIsModalOpen={setIsModalOpen}
         isCartComponent={true}
         onAddressesSave={(newAddresses) => {
-          setAddresses(
-            newAddresses.map((address, idx) => ({
-              id: addresses[idx]?.id || Date.now() + idx,
-              address,
-            }))
-          );
+          setAddresses(newAddresses);
         }}
       />
       
@@ -104,15 +98,15 @@ export default function CartComponent({
         <ScrollShadow className="flex-1 overflow-y-auto">
           <div className="divide-y">
             {cartItems.map((item) => (
-              <div key={item.id} className="p-4 flex gap-3">
+              <div key={item._id} className="p-4 flex gap-3">
                 <div className="w-16 h-16 rounded overflow-hidden flex-shrink-0">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  <img src={process.env.NEXT_PUBLIC_API_URL + item.image} alt={item.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-start gap-2">
                     <h3 className="font-medium truncate">{item.name}</h3>
                     <button 
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(item._id)}
                       className="text-red-500 p-1 hover:bg-red-50 rounded-full flex-shrink-0"
                     >
                       <Trash className="w-4 h-4" />
@@ -122,7 +116,7 @@ export default function CartComponent({
                   <div className="flex justify-between items-center mt-2">
                     <div className="flex border rounded-lg">
                       <button 
-                        onClick={() => updateCartItemQuantity(item.id, item.quantity - 1)}
+                        onClick={() => updateCartItemQuantity(item._id, item.quantity - 1)}
                         className={`px-2 py-1 ${item.quantity <= 1 ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-gray-100'}`}
                         disabled={item.quantity <= 1}
                       >
@@ -130,7 +124,7 @@ export default function CartComponent({
                       </button>
                       <span className="px-3 py-1">{item.quantity}</span>
                       <button 
-                        onClick={() => updateCartItemQuantity(item.id, Math.min(item.quantity + 1, 10))}
+                        onClick={() => updateCartItemQuantity(item._id, Math.min(item.quantity + 1, 10))}
                         className={`px-2 py-1 ${item.quantity >= 10 ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-gray-100'}`}
                         disabled={item.quantity >= 10}
                       >

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@heroui/input";
 import { Button } from "@heroui/button";
@@ -15,10 +15,19 @@ import HorizontalScroller from "@/components/app/search/HorizontalScroller";
 import RestaurantCard from "@/components/app/search/RestaurantCard";
 import DeliveryAddressesSection from "@/components/app/home/DeliveryAddressesSection";
 import Categories from "@/components/app/home/Categories";
+import { usePaginator } from '@/utils/paginator';
+import { FeedService } from '@/services/feedService';
+import { Spinner } from '@heroui/spinner';
 
 export default function Home() {
   const router = useRouter();
   const { user, getUser } = useAuth();
+
+  const restaurantsPaginator = usePaginator(useCallback(
+    (page, _) => FeedService.getRestaurants(page)
+      .then(data => data.status !== 'success' ? [] : data.restaurants), [user]),
+    10
+  );
 
   // Gli indirizzi ora sono gestiti nello stato del componente
   const [addresses, setAddresses] = useState([
@@ -48,7 +57,7 @@ export default function Home() {
       allergens: ["Milk", "Egg", "Peanut"],
       isOpenNow: true,
       orderType: "both",
-      addressReference: {id: 1}
+      addressReference: { id: 1 }
     },
     {
       id: 2,
@@ -61,7 +70,7 @@ export default function Home() {
       allergens: ["Gluten", "Milk"],
       isOpenNow: false,
       orderType: "delivery",
-      addressReference: {id: 2}
+      addressReference: { id: 2 }
     }
   ];
 
@@ -74,18 +83,13 @@ export default function Home() {
     getUser()
   }, [getUser]);
 
-  useEffect(() => {
-    if (user?.role === "restaurant") {
-      router.push("/manager/dashboard");
-    }
-  }, [user, router]);
-  
+  // Memoizzazione del filtro per performance migliori
   const filtered = useMemo(
     () =>
       addressQuery
         ? addresses.filter((addr) =>
-            addr.address.toLowerCase().includes(addressQuery.toLowerCase())
-          )
+          addr.address.toLowerCase().includes(addressQuery.toLowerCase())
+        )
         : addresses,
     [addressQuery, addresses]
   );
@@ -112,7 +116,7 @@ export default function Home() {
             <h3 className="text-xl md:text:3xl lg:text-4xl">
               Order now!
             </h3>
-            { !user && (
+            {!user && (
               <Button
                 variant="solid"
                 startContent={<Login />}
@@ -126,89 +130,114 @@ export default function Home() {
             )}
 
             {user?.role === "user" && (
-                <div className="w-full flex flex-col items-center md:items-start">
-                  <div className="w-full flex items-center relative">
-                    <Autocomplete
-                      inputValue={addressQuery}
-                      selectorIcon={null}
-                      defaultItems={addresses}
-                      value={addressQuery}
-                      onInputChange={value => {
-                        setAddressQuery(value);
-                        setSelectedAddress(""); // reset se si digita manualmente
-                      }}
-                      placeholder="Insert delivery address"
-                      radius="lg"
-                      size="md"
-                      className="w-full"
-                      selectorButtonProps={ { className: "hidden" }}
-                      openOnFocus
-                      inputProps={{
-                        classNames: {
-                          inputWrapper: "py-4 sm:py-7",
-                          input: "mr-[1.5rem] sm:mr-[3rem]",
-                        }
-                      }}
-                    >
-                      <AutocompleteSection title="Your Addresses">
-                        {filtered.map(addr => (
-                          <AutocompleteItem
-                            key={addr.id}
-                            value={addr.address}
-                            textValue={addr.address}
-                            onPress={() => handleSelect(addr)}
-                            className={selectedAddress?.id === addr.id ? "bg-[#ffe0c2]" : ""}
-                          >
-                            {addr.address}
-                          </AutocompleteItem>
-                        ))}
+              <div className="w-full flex flex-col items-center md:items-start">
+                <div className="w-full flex items-center relative">
+                  <Autocomplete
+                    inputValue={addressQuery}
+                    selectorIcon={null}
+                    defaultItems={addresses}
+                    value={addressQuery}
+                    onInputChange={value => {
+                      setAddressQuery(value);
+                      setSelectedAddress(""); // reset se si digita manualmente
+                    }}
+                    placeholder="Insert delivery address"
+                    radius="lg"
+                    size="md"
+                    className="w-full"
+                    selectorButtonProps={{ className: "hidden" }}
+                    openOnFocus
+                    inputProps={{
+                      classNames: {
+                        inputWrapper: "py-4 sm:py-7",
+                        input: "mr-[1.5rem] sm:mr-[3rem]",
+                      }
+                    }}
+                  >
+                    <AutocompleteSection title="Your Addresses">
+                      {filtered.map(addr => (
                         <AutocompleteItem
-                          key="add-new"
-                          className="text-[#083d77] mt-1"
-                          classNames={{title: "font-semibold"}}
-                          title="+ Add new Address"
-                          onPress={() => { setIsModalOpen(true), setTimeout(() => setAddressQuery(""), 100); }}
-                        />
-                      </AutocompleteSection>
-                    </Autocomplete>
+                          key={addr.id}
+                          value={addr.address}
+                          textValue={addr.address}
+                          onPress={() => handleSelect(addr)}
+                          className={selectedAddress?.id === addr.id ? "bg-[#ffe0c2]" : ""}
+                        >
+                          {addr.address}
+                        </AutocompleteItem>
+                      ))}
+                      <AutocompleteItem
+                        key="add-new"
+                        className="text-[#083d77] mt-1"
+                        classNames={{ title: "font-semibold" }}
+                        title="+ Add new Address"
+                        onPress={() => { setIsModalOpen(true), setTimeout(() => setAddressQuery(""), 100); }}
+                      />
+                    </AutocompleteSection>
+                  </Autocomplete>
 
-                    <Button
-                      variant="solid"
-                      color="default"
-                      className="bg-[#083d77] text-white font-medium -ml-[5.25rem] sm:-ml-[6.5rem] w-0 px-0 sm:w-[6rem] h-[2rem] sm:h-[2.5rem]"
-                      startContent={<Search className="text-white flex-shrink-0 m-0" />}
-                      radius="md"
-                      isDisabled={!isAddressValid}
-                      onPress={() => router.push("/search")}
-                    >
-                      <span className="hidden sm:block">Search</span>
-                    </Button>
-                  </div>
+                  <Button
+                    variant="solid"
+                    color="default"
+                    className="bg-[#083d77] text-white font-medium -ml-[5.25rem] sm:-ml-[6.5rem] w-0 px-0 sm:w-[6rem] h-[2rem] sm:h-[2.5rem]"
+                    startContent={<Search className="text-white flex-shrink-0 m-0" />}
+                    radius="md"
+                    isDisabled={!isAddressValid}
+                    onPress={() => router.push("/search")}
+                  >
+                    <span className="hidden sm:block">Search</span>
+                  </Button>
                 </div>
-              )}
+              </div>
+            )}
+
+            {user?.role === "restaurant" && (
+              <Button
+                placeholder="Search restaurants and dishes"
+                variant="solid"
+                color="default"
+                className="w-full bg-black text-white"
+                startContent={<Meals />}
+                isClearable
+                size="lg"
+                onPress={() => router.push("/manager/menu")}
+              >
+                Manage your menu
+              </Button>
+            )}
           </div>
         </div>
       </div>
       <div className="w-full">
-        <WaveClean className="h-10 sm:h-20"/>
+        <WaveClean className="h-10 sm:h-20" />
       </div>
-      
+
       {/* Sezione per i ristoranti consigliati in base ai gusti (da vedere solo in opt-in) 
       Li mostra in base alla vicinanza degli indirizzi inseriti, quando cliccato rimanda
       all'ordine con quell'indirizzo*/}
-      { user?.role === "user" && user?.preferences.specialOffersFeed && (
+      {user?.role === "user" && user?.preferences.specialOffersFeed && (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <HorizontalScroller title="Based on your tastes">
-            {mockTastesRest.map((r) => (
-              <RestaurantCard
-                key={r.restaurantname}
-                {...r}
-                className="w-72 shrink-0"
+            {restaurantsPaginator.isLoading ? (
+              <Spinner
+                className="w-100 h-100"
+                variant="dots"
+                classNames={{
+                  dots: 'bg-[#083d77]',
+                }}
+              />
+            ) : (
+              restaurantsPaginator.items.map((r) => (
+                <RestaurantCard
+                  key={r._id}
+                  restaurant={r}
+                  className="w-72 shrink-0"
                 />
-            ))}
+              ))
+            )}
           </HorizontalScroller>
         </div>
-      ) }
+      )}
 
       <DeliveryAddressesSection
         addresses={addresses.map(a => a.address)}

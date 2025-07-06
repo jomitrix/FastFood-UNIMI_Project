@@ -13,8 +13,9 @@ import { ScrollShadow } from "@heroui/scroll-shadow";
 
 import { formatCurrency } from "@/utils/format";
 import { statuses } from "@/utils/lists";
+import { RestaurantService } from "../../../../../services/restaurantService";
 
-export default function OrderRestaurant({ orders, restaurant }) {
+export default function OrderRestaurant({ orders, restaurant, totalOrders, loadPage }) {
   const statusOptions = useMemo(
     () => Object.keys(statuses).map(uid => ({ uid, name: statuses[uid].display })),
     []
@@ -29,6 +30,10 @@ export default function OrderRestaurant({ orders, restaurant }) {
   const [newStatus, setNewStatus] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 10;
+
+  useEffect(() => {
+    console.log(selectedOrder);
+  }, [selectedOrder])
 
   // unisco i filtri alla ricerca
   const filteredOrders = useMemo(() => {
@@ -48,13 +53,13 @@ export default function OrderRestaurant({ orders, restaurant }) {
   }, [orders, filterValue, statusFilter, statusOptions.length]);
 
   // reset pagina al cambio dei filtri
-  useEffect(() => {
-    setPage(1);
-  }, [filterValue, statusFilter]);
+  // useEffect(() => {
+  //   setPage(1);
+  // }, [filterValue, statusFilter]);
 
   // order id
   const findOrderById = (orderId) => {
-    return orders.find(order => order.id === orderId);
+    return orders.find(order => order._id === orderId);
   };
 
   const handleOpenModal = (orderId) => {
@@ -65,12 +70,15 @@ export default function OrderRestaurant({ orders, restaurant }) {
   };
 
   // aggiorno stato ordine
-  const handleStatusUpdate = () => {
+  const handleStatusUpdate = async (orderId) => {
     if (!newStatus || newStatus === selectedOrder.status) return;
     
-    // chiamata api
-    console.log(`Updating order ${selectedOrder.id} status from ${selectedOrder.status} to ${newStatus}`);
+    const data = await RestaurantService.updateOrderStatus(orderId, newStatus);
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+    }
 
+    loadPage(page);
     setSelectedOrder(prev => ({ ...prev, status: newStatus })); // idea capire
   };
 
@@ -115,7 +123,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(totalOrders / pageSize));
   const paginatedOrders = useMemo(() => {
     const start = (page - 1) * pageSize;
     return filteredOrders.slice(start, start + pageSize);
@@ -185,10 +193,10 @@ export default function OrderRestaurant({ orders, restaurant }) {
 
         <TableBody items={paginatedOrders}>
           {order => (
-            <TableRow key={order.id}>
-              <TableCell className="font-medium">{order.id}</TableCell>
-              <TableCell>{order.customer}</TableCell>
-              <TableCell>{formatCurrency(order.total)}</TableCell>
+            <TableRow key={order._id}>
+              <TableCell className="font-medium">{order._id.substr(-6).toUpperCase()}</TableCell>
+              <TableCell>{order.user.name} {order.user.surname}</TableCell>
+              <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
               <TableCell>{order.paymentMethod}</TableCell>
               <TableCell>
                 <Chip
@@ -199,7 +207,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                   {statuses[order.status].display}
                 </Chip>
               </TableCell>
-              <TableCell>{order.orderDate}</TableCell>
+              <TableCell>{order.createdAt}</TableCell>
               <TableCell>
                 <Dropdown
                   placement="bottom-end"
@@ -219,7 +227,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                   >
                     <DropdownItem
                       className="flex items-center gap-2"
-                      onPress={() => handleOpenModal(order.id)}
+                      onPress={() => handleOpenModal(order._id)}
                     >
                       <div className="flex items-center justify-between">
                         <span>Manage Order</span>
@@ -237,7 +245,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
       <div className="mt-4 flex justify-center w-full relative">
         <div className="absolute left-0 top-2 w-full">
           <span className="absolute left-0 text-default-400 text-small">
-            Total orders {filteredOrders.length}
+            Total orders {totalOrders}
           </span>
         </div>
         <Pagination
@@ -247,7 +255,10 @@ export default function OrderRestaurant({ orders, restaurant }) {
           color="primary"
           page={page}
           total={totalPages}
-          onChange={setPage}
+          onChange={(p) => {
+            setPage(p);
+            loadPage(p);
+          }}
         />
       </div>
       
@@ -270,7 +281,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                   <div>
                     <h2 className="text-xl font-bold">Manage Order</h2>
                     <p className="text-sm text-gray-500">
-                      {selectedOrder.id} - {selectedOrder.customer}
+                      {selectedOrder._id} - {selectedOrder.customer}
                     </p>
                   </div>
                   <Chip
@@ -327,7 +338,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                                 <p className="text-sm font-medium mb-2">{selectedOrder.type === "takeaway" ? "Pickup" : "Delivery"} Verification Code</p>
                                 <div className="flex items-center justify-center">
                                   <p className="text-3xl font-bold tracking-widest bg-white py-2 px-4 rounded-md border border-gray-300 shadow-sm">
-                                    {getDeliveryCode(selectedOrder.id)}
+                                    {getDeliveryCode(selectedOrder._id)}
                                   </p>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2 text-center">
@@ -349,7 +360,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                         <div className="grid grid-cols-2 gap-3">
                           <div className="p-2 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-gray-500">Order Type</p>
-                            <p className="text-sm font-medium capitalize">{selectedOrder.type}</p>
+                            <p className="text-sm font-medium capitalize">{selectedOrder.orderType}</p>
                           </div>
                           <div className="p-2 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-gray-500">Payment Method</p>
@@ -357,18 +368,18 @@ export default function OrderRestaurant({ orders, restaurant }) {
                           </div>
                           <div className="p-2 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-gray-500">Order Date</p>
-                            <p className="text-sm font-medium">{selectedOrder.orderDate}</p>
+                            <p className="text-sm font-medium">{selectedOrder.createdAt}</p>
                           </div>
                           {selectedOrder.estimatedDelivery && (
                             <div className="p-2 bg-neutral-50 rounded-lg">
                               <p className="text-xs text-gray-500">Est. Delivery</p>
-                              <p className="text-sm font-medium">{selectedOrder.estimatedDelivery}</p>
+                              <p className="text-sm font-medium">10m</p>
                             </div>
                           )}
                           {selectedOrder.estimatedPickup && (
                             <div className="p-2 bg-neutral-50 rounded-lg">
                               <p className="text-xs text-gray-500">Est. Pickup</p>
-                              <p className="text-sm font-medium">{selectedOrder.estimatedPickup}</p>
+                              <p className="text-sm font-medium">10m</p>
                             </div>
                           )}
                         </div>
@@ -382,11 +393,11 @@ export default function OrderRestaurant({ orders, restaurant }) {
                         <div className="space-y-3">
                           <div className="p-2 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-gray-500">Name</p>
-                            <p className="text-sm font-medium">{selectedOrder.customer}</p>
+                            <p className="text-sm font-medium">{selectedOrder.user.name} {selectedOrder.user.surname}</p>
                           </div>
                           <div className="p-2 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-gray-500">Phone</p>
-                            <p className="text-sm font-medium">{selectedOrder.customerPhone}</p>
+                            <p className="text-sm font-medium">{selectedOrder.phoneNumber}</p>
                           </div>
                           {selectedOrder.deliveryAddress && (
                             <div className="p-2 bg-neutral-50 rounded-lg">
@@ -397,7 +408,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                           {selectedOrder.customerNotes && (
                             <div className="p-2 bg-neutral-50 rounded-lg">
                               <p className="text-xs text-gray-500">Notes</p>
-                              <p className="text-sm font-medium">{selectedOrder.customerNotes}</p>
+                              <p className="text-sm font-medium">{selectedOrder.specialInstructions}</p>
                             </div>
                           )}
                         </div>
@@ -409,16 +420,16 @@ export default function OrderRestaurant({ orders, restaurant }) {
                       <CardBody className="p-4">
                         <h3 className="text-lg font-semibold mb-3">Order Items</h3>
                         <div className="space-y-2">
-                          {selectedOrder.items.map((item, idx) => (
+                          {selectedOrder.meals.map((item, idx) => (
                             <div key={idx} className="flex justify-between items-center p-2 border-b border-neutral-200 last:border-b-0">
                               <div className="flex-grow">
-                                <p className="text-sm font-semibold"><span className="px-2 py-1 mr-3 bg-neutral-100 rounded-md">{item.quantity}x</span>{item.name}</p>
-                                {item.ingredients && (
-                                  <p className="text-xs text-gray-500">{item.ingredients.join(", ")}</p>
+                                <p className="text-sm font-semibold"><span className="px-2 py-1 mr-3 bg-neutral-100 rounded-md">{item.quantity}x</span>{item.meal.name}</p>
+                                {item.meal.ingredients && (
+                                  <p className="text-xs text-gray-500">{item.meal.ingredients.join(", ")}</p>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 text-sm">
-                                <span className="font-medium">{formatCurrency(item.quantity * item.price)}</span>
+                                <span className="font-medium">{formatCurrency(item.quantity * item.meal.price)}</span>
                               </div>
                             </div>
                           ))}
@@ -426,7 +437,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                         <div className="pt-3 border-t border-neutral-200">
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-600">Subtotal</span>
-                            <span className="text-sm">{formatCurrency(selectedOrder.subtotal)}</span>
+                            <span className="text-sm">{formatCurrency(selectedOrder.totalPrice)}</span>
                           </div>
                           {selectedOrder.deliveryFee && (
                             <div className="flex justify-between mt-1">
@@ -436,7 +447,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                           )}
                           <div className="flex justify-between mt-2 pt-2 border-t border-dashed border-neutral-200">
                             <span className="font-bold">Total</span>
-                            <span className="font-bold">{formatCurrency(selectedOrder.total)}</span>
+                            <span className="font-bold">{formatCurrency(selectedOrder.totalPrice)}</span>
                           </div>
                         </div>
                       </CardBody>
@@ -452,7 +463,7 @@ export default function OrderRestaurant({ orders, restaurant }) {
                 {getAvailableStatuses(selectedOrder).length > 0 && newStatus && (
                   <Button 
                     color="primary" 
-                    onPress={handleStatusUpdate}
+                    onPress={() => handleStatusUpdate(selectedOrder._id)}
                   >
                     Update Order
                   </Button>

@@ -5,15 +5,7 @@ import { Card } from '@heroui/card';
 import { Skeleton } from '@heroui/skeleton';
 import { useState } from 'react';
 
-export default function RestaurantCard({
-  id,
-  img,
-  restaurantname,
-  minDeliveryTime,
-  maxDeliveryTime,
-  area,
-  className,
-}) {
+export default function RestaurantCard({ restaurant, className }) {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -21,13 +13,13 @@ export default function RestaurantCard({
     <Card
       className={`rounded-lg overflow-hidden shadow hover:shadow-lg transition ${className}`}
       isPressable
-      onPress={() => router.push(`/restaurant/${id}`)}
+      onPress={() => router.push(`/restaurant/${restaurant._id}`)}
     >
       <div className="relative aspect-video bg-gray-200">
         {!isImageLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
         <img
-          src={img}
-          alt={restaurantname}
+          src={process.env.NEXT_PUBLIC_API_URL + restaurant.banner}
+          alt={restaurant.name}
           className={`w-full h-full object-cover transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
           onLoad={() => setIsImageLoaded(true)}
         />
@@ -35,14 +27,14 @@ export default function RestaurantCard({
 
       <div className="p-4 space-y-1">
         <div className="flex justify-between items-start">
-          <h3 className="font-semibold truncate">{restaurantname}</h3>
+          <h3 className="font-semibold truncate">{restaurant.name}</h3>
         </div>
         <p className="flex gap-1 text-sm text-gray-600">
           <Time className="inline-block mt-[1.5px] h-4 w-4 text-gray-500" />
-          {minDeliveryTime} - {maxDeliveryTime} min
+          {"10"} - {"20"} min
         </p>
         <p className="flex text-sm text-gray-500 justify-start truncate">
-          {area?.join(' • ')}
+          {restaurant.area?.join(' • ')}
         </p>
       </div>
     </Card>

@@ -8,6 +8,7 @@ import {
   AutocompleteItem,
 } from "@heroui/autocomplete";
 import DeliveryAddressesSection from '@/components/app/home/DeliveryAddressesSection';
+import { useCart } from '@/contexts/CartContext';
 
 const AddressOrderType = ({ 
   addresses, 
@@ -19,6 +20,8 @@ const AddressOrderType = ({
   isCartComponent = false,
   onAddressesSave
 }) => {
+  const { cart, setCart } = useCart();
+
   // Inizializza l'orderType leggendo dal localStorage o usando il default
   const [orderType, setOrderType] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -44,7 +47,7 @@ const AddressOrderType = ({
     if (typeof window !== 'undefined' && addresses.length > 0) {
       const savedAddressId = localStorage.getItem('selectedAddressId');
       if (savedAddressId) {
-        const foundAddress = addresses.find(addr => addr.id === Number(savedAddressId));
+        const foundAddress = addresses.find(addr => addr._id === savedAddressId);
         if (foundAddress) {
           setSelectedAddress(foundAddress);
           setAddressQuery(foundAddress.address);
@@ -59,7 +62,7 @@ const AddressOrderType = ({
     setAddressQuery(addr.address);
     onAddressSelect(addr);
     // Salva l'ID dell'indirizzo nel localStorage
-    localStorage.setItem('selectedAddressId', addr.id);
+    localStorage.setItem('selectedAddressId', addr._id);
   };
 
   const handleOrderTypeChange = (key) => {
@@ -69,6 +72,14 @@ const AddressOrderType = ({
     // Salva l'orderType nel localStorage
     localStorage.setItem('orderType', newType);
   };
+
+  useEffect(() => {
+    setCart(prevCart => ({
+      ...prevCart,
+      orderType: orderType,
+      deliveryAddress: orderType === 'delivery' ? selectedAddress : null,
+    }));
+  }, [orderType]);
 
   // Nasconde l'indirizzo se è takeaway nel carrello
   const showAddressField = !isCartComponent || (isCartComponent && orderType === 'delivery');
@@ -139,11 +150,11 @@ const AddressOrderType = ({
             <AutocompleteSection title="Your Addresses">
               {filtered.map(addr => (
                 <AutocompleteItem
-                  key={addr.id}
+                  key={addr._id}
                   value={addr.address}
                   textValue={addr.address}
                   onPress={() => handleSelect(addr)}
-                  className={selectedAddress?.id === addr.id ? "bg-[#ffe0c2]" : ""}
+                  className={selectedAddress?._id === addr._id ? "bg-[#ffe0c2]" : ""}
                 >
                   {addr.address}
                 </AutocompleteItem>
@@ -194,7 +205,7 @@ const AddressOrderType = ({
       </div>
       
       <DeliveryAddressesSection
-        addresses={addresses.map(a => a.address)}
+        addresses={addresses}
         isOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
         onSave={onAddressesSave}

@@ -6,6 +6,7 @@ import { MapPin } from "@/components/icons/heroicons";
 import { addToast } from "@heroui/toast";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/modal";
 import { ScrollShadow } from "@heroui/scroll-shadow";
+import { UserService } from '@/services/userService';
 
 export default function DeliveryAddressesSection({
   addresses = [],
@@ -14,20 +15,20 @@ export default function DeliveryAddressesSection({
   onSave, // <- callback to Home
 }) {
   // Start with existing addresses if provided
-  const [entries, setEntries] = useState(() =>
-    addresses.length ? addresses.map((a) => ({ address: a })) : [{ address: "" }]
-  );
+  const [entries, setEntries] = useState(addresses ?? []);
   const [errors, setErrors] = useState([]);
 
   // keep local state in sync if parent passes a fresh list
   useEffect(() => {
-    setEntries(addresses.length ? addresses.map((a) => ({ address: a })) : [{ address: "" }]);
+    setEntries(addresses);
   }, [addresses, isOpen]);
 
-  const validateAddress = (addr) =>
-    addr.match(
+  const validateAddress = (addr) => {
+    if (!addr) return false;
+    else return addr.match(
       /^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u
     );
+  }
 
   // true if field has text but fails regex
   const invalidAddress = useMemo(
@@ -63,16 +64,24 @@ export default function DeliveryAddressesSection({
       });
       return;
     }
+
     setEntries([...entries, { address: "" }]);
     setErrors([...errors, {}]);
   };
 
-  const removeEntry = (i) => {
-    setEntries(entries.filter((_, idx) => idx !== i));
-    setErrors(errors.filter((_, idx) => idx !== i));
+  const removeEntry = async (id) => {
+    console.log(entries);
+    console.log(id);
+    const data = await UserService.deleteDelivery(id);
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+    }
+
+    setEntries(entries.filter((e) => e._id !== id));
+    setErrors(errors.filter((e) => e._id !== id));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErr = entries.map((ent) => {
       const err = {};
@@ -83,9 +92,15 @@ export default function DeliveryAddressesSection({
     setErrors(newErr);
     if (newErr.some((o) => Object.keys(o).length)) return;
 
-    const cleaned = entries.map((e) => e.address.trim());
-    // pass list back to page.jsx
-    onSave?.(cleaned);
+    const newAddress = entries.filter((e) => addresses.map((a) => a.address).includes(e.address) === false)[0].address;
+
+    const data = await UserService.editDelivery(newAddress);
+
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+    }
+
+    onSave?.(data.delivery);
 
     addToast({
       title: "Success",
@@ -139,7 +154,7 @@ export default function DeliveryAddressesSection({
                       type="button"
                       color="danger"
                       size="sm"
-                      onPress={() => removeEntry(i)}
+                      onPress={() => removeEntry(ent._id)}
                     >
                       Delete
                     </Button>

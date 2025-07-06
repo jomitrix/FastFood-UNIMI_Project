@@ -11,6 +11,10 @@ import { Input } from "@heroui/input";
 import { RadioGroup, Radio } from "@heroui/radio";
 import { Textarea } from "@heroui/input";
 import { ScrollShadow } from "@heroui/scroll-shadow";
+import { useCart } from '@/contexts/CartContext';
+import { UserService } from '@/services/userService';
+import { RestaurantService } from "@/services/restaurantService";
+import { addToast } from "@heroui/toast";
 
 const mockRestaurant = {
     banner: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,w_1537,h_480/f_auto/q_auto/dpr_1.0/d_it:cuisines:pollo-6.jpg/v1/it/restaurants/282166.jpg",
@@ -39,16 +43,16 @@ const mockRestaurant = {
 
 const mockAddresses = [
     {
-      id: 1,
-      address: "Via Tiburtina 1361, Roma, 00131, Italy"
+        id: 1,
+        address: "Via Tiburtina 1361, Roma, 00131, Italy"
     },
     {
-      id: 2,
-      address: "Piazzale Loreto 9, Milano, 20131, Italy"
+        id: 2,
+        address: "Piazzale Loreto 9, Milano, 20131, Italy"
     },
     {
-      id: 3,
-      address: "Via Dante 20, Poggibonsi, 53036, Italy"
+        id: 3,
+        address: "Via Dante 20, Poggibonsi, 53036, Italy"
     },
 ];
 
@@ -100,36 +104,37 @@ export default function Checkout({ params }) {
     const id = params;
     const router = useRouter();
     const { user } = useAuth();
+    const { cart, setCart } = useCart();
 
     const validatePhone = (phone) => phone.match(/^\+(?:[0-9] ?){6,14}[0-9]$/);
     // Regex validazione carta (base)
     const validateCardNumber = (num) => num.replace(/\s/g, '').match(/^\d{16}$/);
     const validateCardExpiry = (exp) => exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
-    
+
     // Aggiunta validazione che la data di scadenza non sia nel passato
     const isExpiryDateValid = (expiry) => {
-      if (!validateCardExpiry(expiry)) return false;
-      
-      const [month, year] = expiry.split('/');
-      const expiryDate = new Date(2000 + parseInt(year), parseInt(month), 0); // Day 0 of next month is last day of current month
-      const today = new Date();
-      
-      return expiryDate >= today;
+        if (!validateCardExpiry(expiry)) return false;
+
+        const [month, year] = expiry.split('/');
+        const expiryDate = new Date(2000 + parseInt(year), parseInt(month), 0); // Day 0 of next month is last day of current month
+        const today = new Date();
+
+        return expiryDate >= today;
     };
 
     // Order data
     const [name, setName] = useState(user?.name);
     const [surname, setSurname] = useState(user?.surname);
-    const [phone, setPhone] = useState(user?.phone);
+    const [phone, setPhone] = useState(user?.phoneNumber);
     const [tempName, setTempName] = useState("");
     const [tempSurname, setTempSurname] = useState("");
     const [tempPhone, setTempPhone] = useState("");
     const [infoErrors, setInfoErrors] = useState({});
 
-    const [address, setAddress] = useState(mockOrder.address);
+    const [address, setAddress] = useState(cart.deliveryAddress);
     const [filteredAddresses, setFilteredAddresses] = useState([]);
-    const [addresses, setAddresses] = useState(mockAddresses);
-    const [selectedAddress, setSelectedAddress] = useState(mockOrder.address);
+    const [addresses, setAddresses] = useState(user.delivery);
+    const [selectedAddress, setSelectedAddress] = useState(cart.deliveryAddress);
     const [newAddress, setNewAddress] = useState("");
     const [newAddressError, setNewAddressError] = useState("");
     const [notes, setNotes] = useState("");
@@ -137,20 +142,24 @@ export default function Checkout({ params }) {
 
     // Payment data
     const [paymentMethod, setPaymentMethod] = useState(null); // 'cash' or 'card'
-    const [paymentCards, setPaymentCards] = useState(mockCards);
-    const [selectedCardId, setSelectedCardId] = useState(mockCards.length > 0 ? mockCards[0]._id.$oid : null);
+    const [paymentCards, setPaymentCards] = useState(user.cards);
+    const [selectedCardId, setSelectedCardId] = useState(user.cards.length > 0 ? user.cards[0]._id : null);
     const [newCard, setNewCard] = useState({ name: "", holder: "", number: "", expiry: "", cvv: "" });
     const [newCardErrors, setNewCardErrors] = useState({});
     const [tempPaymentMethod, setTempPaymentMethod] = useState('cash');
     const [tempSelectedCardId, setTempSelectedCardId] = useState(null);
 
-    const orderType = mockOrder.orderType;
+    const [orderType, setOrderType] = useState(cart.orderType);
     const [isModalOpen, setIsModalOpen] = useState(null);
 
+    useState(() => {
+        console.log(cart.deliveryAddress);
+    }, [])
+
     const extractId = id =>
-      typeof id === 'string'
-        ? id
-        : id?.$oid;
+        typeof id === 'string'
+            ? id
+            : id?.$oid;
 
     const getSelectedCard = () => {
         if (paymentMethod !== 'card' || !selectedCardId) return null;
@@ -158,30 +167,34 @@ export default function Checkout({ params }) {
     }
 
     //  campi obbligatori
-    const infoMissing     = !(name && surname && phone);
-    const addressMissing  = orderType === "delivery" ? !address : false;
-    const paymentMissing  = !paymentMethod || (paymentMethod === 'card'
-      ? !getSelectedCard()        
-      : false);                    
+    const infoMissing = !(name && surname && phone);
+    const addressMissing = orderType === "delivery" ? !address : false;
+    const paymentMissing = !paymentMethod || (paymentMethod === 'card'
+        ? !getSelectedCard()
+        : false);
 
     const isCheckoutDisabled = infoMissing || addressMissing || paymentMissing;
+
+    useEffect(() => {
+        console.log(cart);
+    }, [])
 
     useEffect(() => {
         if (user?.cards?.length) {
             setPaymentCards(user?.cards);
             if (!selectedCardId) {
                 const firstId = typeof user?.cards[0]._id === 'string'
-                  ? user?.cards[0]._id
-                  : user?.cards[0]._id.$oid;
+                    ? user?.cards[0]._id
+                    : user?.cards[0]._id.$oid;
                 setSelectedCardId(firstId);
             }
         }
     }, [user?.cards]);
-    
+
     useEffect(() => {
         if (!address) return;
 
-        const addressParts = address.split(',');
+        const addressParts = address.address.split(',');
         setFilteredAddresses([addressParts[0], addressParts.slice(1).join(',')]);
     }, [address]);
 
@@ -190,8 +203,10 @@ export default function Checkout({ params }) {
         ...(orderType === "delivery" ? [
             { key: "address", title: filteredAddresses[0], subtitle: filteredAddresses[1], icon: <MapPin />, missing: addressMissing }
         ] : []),
-        { key: "time", title: orderType === "delivery" ? "Delivery Time" : "Takeaway Time", 
-            subtitle: orderType === "delivery" ? `${mockRestaurant.minDeliveryTime} - ${mockRestaurant.maxDeliveryTime}` : `${mockRestaurant.minTakeawayTime} - ${mockRestaurant.maxTakeawayTime}`, icon: <Time />, missing: false },
+        {
+            key: "time", title: orderType === "delivery" ? "Delivery Time" : "Takeaway Time",
+            subtitle: orderType === "delivery" ? `${mockRestaurant.minDeliveryTime} - ${mockRestaurant.maxDeliveryTime}` : `${mockRestaurant.minTakeawayTime} - ${mockRestaurant.maxTakeawayTime}`, icon: <Time />, missing: false
+        },
         { key: "notes", title: "Additional Notes", subtitle: notes || "Add a note for your order", icon: <Notes />, missing: false },
     ]
 
@@ -246,7 +261,7 @@ export default function Checkout({ params }) {
         setInfoErrors({});
     };
 
-    const handlePaymentSave = () => {
+    const handlePaymentSave = async () => {
         if (tempPaymentMethod === "card") {
             let nextSelected = tempSelectedCardId;
             if (tempSelectedCardId === 'new_card') {
@@ -265,16 +280,26 @@ export default function Checkout({ params }) {
                     errors.expiry = "Invalid or expired date.";
                 }
                 if (!newCard.cvv) errors.cvv = "CVV is required.";
-                
+
                 if (Object.keys(errors).length > 0) {
                     setNewCardErrors(errors);
                     return;
                 }
 
-                const uniqueId = crypto.randomUUID();
-                const newCardWithId = { ...newCard, _id: { $oid: uniqueId } };
-                setPaymentCards(prev => [...prev, newCardWithId]);
-                nextSelected = uniqueId;
+                const data = await UserService.editCards(
+                    newCard.name,
+                    newCard.holder,
+                    newCard.number,
+                    newCard.expiry,
+                    newCard.cvv
+                );
+
+                if (!data || data.status !== "success") {
+                    return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+                }
+
+                setPaymentCards(data.cards);
+                nextSelected = data.cards[data.cards.length - 1]._id;
                 setNewCard({ name: "", holder: "", number: "", expiry: "", cvv: "" });
                 setNewCardErrors({});
             }
@@ -306,16 +331,32 @@ export default function Checkout({ params }) {
         setIsModalOpen(modalKey);
     }
 
-    // const getSelectedCard = () => {
-    //     if (paymentMethod !== 'card' || !selectedCardId) return null;
-    //     return paymentCards.find(c => extractId(c._id) === selectedCardId);
-    // }
-
     // 🛠️ helper per key/value univoci
     const getCardKey = (card, idx) =>
-      typeof card._id === 'string'
-        ? card._id
-        : card._id?.$oid ?? String(idx);
+        typeof card._id === 'string'
+            ? card._id
+            : card._id?.$oid ?? String(idx);
+
+    const handleCheckout = async () => {
+        const orderData = {
+            restaurantId: cart.restaurant._id,
+            orderType: cart.orderType,
+            meals: cart.items.map(item => ({ meal: item._id, quantity: item.quantity })),
+            deliveryAddress: orderType === "delivery" ? address._id : null,
+            paymentMethod,
+            specialInstructions: notes || "",
+            phoneNumber: phone
+        };
+
+        const data = await RestaurantService.checkout(orderData.restaurantId, orderData.orderType, orderData.meals, orderData.deliveryAddress, orderData.paymentMethod, orderData.specialInstructions, orderData.phoneNumber);
+
+        if (!data || data.status !== "success") {
+            return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+        }
+
+        setCart({ ...cart, items: [], orderType: 'takeaway', deliveryAddress: null });
+        router.push(`/orders`);
+    }
 
     return (
         <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
@@ -331,14 +372,14 @@ export default function Checkout({ params }) {
                         </CardHeader>
                         <CardBody>
                             {cards.map((card) => (
-                                <Card 
+                                <Card
                                     key={card.key}
                                     className={`mx-3 border-b rounded-md ${card.key !== "time" && "hover:bg-gray-100"} shadow-none last:border-b-0 ${card.missing ? "bg-red-50" : ""}`}
                                     onPress={() => openModal(card.key)}
                                     isPressable={card.key !== "time"}
                                 >
                                     <CardBody className="flex flex-row items-center gap-4">
-                                        { card.icon && (
+                                        {card.icon && (
                                             <div className="flex-shrink-0 text-[#083d77]">
                                                 {card.icon}
                                             </div>
@@ -358,7 +399,7 @@ export default function Checkout({ params }) {
                             <h2 className="text-xl font-bold">Payment</h2>
                         </CardHeader>
                         <CardBody>
-                            <Card 
+                            <Card
                                 className={`mx-3 border-b rounded-md hover:bg-gray-100 shadow-none last:border-b-0 ${paymentMissing ? "bg-red-50" : ""}`}
                                 onPress={() => setIsModalOpen("payment")}
                                 isPressable
@@ -367,18 +408,18 @@ export default function Checkout({ params }) {
                                     <div className="flex-shrink-0 text-[#083d77]">
                                         {paymentMethod === 'cash' ? <Cash /> : <CreditCard />}
                                     </div>
-                                        <div className="flex-1 overflow-hidden">
-                                            <h3 className="text-md font-medium">
-                                                {!paymentMethod && "Select Payment Method"}
-                                                {paymentMethod === 'cash' && "Cash"}
-                                                {paymentMethod === 'card' && getSelectedCard() && `${getSelectedCard().name} **** ${getSelectedCard().number.slice(-4)}`}
-                                                {paymentMethod === 'card' && !getSelectedCard() && "Choose Credit Card"}
-                                            </h3>
-                                            {paymentMethod === 'cash' && <p className="text-sm text-gray-600">Pay with cash</p>}
-                                        </div>
-                                        <ChevronRight className="text-gray-400 ml-auto" />
-                                    </CardBody>
-                                </Card>
+                                    <div className="flex-1 overflow-hidden">
+                                        <h3 className="text-md font-medium">
+                                            {!paymentMethod && "Select Payment Method"}
+                                            {paymentMethod === 'cash' && "Cash"}
+                                            {paymentMethod === 'card' && getSelectedCard() && `${getSelectedCard().name} **** ${getSelectedCard().number.slice(-4)}`}
+                                            {paymentMethod === 'card' && !getSelectedCard() && "Choose Credit Card"}
+                                        </h3>
+                                        {paymentMethod === 'cash' && <p className="text-sm text-gray-600">Pay with cash</p>}
+                                    </div>
+                                    <ChevronRight className="text-gray-400 ml-auto" />
+                                </CardBody>
+                            </Card>
                         </CardBody>
                     </Card>
                 </div>
@@ -391,20 +432,20 @@ export default function Checkout({ params }) {
                             <div className="border-t p-4">
                                 {/* Informazioni sul ristorante */}
                                 <div className="mb-4 pb-3 border-b flex items-center gap-5">
-                                    <img 
-                                        src={mockRestaurant.icon} 
-                                        alt={mockRestaurant.restaurantname} 
-                                        className="w-10 h-10 object-contain" 
+                                    <img
+                                        src={process.env.NEXT_PUBLIC_API_URL + cart.restaurant.logo}
+                                        alt={cart.restaurant.name}
+                                        className="w-10 h-10 object-contain"
                                     />
                                     <div>
-                                        <h3 className="font-semibold text-lg mb-1">{mockRestaurant.restaurantname}</h3>
-                                        <p className="text-sm text-gray-600">{mockRestaurant.address}</p>
+                                        <h3 className="font-semibold text-lg mb-1">{cart.restaurant.name}</h3>
+                                        <p className="text-sm text-gray-600">{cart.restaurant.address}</p>
                                     </div>
                                 </div>
 
                                 {/* Card cliccabile per gli order items */}
                                 <div className={`w-full mb-4 ${mockOrder.orderType === "delivery" ? "border-b pb-3" : ""}`}>
-                                    <Card 
+                                    <Card
                                         className={`w-full rounded-md hover:bg-gray-100 shadow-none`}
                                         isPressable
                                         onPress={() => setIsModalOpen("items")}
@@ -416,7 +457,7 @@ export default function Checkout({ params }) {
                                                 </div>
                                                 <div>
                                                     <h4 className="font-medium">Order items</h4>
-                                                    <p className="text-sm text-gray-600">{mockOrder.items.length} items</p>
+                                                    <p className="text-sm text-gray-600">{cart.items.length} items</p>
                                                 </div>
                                             </div>
                                             <ChevronRight className="text-gray-400" />
@@ -424,39 +465,45 @@ export default function Checkout({ params }) {
                                     </Card>
                                 </div>
 
-                                <div className="flex flex-col gap-2 mb-4">  
+                                <div className="flex flex-col gap-2 mb-4">
                                     {orderType === 'delivery' && (
-                                    <>
-                                        <div className="flex justify-between">
-                                            <span className="text-gray-600">Subtotal</span>
-                                            <span>{mockOrder.subtotal.toFixed(2)}€</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                        <span className="text-gray-600">Delivery fee</span>
-                                        <span>{mockOrder.deliveryFee.toFixed(2)}€</span>
-                                        </div>
-                                        <div className="flex justify-between text-sm text-gray-500">
-                                        <span>Estimated delivery time</span>
-                                        <span>{mockRestaurant.minDeliveryTime} - {mockRestaurant.maxDeliveryTime} min</span>
-                                        </div>
-                                    </>
+                                        <>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Subtotal</span>
+                                                <span>{cart.items.reduce(
+                                                    (sum, item) => sum + item.price * item.quantity,
+                                                    0
+                                                )}€</span>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-gray-600">Delivery fee</span>
+                                                <span>{mockOrder.deliveryFee.toFixed(2)}€</span>
+                                            </div>
+                                            <div className="flex justify-between text-sm text-gray-500">
+                                                <span>Estimated delivery time</span>
+                                                <span>{mockRestaurant.minDeliveryTime} - {mockRestaurant.maxDeliveryTime} min</span>
+                                            </div>
+                                        </>
                                     )}
-                                    
+
                                     <div className="flex justify-between pt-2 border-t mt-1">
-                                    <span className="font-semibold">Total</span>
-                                    <span className="font-bold text-lg">
-                                        {mockOrder.total.toFixed(2)}€
-                                    </span>
+                                        <span className="font-semibold">Total</span>
+                                        <span className="font-bold text-lg">
+                                            {cart.items.reduce(
+                                                (sum, item) => sum + item.price * item.quantity,
+                                                0
+                                            ) + 2}€
+                                        </span>
                                     </div>
                                 </div>
-                                <Button 
+                                <Button
                                     className={`
                                         w-full py-3 rounded-xl font-medium
                                         ${isCheckoutDisabled
-                                        ? "cursor-not-allowed"
-                                        : "bg-[#083d77] text-white hover:bg-[#062f5c]"}
+                                            ? "cursor-not-allowed"
+                                            : "bg-[#083d77] text-white hover:bg-[#062f5c]"}
                                     `}
-                                    onPress={""}
+                                    onPress={handleCheckout}
                                     size='lg'
                                     isDisabled={isCheckoutDisabled}
                                 >
@@ -485,7 +532,7 @@ export default function Checkout({ params }) {
                             onValueChange={setSelectedAddress}
                         >
                             {addresses.map((addr) => (
-                                <Radio key={addr.id} value={addr.address}>{addr.address}</Radio>
+                                <Radio key={addr._id} value={addr.address}>{addr.address}</Radio>
                             ))}
                             <Radio value="new_address">Add a new address</Radio>
                         </RadioGroup>
@@ -509,7 +556,7 @@ export default function Checkout({ params }) {
                         <Button variant="ghost" onPress={() => setIsModalOpen(null)}>
                             Cancel
                         </Button>
-                        <Button 
+                        <Button
                             className="bg-[#083d77] text-white"
                             onPress={handleAddressSave}
                         >
@@ -560,7 +607,7 @@ export default function Checkout({ params }) {
                         <Button variant="ghost" onPress={() => setIsModalOpen(null)}>
                             Cancel
                         </Button>
-                        <Button 
+                        <Button
                             className="bg-[#083d77] text-white"
                             onPress={handleInfoSave}
                         >
@@ -593,7 +640,7 @@ export default function Checkout({ params }) {
                             <Radio value="cash">Cash</Radio>
                             <Radio value="card">Credit Card</Radio>
                         </RadioGroup>
-  
+
                         {tempPaymentMethod === 'card' && (
                             <div className="mt-4 pt-4 border-t">
                                 <RadioGroup
@@ -603,16 +650,16 @@ export default function Checkout({ params }) {
                                     onValueChange={setTempSelectedCardId}
                                 >
                                     {paymentCards.map((card, idx) => {
-                                      const k = getCardKey(card, idx);
-                                      return (
-                                        <Radio key={k} value={k}>
-                                          {card.name} **** {card.number.slice(-4)}
-                                        </Radio>
-                                      );
+                                        const k = getCardKey(card, idx);
+                                        return (
+                                            <Radio key={k} value={k}>
+                                                {card.name} **** {card.number.slice(-4)}
+                                            </Radio>
+                                        );
                                     })}
                                     <Radio key="new_card" value="new_card">Add a new card</Radio>
                                 </RadioGroup>
-  
+
                                 {tempSelectedCardId === 'new_card' && (
                                     <div className="mt-4 space-y-3">
                                         <Input label="Card Name (e.g. Visa)" value={newCard.name} onValueChange={(v) => setNewCard({ ...newCard, name: v })} isInvalid={!!newCardErrors.name} errorMessage={newCardErrors.name} />
@@ -633,7 +680,7 @@ export default function Checkout({ params }) {
                     </ModalFooter>
                 </ModalContent>
             </Modal>
-            
+
             {/* Modale per le note aggiuntive */}
             <Modal
                 isOpen={isModalOpen === "notes"}
@@ -660,7 +707,7 @@ export default function Checkout({ params }) {
                         <Button variant="ghost" onPress={() => setIsModalOpen(null)}>
                             Cancel
                         </Button>
-                        <Button 
+                        <Button
                             className="bg-[#083d77] text-white"
                             onPress={handleNotesSave}
                         >
@@ -671,8 +718,8 @@ export default function Checkout({ params }) {
             </Modal>
 
             {/* Modale per order items */}
-            <Modal 
-                isOpen={isModalOpen === "items"} 
+            <Modal
+                isOpen={isModalOpen === "items"}
                 onClose={() => setIsModalOpen(null)}
             >
                 <ModalContent className="m-0 rounded-b-none sm:rounded-lg">
@@ -681,8 +728,8 @@ export default function Checkout({ params }) {
                     </ModalHeader>
                     <ModalBody>
                         <div className="flex flex-col gap-3">
-                            {mockOrder.items.map((item) => (
-                                <div key={item.id} className="flex justify-between items-center p-3 border-b last:border-b-0">
+                            {cart.items.map((item) => (
+                                <div key={item._id} className="flex justify-between items-center p-3 border-b last:border-b-0">
                                     <div className="flex items-center">
                                         <span className="text-lg font-medium mr-2 bg-[#083d77] text-white rounded-full w-7 h-7 flex items-center justify-center">
                                             {item.quantity}
@@ -697,9 +744,12 @@ export default function Checkout({ params }) {
                     <ModalFooter className="flex flex-col items-center">
                         <div className="flex justify-between w-full pt-2">
                             <span className="font-semibold">Total</span>
-                            <span className="font-bold">{mockOrder.subtotal.toFixed(2)}€</span>
+                            <span className="font-bold">{cart.items.reduce(
+                                (sum, item) => sum + item.price * item.quantity,
+                                0
+                            )}€</span>
                         </div>
-                        <Button 
+                        <Button
                             className="w-full mt-3 bg-[#083d77] text-white py-2 rounded-xl font-medium hover:bg-[#062f5c]"
                             onPress={() => setIsModalOpen(null)}
                         >

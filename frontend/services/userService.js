@@ -19,9 +19,9 @@ export const UserService = {
         });
     },
 
-    editDelivery(name, surname, address) {
+    editDelivery(address) {
         return ApiService.patch('/user/delivery/edit', {
-            body: { name, surname, address }
+            body: { address }
         });
     },
 
@@ -41,5 +41,11 @@ export const UserService = {
 
     deleteAccount() {
         return ApiService.delete('/user/account/delete');
+    },
+
+    getOrders(page = 1) {
+        return ApiService.get('/user/orders/get', {
+            params: { page }
+        });
     }
 };

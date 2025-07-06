@@ -7,6 +7,7 @@ const Orders = require("@models/Restaurants/Restaurants.Orders");
 const Meals = require("@models/Restaurants/Restaurants.Meals");
 const { validate } = require("@middleware/validationMiddleware");
 const validator = require("@validators/userValidator");
+const { geocodeAddress } = require("@utils/openStreetMap");
 const bcrypt = require("bcrypt");
 const { default: mongoose } = require("mongoose");
 
@@ -86,11 +87,14 @@ router.patch("/billing/edit", authStrict, validate(validator.billingEditSchema),
 
 router.patch("/delivery/edit", authStrict, validate(validator.deliveryEditSchema), async (req, res, next) => {
     try {
-        const { name, surname, address } = req.body;
+        const { address } = req.body;
 
         if (req.user.delivery?.length >= 5) return res.status(400).send({ status: "error", error: "Maximum of 5 delivery addresses allowed" });
 
-        const newDeliveryAddress = { name, surname, address };
+        const coordinates = await geocodeAddress(address);
+        if (!coordinates) return res.status(400).send({ status: "error", error: "Invalid address" });
+
+        const newDeliveryAddress = { address, lat: coordinates.lat, lng: coordinates.lng };
         const updatedUser = await Users.findByIdAndUpdate(
             req.user._id,
             { $push: { delivery: newDeliveryAddress } },
@@ -174,6 +178,24 @@ router.delete("/account/delete", authStrict, async (req, res, next) => {
         }
 
         res.send({ status: "success" });
+    } catch (err) { next(err); }
+});
+
+router.get("/orders/get", authStrict, async (req, res, next) => {
+    try {
+        const { page = 1 } = req.query;
+        
+        const orders = await Orders.find({ user: req.user._id })
+            .populate("restaurant", "name logo")
+            .populate("meals.meal", "name price ingredients")
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * 10)
+            .limit(10)
+            .lean();
+
+        const totalOrders = await Orders.countDocuments({ user: req.user._id });
+
+        return res.send({ status: "success", orders, totalOrders });
     } catch (err) { next(err); }
 });
 

@@ -6,12 +6,13 @@ import { Skeleton } from "@heroui/skeleton";
 import { ForkKnife, Flag, ExclShield, Plus } from "@/components/icons/heroicons";
 import { Button } from "@heroui/button";
 
-const MealItem = ({ meal, setIsModalOpen, setProductId }) => {
+const MealItem = ({ meal, setIsModalOpen, setProductId, isLastElement, lastElementRef }) => {
     const [isImageLoaded, setIsImageLoaded] = useState(false);
 
     return (
         <Card 
             className="w-full p-3 sm:p-5"
+            ref={isLastElement ? lastElementRef : null}
         >
             <CardBody className="p-0">
                 <div className="flex flex-col sm:flex-row w-full">
@@ -20,7 +21,7 @@ const MealItem = ({ meal, setIsModalOpen, setProductId }) => {
                         <div className="relative mr-3 w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-gray-200 rounded-xl">
                             {!isImageLoaded && <Skeleton className="absolute w-full h-full rounded-xl" />}
                             <img 
-                                src={meal.image}
+                                src={process.env.NEXT_PUBLIC_API_URL + meal.image}
                                 alt={meal.name}
                                 className={`w-full h-full rounded-xl bg-white object-cover transition-opacity duration-300 ${isImageLoaded ? 'opacity-100' : 'opacity-0'}`}
                                 onLoad={() => setIsImageLoaded(true)}
@@ -77,7 +78,7 @@ const MealItem = ({ meal, setIsModalOpen, setProductId }) => {
                             className="bg-[#083d77]"
                             radius="full"
                             size="sm"
-                            onPress={() => {setIsModalOpen("product"); setProductId(meal.id);}}
+                            onPress={() => {setIsModalOpen("product"); setProductId(meal._id);}}
                         >
                             <Plus size={18} className="text-white"/>
                         </Button>
@@ -88,7 +89,7 @@ const MealItem = ({ meal, setIsModalOpen, setProductId }) => {
     );
 };
 
-export default function ReadOnlyMealsList({ title, meals, setIsModalOpen, setProductId }) {
+export default function ReadOnlyMealsList({ title, meals, setIsModalOpen, setProductId, lastElementRef, isLoadingMore }) {
     const [localMeals, setLocalMeals] = useState([]);
 
     useEffect(() => {
@@ -98,14 +99,21 @@ export default function ReadOnlyMealsList({ title, meals, setIsModalOpen, setPro
     return (
         <div className="w-full flex flex-col gap-3">
             <h1 className="font-bold text-2xl">{title}</h1>
-            {localMeals.map((meal) => (
+            {localMeals.map((meal, index) => (
                 <MealItem 
-                    key={meal.id}
+                    key={meal._id}
                     meal={meal}
                     setIsModalOpen={setIsModalOpen}
                     setProductId={setProductId}
+                    isLastElement={index === localMeals.length - 1}
+                    lastElementRef={lastElementRef}
                 />
             ))}
+            {isLoadingMore && (
+                <div className="flex justify-center py-4">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#083d77]"></div>
+                </div>
+            )}
         </div>
     );
 }

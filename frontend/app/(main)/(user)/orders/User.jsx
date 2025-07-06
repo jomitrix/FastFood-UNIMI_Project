@@ -9,7 +9,7 @@ import OrderList from "@/components/app/orders/OrderList";
 import { InputOtp } from "@heroui/input-otp"
 import { Button } from "@heroui/button";
 
-export default function OrderUser({orders, statuses}) {
+export default function OrderUser({orders, statuses, lastElementRef, isLoadingMore}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderModalId, setOrderModalId] = useState(null);
   const [order, setOrder] = useState(null);
@@ -27,7 +27,7 @@ export default function OrderUser({orders, statuses}) {
 
   useMemo(() => {
     if (orderModalId) {
-      const orderData = orders.find(order => order.id === orderModalId);
+      const orderData = orders.find(order => order._id === orderModalId);
       setOrder(orderData);
     }
   }, [orderModalId, orders]);
@@ -54,6 +54,8 @@ export default function OrderUser({orders, statuses}) {
           statuses={statuses}
           setIsModalOpen={setIsModalOpen}
           setOrderModalId={setOrderModalId}
+          lastElementRef={lastElementRef}
+          isLoadingMore={isLoadingMore}
         />
       </div>
 
@@ -78,17 +80,17 @@ export default function OrderUser({orders, statuses}) {
                       :
                       <Takeaway size={36} className="text-white" />
                     }
-                    <span className="">{`Order #${order.id}`}</span>
+                    <span className="">{`Order #${order._id.substr(-6).toUpperCase()}`}</span>
                   </h1>
-                  <h3 className="w-full text-xl mt-2">
-                    {order.restaurant}
+                  <h3 className="w-full text-xl mt-2 text-center">
+                    {order.restaurant.name}
                   </h3>
                   <p className="text-xs text-center text-gray-300 text-medium">
-                    {"Ordered: " + new Date(order.orderDate).toLocaleDateString("it", { 
+                    {"Ordered: " + new Date(order.createdAt).toLocaleDateString("it", { 
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric'
-                    }) + " - " + new Date(order.orderDate).toLocaleTimeString("it", {
+                    }) + " - " + new Date(order.createdAt).toLocaleTimeString("it", {
                         hour: '2-digit',
                         minute: '2-digit',
                         hour12: false
@@ -106,11 +108,11 @@ export default function OrderUser({orders, statuses}) {
                 </h1>
                 { order.status === "completed" && (
                   <p className="text-lg text-center text-medium">
-                    {new Date(order.orderDate).toLocaleDateString("it", { 
+                    {new Date(order.createdAt).toLocaleDateString("it", { 
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric'
-                    }) + " - " + new Date(order.orderDate).toLocaleTimeString("it", {
+                    }) + " - " + new Date(order.createdAt).toLocaleTimeString("it", {
                         hour: '2-digit',
                         minute: '2-digit',
                         hour12: false
@@ -195,19 +197,19 @@ export default function OrderUser({orders, statuses}) {
                     Your Order
                   </h1>
                   <div className="flex flex-col gap-[0.375rem] mt-4">
-                    {order.items.map((item, index) => (
+                    {order.meals.map((item, index) => (
                       <div className="flex flex-row gap-4" key={index}>
                         <div className="text-lg text-gray-500 min-w-[40px]">
                           {item.quantity}x
                         </div>
                         <div className="flex-1">
                           <div className="text-lg flex justify-between font-medium">
-                            <span>{item.name}</span>
-                            <span>{item.price.toFixed(2)}{order.currency}</span>
+                            <span>{item.meal.name}</span>
+                            <span>{item.meal.price.toFixed(2)}€</span>
                           </div>
-                          {item.ingredients && item.ingredients.length > 0 && (
+                          {item.meal.ingredients && item.meal.ingredients.length > 0 && (
                             <ul className="text-sm text-gray-700 mt-0 ml-3">
-                              {item.ingredients.map((ingredient, i) => (
+                              {item.meal.ingredients.map((ingredient, i) => (
                                 <li key={i} className="list-disc">
                                   {ingredient}
                                 </li>
@@ -227,13 +229,13 @@ export default function OrderUser({orders, statuses}) {
                   <div className="flex justify-between items-center pt-0">
                     <span className="text-xl font-bold pt-0">Total</span>
                     <span className={`text-xl font-bold ${order.status === "canceled" ? "line-through text-danger" : ""}`}>
-                      {order.total.toFixed(2)}{order.currency}
+                      {order.totalPrice.toFixed(2)}€
                     </span>
                   </div>
                   {order.deliveryFee && (
                     <div className="flex justify-between items-center text-sm text-gray-600">
                       <span>Delivery fee included</span>
-                      <span>{order.deliveryFee.toFixed(2)}{order.currency}</span>
+                      <span>{order.deliveryFee.toFixed(2)}€</span>
                     </div>
                   )}
               </div>

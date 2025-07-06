@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@heroui/modal';
 import { ScrollShadow } from '@heroui/scroll-shadow';
@@ -10,6 +10,12 @@ import { Input } from '@heroui/input';
 import { Chip } from '@heroui/chip';
 import { Search, Time, Info, Storefront, ForkKnife, Flag, Cart, X } from "@/components/icons/heroicons";
 import { Skeleton } from '@heroui/skeleton';
+import { usePaginator } from '@/utils/paginator';
+import { FeedService } from '@/services/feedService';
+import { RestaurantService } from '@/services/restaurantService';
+import { Spinner } from '@heroui/spinner';
+import { useDebounce } from '@/utils/useDebounce';
+import { useCart } from '@/contexts/CartContext';
 
 const mockRestaurant = {
     banner: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,w_1537,h_480/f_auto/q_auto/dpr_1.0/d_it:cuisines:pollo-6.jpg/v1/it/restaurants/282166.jpg",
@@ -110,14 +116,16 @@ const mockMeals = [
 
 export default function RestaurantPage({ params }) {
     const router = useRouter();
-    const id = params;
+    const id = React.use(params);
+    const { cart, setCart } = useCart();
+
+    const [restaurant, setRestaurant] = useState({});
     const [activeCategory, setActiveCategory] = useState('All');
     const [filteredMeals, setFilteredMeals] = useState(mockMeals);
     const [isModalOpen, setIsModalOpen] = useState(null);
     const [productId, setProductId] = useState(null);
     const [product, setProduct] = useState(null);
     const [quantity, setQuantity] = useState(1);
-    const [cartItems, setCartItems] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [deliveryFee, setDeliveryFee] = useState(2.50);
     const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState({
@@ -128,66 +136,106 @@ export default function RestaurantPage({ params }) {
     const [isIconLoaded, setIsIconLoaded] = useState(false);
     const [isProductImageLoaded, setIsProductImageLoaded] = useState(false);
   
-    const categories = [...new Set(mockMeals.map(meal => meal.category))];
+    const [categories, setCategories] = useState([]);
     const [searchValue, setSearchValue] = useState('');
+
+    const scrollController = useRef(null);
+    const debouncedSearch = useDebounce(searchValue, 300);
+
+    const mealsPaginator = usePaginator(useCallback(
+        (page, _) => RestaurantService.getMenu(id.id, page, debouncedSearch, activeCategory === 'All' ? null : activeCategory)
+            .then(data => data.status !== 'success' ? [] : data.meals), [id.id, debouncedSearch, activeCategory]),
+        10
+    );
+
+    const lastElementRef = (node) => {
+        if (mealsPaginator.isLoading) return;
+        if (scrollController.current) scrollController.current.disconnect();
+        scrollController.current = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && mealsPaginator.hasMore) {
+                mealsPaginator.loadNext();
+            }
+        });
+        if (node) scrollController.current.observe(node);
+    };
+
+    useEffect(() => {
+        fetchRestaurant();
+    }, []);
+
+    const fetchRestaurant = async () => {
+        try {
+            const data = await FeedService.getRestaurantById(id.id);
+            if (data.status === 'success') {
+                setRestaurant(data.restaurant);
+                setCategories(data.restaurant.categories);
+            } else {
+                console.error("Error fetching restaurant:", data.error);
+            }
+        } catch (error) {
+            console.error("Error fetching restaurant:", error);
+        }
+    }
 
     const handleSearchChange = (e) => {
         const value = e.target.value.toLowerCase();
         setSearchValue(value);
-        if (value === '') {
-            setFilteredMeals(mockMeals);
-        } else {
-            setFilteredMeals(mockMeals.filter(meal =>
-                meal.name.toLowerCase().includes(value) ||
-                meal.ingredients.some(ingredient => ingredient.toLowerCase().includes(value))
-            ));
-        }
     };
-  
+
     useEffect(() => {
-        if (activeCategory === 'All') {
-            setFilteredMeals(mockMeals);
-        } else {
-            setFilteredMeals(mockMeals.filter(meal => meal.category === activeCategory));
-        }
-    }, [activeCategory, mockMeals]);
+        mealsPaginator.reset();
+    }, [debouncedSearch]);
+
+    useEffect(() => {
+        mealsPaginator.reset();
+    }, [activeCategory]);
 
     useEffect(() => {
         if (!productId) return;
-        
-        const foundProduct = mockMeals.find(meal => meal.id === productId);
+
+        const foundProduct = mealsPaginator.items.find(meal => meal._id === productId);
         if (!foundProduct) return;
-        
+
         setProduct(foundProduct);
         setIsProductImageLoaded(false); // Reset on new product
         setIsModalOpen("product");
         setQuantity(1);
     }, [productId]);
 
-    useEffect(() => {
-        if (!searchValue) return;
-
-        setActiveCategory('All');
-    }, [searchValue]);
-
     // Funzione per aggiungere un prodotto al carrello
     const addToCart = (product, quantity) => {
-        const existingItemIndex = cartItems.findIndex(item => item.id === product.id);
-        
-        if (existingItemIndex !== -1) {
-            // Se il prodotto esiste già nel carrello, aggiorna la quantità
-            const updatedItems = [...cartItems];
-            updatedItems[existingItemIndex].quantity += quantity;
-            setCartItems(updatedItems);
-        } else {
-            // Altrimenti aggiungi un nuovo elemento al carrello
-            setCartItems([...cartItems, {
-                ...product,
-                quantity
-            }]);
-        }
-        
-        // Mostra il carrello su mobile quando si aggiunge un prodotto
+        setCart(prev => {
+            // Se non c'è ancora un ristorante, lo imposto
+            const rest = prev.restaurant || {
+                _id: restaurant._id,
+                name: restaurant.name,
+                banner: restaurant.banner,
+                logo: restaurant.logo,
+                address: restaurant.address,
+            };
+
+            // Trovo se il prodotto esiste già
+            const idx = prev.items.findIndex(i => i._id === product._id);
+
+            let newItems;
+            if (idx !== -1) {
+                // aggiorno solo la quantità
+                newItems = prev.items.map((item, i) =>
+                    i === idx
+                        ? { ...item, quantity: item.quantity + quantity }
+                        : item
+                );
+            } else {
+                // lo aggiungo con la quantità iniziale
+                newItems = [
+                    ...prev.items,
+                    { ...product, quantity }
+                ];
+            }
+
+            return { restaurant: rest, items: newItems };
+        });
+
         if (window.innerWidth < 768) {
             setIsCartOpen(true);
         }
@@ -195,32 +243,40 @@ export default function RestaurantPage({ params }) {
 
     // Funzione per rimuovere un prodotto dal carrello
     const removeFromCart = (id) => {
-        setCartItems(cartItems.filter(item => item.id !== id));
+        setCart(prev => ({
+            ...prev,
+            items: prev.items.filter(item => item._id !== id)
+        }));
     };
 
     // Funzione per aggiornare la quantità di un prodotto nel carrello
     const updateCartItemQuantity = (id, newQuantity) => {
-        if (newQuantity <= 0) {
-            removeFromCart(id);
-            return;
-        }
-        
-        const updatedItems = cartItems.map(item => 
-            item.id === id ? { ...item, quantity: newQuantity } : item
-        );
-        
-        setCartItems(updatedItems);
+        setCart(prev => {
+            if (newQuantity <= 0) {
+                return {
+                    ...prev,
+                    items: prev.items.filter(item => item._id !== id)
+                };
+            }
+            return {
+                ...prev,
+                items: prev.items.map(item =>
+                    item._id === id ? { ...item, quantity: newQuantity } : item
+                )
+            };
+        });
     };
 
     // Calcola il totale del carrello
-    const cartTotal = cartItems.reduce((total, item) => {
-        return total + (item.price * item.quantity);
-    }, 0);
+    const cartTotal = cart.items.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+    );
 
     const handleCheckout = () => {
         // Logica per procedere all'ordine
         router.push('/checkout/id');
-        console.log('Procedi all\'ordine', cartItems);
+        console.log('Procedi all\'ordine', cart);
     };
 
     return (
@@ -248,7 +304,7 @@ export default function RestaurantPage({ params }) {
                                 </div>
                             </div>
                             <div className='flex justify-between items-center mt-3'>
-                                <h1 className="font-bold text-3xl">{mockRestaurant.restaurantname}</h1>
+                                <h1 className="font-bold text-3xl">{restaurant.name}</h1>
                                 <button
                                     className="hover:text-gray-500 transition duration-200"
                                     aria-label="More info"
@@ -262,7 +318,7 @@ export default function RestaurantPage({ params }) {
                                 <p className="flex gap-1 text-sm text-gray-700">
                                     <span className='flex py-1 gap-1'>
                                         <Time className="inline-block h-4 w-4 mt-[3px]" />
-                                        {mockRestaurant.minDeliveryTime} - {mockRestaurant.maxDeliveryTime} min
+                                        {"10"} - {"20"} min
                                     </span>
                                     <span className='py-1'>•</span>
                                     <span className={`rounded-full px-2 py-1 ${mockRestaurant.isOpenNow ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
@@ -277,9 +333,9 @@ export default function RestaurantPage({ params }) {
                             size="lg"
                             startContent={<Search className="text-[#083d77]" />}
                             classNames={{
-                            inputWrapper: "bg-gray-200",
-                            label: "text-sm mb-4",
-                            input: "text-sm sm:text-lg",
+                                inputWrapper: "bg-gray-200",
+                                label: "text-sm mb-4",
+                                input: "text-sm sm:text-lg",
                             }}
                             variant="solid"
                             value={searchValue}
@@ -288,20 +344,22 @@ export default function RestaurantPage({ params }) {
                         />
 
                         <Navigation
-                            categories={categories} 
-                            activeCategory={activeCategory} 
+                            categories={categories}
+                            activeCategory={activeCategory}
                             onCategoryChange={setActiveCategory}
                         />
-                        
+
                         <MealsList
                             title={activeCategory}
-                            meals={filteredMeals}
+                            meals={mealsPaginator.items}
                             setIsModalOpen={setIsModalOpen}
                             setProductId={setProductId}
+                            lastElementRef={lastElementRef}
+                            isLoadingMore={mealsPaginator.isLoadingMore}
                         />
                     </div>
                 </div>
-                
+
                 {/* Pulsante carrello mobile */}
                 <button
                     onClick={() => setIsCartOpen(true)}
@@ -309,18 +367,18 @@ export default function RestaurantPage({ params }) {
                 >
                     <Cart className="w-6 h-6" />
                     <p className='pl-3 pr-2 font-semibold'>Cart</p>
-                    {cartItems.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white font-semibold w-6 h-6 rounded-full text-xs flex items-center justify-center">
-                        {cartItems.reduce((sum, item) => sum + item.quantity, 0)}
-                    </span>
+                    {cart.items.length > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white font-semibold w-6 h-6 rounded-full text-xs flex items-center justify-center">
+                            {cart.items.reduce((sum, item) => sum + item.quantity, 0)}
+                        </span>
                     )}
                 </button>
 
                 {/* Carrello desktop fisso */}
                 <div className="hidden md:block fixed top-0 right-0 w-[350px] h-screen border-l border-gray-200 bg-white shadow-lg">
-                    <CartComponent 
+                    <CartComponent
                         isDesktop={true}
-                        cartItems={cartItems}
+                        cartItems={cart.items}
                         cartTotal={cartTotal}
                         removeFromCart={removeFromCart}
                         updateCartItemQuantity={updateCartItemQuantity}
@@ -332,7 +390,7 @@ export default function RestaurantPage({ params }) {
                 </div>
 
                 {/* Modal per il carrello su mobile */}
-                <Modal 
+                <Modal
                     isOpen={isCartOpen && window.innerWidth < 768}
                     onClose={() => setIsCartOpen(false)}
                     size="full"
@@ -348,15 +406,15 @@ export default function RestaurantPage({ params }) {
                                     ease: "easeOut"
                                 }
                             },
-                            
+
                         },
                         initial: { y: "100%" }
                     }}
                 >
                     <ModalContent className="h-[90vh] m-0 p-0 rounded-t-xl">
-                        <CartComponent 
+                        <CartComponent
                             isDesktop={false}
-                            cartItems={cartItems}
+                            cartItems={cart.items}
                             cartTotal={cartTotal}
                             removeFromCart={removeFromCart}
                             updateCartItemQuantity={updateCartItemQuantity}
@@ -372,7 +430,7 @@ export default function RestaurantPage({ params }) {
                 <Modal isOpen={isModalOpen === "restaurant"} onClose={() => setIsModalOpen(null)} size="lg">
                     <ModalContent className='rounded-b-none sm:rounded-lg m-0 sm:w-full'>
                         <ModalHeader className="text-center">
-                            <h2 className="text-2xl font-semibold">{mockRestaurant.restaurantname}</h2>
+                            <h2 className="text-2xl font-semibold">{restaurant.name}</h2>
                         </ModalHeader>
                         <ModalBody>
                             <div className="flex flex-col p-4 gap-3">
@@ -382,12 +440,12 @@ export default function RestaurantPage({ params }) {
                                 </h3>
                                 <ul className='bg-gray-100 p-3 border-1 border-gray-500/25 rounded-lg flex flex-col gap-3'>
                                     <li className=''>
-                                        { mockRestaurant.address.split(", ").map((part, index) => (
+                                        {restaurant.address?.split(", ").map((part, index) => (
                                             <span key={index} className="block -my-0.5">{part}</span>
                                         ))}
                                     </li>
-                                    <li>{mockRestaurant.phone}</li>
-                                </ul>  
+                                    <li>{restaurant.phoneNumber}</li>
+                                </ul>
                             </div>
                             <div className="flex flex-col p-4 gap-3">
                                 <h3 className='flex gap-2 items-center font-extrabold text-gray-700 text-xl'>
@@ -405,7 +463,7 @@ export default function RestaurantPage({ params }) {
                                             </li>
                                         );
                                     })}
-                                </ul>  
+                                </ul>
                             </div>
                         </ModalBody>
                     </ModalContent>
@@ -419,7 +477,7 @@ export default function RestaurantPage({ params }) {
                     {product && (
                         <ModalContent className='rounded-b-none sm:rounded-lg m-0 shadow-lg overflow-hidden w-full'>
                             <ModalHeader className="absolute top-0 right-0 z-10 p-2 flex justify-end">
-                                <button 
+                                <button
                                     onClick={() => {
                                         setIsModalOpen(null);
                                         setProductId(null);
@@ -433,7 +491,7 @@ export default function RestaurantPage({ params }) {
                             <div className='relative w-full h-48 bg-gray-200'>
                                 {!isProductImageLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
                                 <img
-                                    src={product.image}
+                                    src={process.env.NEXT_PUBLIC_API_URL + product.image}
                                     alt={product.name}
                                     className={`w-full h-full object-cover transition-opacity duration-300 ${isProductImageLoaded ? 'opacity-100' : 'opacity-0'}`}
                                     onLoad={() => setIsProductImageLoaded(true)}
@@ -448,72 +506,72 @@ export default function RestaurantPage({ params }) {
                             </div>
                             <ModalBody as={ScrollShadow} className='pt-6 max-h-[24rem] overflow-y-auto'>
                                 <div className='flex flex-wrap gap-2'>
-                                        <Chip
-                                            color="warning"
-                                            className="pl-2"
-                                            classNames={{ 
-                                                base: "border border-amber-200",
-                                                content: "font-medium" 
-                                            }}
-                                            startContent={<ForkKnife size={16} className="mr-1" />}
-                                            variant="flat"
-                                            size="md"
-                                        >
-                                            {product.category}
-                                        </Chip>
-                                        <Chip
-                                            color="primary"
-                                            className="pl-2"
-                                            classNames={{ 
-                                                base: "border border-blue-200",
-                                                content: "font-medium" 
-                                            }}
-                                            startContent={<Flag size={16} className="mr-1" />}
-                                            variant="flat"
-                                            size="md"
-                                        >
-                                            {product.area}
-                                        </Chip>
-                                    </div>
-                                    
-                                    {product.allergens && product.allergens.length > 0 && (
-                                        <div>
-                                            <h3 className='font-bold text-lg text-gray-800 mb-2'>Allergens</h3>
-                                            <div className="flex flex-wrap gap-1">
-                                                {product.allergens.map((allergen, i) => (
-                                                    <Chip 
-                                                        key={i}
-                                                        color="danger" 
-                                                        variant="flat" 
-                                                        size="sm"
-                                                        classNames={{
-                                                            base: "bg-red-50 text-red-700"
-                                                        }}
-                                                    >
-                                                        {allergen}
-                                                    </Chip>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
+                                    <Chip
+                                        color="warning"
+                                        className="pl-2"
+                                        classNames={{
+                                            base: "border border-amber-200",
+                                            content: "font-medium"
+                                        }}
+                                        startContent={<ForkKnife size={16} className="mr-1" />}
+                                        variant="flat"
+                                        size="md"
+                                    >
+                                        {product.category}
+                                    </Chip>
+                                    <Chip
+                                        color="primary"
+                                        className="pl-2"
+                                        classNames={{
+                                            base: "border border-blue-200",
+                                            content: "font-medium"
+                                        }}
+                                        startContent={<Flag size={16} className="mr-1" />}
+                                        variant="flat"
+                                        size="md"
+                                    >
+                                        {product.area}
+                                    </Chip>
+                                </div>
 
+                                {product.allergens && product.allergens.length > 0 && (
                                     <div>
-                                        <h3 className='font-bold text-lg text-gray-800'>Ingredients</h3>
-                                        {product.ingredients && product.ingredients.length > 0 && (
-                                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                                                {product.ingredients.map((ingredient, i) => (
-                                                    <li key={i} className="flex items-center text-gray-700">
-                                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-2"></span>
-                                                        {ingredient}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        )}
+                                        <h3 className='font-bold text-lg text-gray-800 mb-2'>Allergens</h3>
+                                        <div className="flex flex-wrap gap-1">
+                                            {product.allergens.map((allergen, i) => (
+                                                <Chip
+                                                    key={i}
+                                                    color="danger"
+                                                    variant="flat"
+                                                    size="sm"
+                                                    classNames={{
+                                                        base: "bg-red-50 text-red-700"
+                                                    }}
+                                                >
+                                                    {allergen}
+                                                </Chip>
+                                            ))}
+                                        </div>
                                     </div>
+                                )}
+
+                                <div>
+                                    <h3 className='font-bold text-lg text-gray-800'>Ingredients</h3>
+                                    {product.ingredients && product.ingredients.length > 0 && (
+                                        <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                                            {product.ingredients.map((ingredient, i) => (
+                                                <li key={i} className="flex items-center text-gray-700">
+                                                    <span className="w-1.5 h-1.5 rounded-full bg-gray-500 mr-2"></span>
+                                                    {ingredient}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    )}
+                                </div>
                             </ModalBody>
                             <ModalFooter className="flex justify-between border-t pt-4">
                                 <div className="flex items-center border rounded-xl w-32 h-[50px] overflow-hidden">
-                                    <button 
+                                    <button
                                         onClick={() => setQuantity(prev => (prev > 1 ? prev - 1 : 1))}
                                         disabled={quantity <= 1}
                                         className={`flex-1 h-full flex items-center justify-center text-gray-700 ${quantity <= 1 ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-gray-100'}`}
@@ -523,7 +581,7 @@ export default function RestaurantPage({ params }) {
                                     <div className="w-10 text-center flex items-center justify-center font-medium">
                                         {quantity}
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={() => setQuantity(prev => Math.min(prev + 1, 10))}
                                         disabled={quantity >= 10}
                                         className={`flex-1 h-full flex items-center justify-center text-gray-700 ${quantity >= 10 ? 'text-gray-200 cursor-not-allowed' : 'hover:bg-gray-100'}`}
@@ -550,9 +608,9 @@ export default function RestaurantPage({ params }) {
             <aside>
                 {/* Cart a destra */}
                 <div className="hidden md:block fixed top-0 right-0 w-[350px] h-screen bg-white shadow-lg">
-                    <CartComponent 
+                    <CartComponent
                         isDesktop={true}
-                        cartItems={cartItems}
+                        cartItems={cart.items}
                         cartTotal={cartTotal}
                         removeFromCart={removeFromCart}
                         updateCartItemQuantity={updateCartItemQuantity}
@@ -561,7 +619,7 @@ export default function RestaurantPage({ params }) {
                         deliveryFee={deliveryFee}
                         estimatedDeliveryTime={estimatedDeliveryTime}
                     />
-                    </div>
+                </div>
             </aside>
         </div>
     );

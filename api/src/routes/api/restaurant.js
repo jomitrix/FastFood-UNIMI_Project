@@ -4,12 +4,14 @@ const Users = require("@models/Users");
 const Restaurants = require("@models/Users.Restaurants");
 const Menus = require("@models/Restaurants/Restaurants.Menus");
 const Meals = require("@models/Restaurants/Restaurants.Meals");
+const Orders = require("@models/Restaurants/Restaurants.Orders");
 const { validate } = require("@middleware/validationMiddleware");
 const validator = require("@validators/restaurantValidator");
 const { upload } = require("@utils/multerUploader");
 const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
+const { geocodeAddress, getRouteDistance } = require("@utils/openStreetMap");
 
 router.patch("/edit", authStrict, validate(validator.restaurantEditSchema), async (req, res, next) => {
     try {
@@ -18,7 +20,16 @@ router.patch("/edit", authStrict, validate(validator.restaurantEditSchema), asyn
         const updateFields = {};
         if (name) updateFields.name = name;
         if (phoneNumber) updateFields.phoneNumber = phoneNumber;
-        if (address) updateFields.address = address;
+        if (address) {
+            const coordinates = await geocodeAddress(address);
+            if (!coordinates) return res.status(400).send({ status: "error", error: "Invalid address" });
+
+            updateFields.position = {
+                address,
+                lat: coordinates.lat,
+                lng: coordinates.lng
+            };
+        }
         if (vat) updateFields.vat = vat;
 
         const updatedRestaurant = await Restaurants.findOneAndUpdate(
@@ -41,18 +52,28 @@ router.patch("/edit", authStrict, validate(validator.restaurantEditSchema), asyn
     } catch (err) { next(err); }
 });
 
-router.get("/:restaurantId/menu/meals/get", authStrict, validate(validator.getMenuSchema), async (req, res, next) => {
+router.get("/:restaurantId/menu/meals/get", authStrict, async (req, res, next) => {
     try {
         const { restaurantId } = req.params;
-        const { page } = req.query;
+
+        const { error } = validator.getMealsSchema.validate(req.query);
+        if (error) return res.status(400).send({ status: "error", error: error.details[0].message });
+
+        const { page, query, category } = req.query;
 
         if (!restaurantId || !mongoose.Types.ObjectId.isValid(restaurantId)) return res.status(400).send({ status: "error", error: "Invalid restaurant ID" });
 
         const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
-        if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
 
-        const meals = await Meals.find({ restaurant: restaurantId })
+        const matchConditions = { restaurant: restaurantId };
+        if (query) {
+            const regex = new RegExp(query, 'i');
+            matchConditions.name = { $regex: regex };
+        }
+        if (category) matchConditions.category = category;
+
+        const meals = await Meals.find(matchConditions)
             .skip((page - 1) * 10)
             .limit(10)
             .lean();
@@ -314,6 +335,100 @@ router.patch("/openings/edit", authStrict, validate(validator.openingsEditSchema
         );
 
         res.send({ status: "success", restaurant: updatedRestaurant });
+    } catch (err) { next(err); }
+});
+
+router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSchema), async (req, res, next) => {
+    try {
+        const { restaurantId } = req.params;
+        const { orderType, meals, deliveryAddress, paymentMethod, specialInstructions, phoneNumber } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(restaurantId)) return res.status(400).send({ status: "error", error: "Invalid restaurant ID" });
+
+        const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
+        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+
+        const orderedMeals = await Meals.find({ _id: { $in: meals.map(m => m.meal) } }).lean();
+        if (meals.length !== meals.length) return res.status(400).send({ status: "error", error: "Some meals not found" });
+
+        let deliveryTime = null;
+        if (orderType == "delivery") {
+            deliveryTime = await getRouteDistance(req.user.delivery.find(d => d._id.toString() === deliveryAddress), restaurant.position);
+            if (!deliveryTime) return res.status(400).send({ status: "error", error: "Invalid delivery address" });
+
+            if (deliveryTime > 3600) return res.status(400).send({ status: "error", error: "Delivery time exceeds 1 hour" });
+        }
+        
+        const deliveryFee = deliveryTime ? Math.ceil(deliveryTime / 60) * 0.15 : 0; // 0.15€ per minute of delivery time
+
+        const totalPrice = meals.reduce((sum, meal) => {
+            const orderedMeal = orderedMeals.find(m => m._id.toString() === meal.meal);
+            return sum + (orderedMeal.price * meal.quantity);
+        }, 0) + deliveryFee;
+
+        if (totalPrice <= 0) return res.status(400).send({ status: "error", error: "Total price must be greater than zero" });
+
+        const order = new Orders({
+            restaurant: restaurant._id,
+            user: req.user._id,
+            meals: meals.map(m => ({ meal: m.meal, quantity: m.quantity })),
+            totalPrice,
+            deliveryFee,
+            orderType,
+            deliveryAddress: orderType === "delivery" ? deliveryAddress : null,
+            deliveryTime,
+            specialInstructions: specialInstructions || "",
+            phoneNumber,
+            paymentMethod
+        });
+        await order.save();
+
+        res.send({ status: "success", message: "Checkout successful" });
+    } catch (err) { next(err); }
+});
+
+router.get("/orders/get", authStrict, async (req, res, next) => {
+    try {
+        const { page = 1 } = req.query;
+
+        const restaurant = await Restaurants.findOne({ user: req.user._id }).lean();
+        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+        if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
+
+        const orders = await Orders.find({ restaurant: restaurant._id })
+            .populate("user", "name surname email")
+            .populate("meals.meal", "name price ingredients")
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * 10)
+            .limit(10)
+            .lean();
+
+        const totalOrders = await Orders.countDocuments({ restaurant: restaurant._id });
+
+        res.send({ status: "success", orders, totalOrders });
+    } catch (err) { next(err); }
+});
+
+router.patch("/orders/:orderId/status/edit", authStrict, validate(validator.orderStatusEditSchema), async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+        const { status } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(orderId)) return res.status(400).send({ status: "error", error: "Invalid order ID" });
+
+        const restaurant = await Restaurants.findOne({ user: req.user._id }).lean();
+        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+        if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
+
+        const order = await Orders.findOneAndUpdate(
+            { _id: orderId, restaurant: restaurant._id },
+            { $set: { status } },
+            { new: true }
+        ).populate("user", "name surname email").populate("meals.meal", "name price ingredients");
+
+        if (!order) return res.status(404).send({ status: "error", error: "Order not found" });
+
+        res.send({ status: "success", order });
     } catch (err) { next(err); }
 });
 

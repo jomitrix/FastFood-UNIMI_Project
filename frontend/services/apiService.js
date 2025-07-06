@@ -52,19 +52,30 @@ export const ApiService = {
     }
   },
 
-  async get(path, { headers = {}, useAuth = true } = {}) {
+  async get(path, { headers = {}, useAuth = true, params = {} } = {}) {
     const url = `${baseUrl}${path}`;
+
+    const filteredParams = Object.fromEntries(
+      Object.entries(params).filter(([key, value]) => value !== null && value !== '' && value !== undefined)
+    );
+    const queryString = new URLSearchParams(filteredParams).toString();
+
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
+
     const opts = {
       method: 'GET',
-      // credentials: 'include',
       headers: useAuth
         ? this._buildHeaders(false, headers)
         : { ...headers },
     };
-    const res = await fetch(url, opts);
+
+    const res = await fetch(fullUrl, opts);
     const text = await res.text();
-    try { return JSON.parse(text); }
-    catch { return text; }
+    try {
+      return JSON.parse(text);
+    } catch {
+      return text;
+    }
   },
 
   async put(path, { headers = {}, body = null, useAuth = true } = {}) {

@@ -8,11 +8,14 @@ const OrderSchema = new mongoose.Schema({
         quantity: { type: Number, required: true, min: 1 }
     }],
     totalPrice: { type: Number, required: true, min: 0 },
-    status: { type: String, enum: ["ordered", "in_preparation", "out_for_delivery", "ready_for_pickup", "completed", "cancelled"], default: "ordered" },
-    deliveryAddress: { type: String, required: true, trim: true },
-    deliveryTime: { type: Date, required: true },
+    deliveryFee: { type: Number, default: 0, min: 0 },
+    deliveryTime: { type: Number, default: 0, min: 0 },
+    status: { type: String, enum: ["ordered", "preparing", "out", "ready", "completed", "canceled"], default: "ordered" },
+    orderType: { type: String, enum: ["takeaway", "delivery"], required: true, default: "takeaway" },
+    deliveryAddress: { type: String, trim: true },
     specialInstructions: { type: String, trim: true, default: "" },
-    paymentMethod: { type: String, enum: ["credit_card", "cash", "paypal"], required: true },
+    phoneNumber: { type: String, trim: true, required: true },
+    paymentMethod: { type: String, enum: ["credit_card", "cash"], required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Restaurants.Orders", OrderSchema, "Restaurants.Orders");

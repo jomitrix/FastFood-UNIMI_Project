@@ -7,8 +7,14 @@ export const RestaurantService = {
         });
     },
 
-    getMenu(restaurantId, page = 1) {
-        return ApiService.get(`/restaurant/${restaurantId}/menu/meals/get?page=${page}`);
+    getMenu(restaurantId, page = 1, query = null, category = null) {
+        return ApiService.get(`/restaurant/${restaurantId}/menu/meals/get`, {
+            params: {
+                page,
+                query,
+                category
+            }
+        });
     },
 
     addMeal(restaurantId, name, category, area, allergens, ingredients, price, mealImage) {
@@ -48,6 +54,31 @@ export const RestaurantService = {
     editOpenings(monday, tuesday, wednesday, thursday, friday, saturday, sunday, serviceMode) {
         return ApiService.patch('/restaurant/openings/edit', {
             body: { monday, tuesday, wednesday, thursday, friday, saturday, sunday, serviceMode }
+        });
+    },
+
+    checkout(restaurantId, orderType, meals, deliveryAddress, paymentMethod, specialInstructions, phoneNumber) {
+        return ApiService.post(`/restaurant/${restaurantId}/checkout`, {
+            body: {
+                orderType,
+                meals,
+                deliveryAddress: orderType === 'delivery' ? deliveryAddress : null,
+                paymentMethod,
+                specialInstructions,
+                phoneNumber
+            }
+        });
+    },
+
+    getOrders(page = 1) {
+        return ApiService.get('/restaurant/orders/get', {
+            params: { page }
+        });
+    },
+
+    updateOrderStatus(orderId, status) {
+        return ApiService.patch(`/restaurant/orders/${orderId}/status/edit`, {
+            body: { status }
         });
     },
 };

@@ -1,14 +1,30 @@
 'use client';
 import { withAuth } from '@/utils/withAuth';
 // import { notFound } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 import AccountHeader from "@/components/app/account/AccountHeader";
 import Restaurant from "./Restaurant";
 import { statuses } from "@/utils/lists";
+import { usePaginator } from '@/utils/paginator';
+import { RestaurantService } from '@/services/restaurantService';
+import { Spinner } from '@heroui/spinner';
+import { useAuth } from '@/contexts/AuthContext';
 
 function OrderPage() {
   const router = useRouter();
+  const { user } = useAuth();
+
+  const [totalOrders, setTotalOrders] = useState(0);
+
+  const ordersPaginator = usePaginator(useCallback(
+    (page, _) => RestaurantService.getOrders(page)
+      .then(data => {
+        setTotalOrders(data.totalOrders);
+        return data.status !== 'success' ? [] : data.orders
+      }), [user?.restaurant._id]),
+    10
+  );
 
   // dati mock del ristorante
   const mockRestaurant = {
@@ -210,11 +226,19 @@ function OrderPage() {
         subtitle={"Manage orders for your restaurant."}
       />
 
-      <Restaurant
-        orders={mockOrders}
-        statuses={statuses}
-        restaurant={mockRestaurant}
-      />
+      {ordersPaginator.isLoading ?
+        <Spinner className='w-100 h-100' variant="dots" classNames={{
+          dots: 'bg-[#083d77]',
+        }} />
+        :
+        <Restaurant
+          orders={ordersPaginator.items}
+          totalOrders={totalOrders}
+          statuses={statuses}
+          restaurant={mockRestaurant}
+          loadPage={ordersPaginator.loadPage}
+        />
+      }
     </div>
   );
 }

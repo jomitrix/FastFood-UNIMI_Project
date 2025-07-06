@@ -5,6 +5,7 @@ const router = express.Router();
 router.use('/auth', require('./auth'));
 router.use('/user', require('./user'));
 router.use('/restaurant', require('./restaurant'));
+router.use('/feed', require('./feed'));
 
 router.get('/', (req, res) => {
   res.send("API is working properly!");

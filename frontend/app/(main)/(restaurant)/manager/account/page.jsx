@@ -54,7 +54,7 @@ export default function ProfilePage() {
   const [restaurantName, setRestaurantName] = useState(user.restaurant.name);
   const [email, setEmail] = useState(user.email);
   const [phone, setPhone] = useState(user.restaurant.phoneNumber);
-  const [address, setAddress] = useState(user.restaurant.address);
+  const [address, setAddress] = useState(user.restaurant.position.address);
   const [iva, setIva] = useState(user.restaurant.vat || "");
 
   const [openingHours, setOpeningHours] = useState(Object.values(user.restaurant.openingHours));

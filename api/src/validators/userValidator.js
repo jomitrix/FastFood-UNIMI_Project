@@ -21,8 +21,6 @@ const billingEditSchema = Joi.object({
 });
 
 const deliveryEditSchema = Joi.object({
-    name: Joi.string().min(2).max(30).trim().required(),
-    surname: Joi.string().min(2).max(30).trim().required(),
     address: Joi.string().min(5).max(100).trim().required()
 });
 
