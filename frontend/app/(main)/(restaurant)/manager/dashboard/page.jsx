@@ -21,10 +21,18 @@ import { formatCurrency } from '@/utils/format';
 import SkeletonChart from '@/components/app/manager/dashboard/SkeletonChart';
 import Chart from 'chart.js/auto';
 import { useAuth } from '@/contexts/AuthContext';
+import { DashboardService } from '@/services/dashboardService';
+import { addToast } from "@heroui/toast";
 
 function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
+
+  const [ordersData, setOrdersData] = useState({});
+  const [revenueData, setRevenueData] = useState({});
+  const [productsData, setProductsData] = useState([]);
+  const [recentOrders, setRecentOrders] = useState([]);
+  const [salesTrend, setSalesTrend] = useState([]);
 
   const [timeRange, setTimeRange] = useState((['month']));
   const [productTab, setProductTab] = useState('popular');
@@ -99,6 +107,46 @@ function DashboardPage() {
     accountType: "restaurant"
   }), []);
 
+  const fetchOrdersData = async () => {
+    const data = await DashboardService.getOrdersStats();
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+    }
+    setOrdersData(data.orders);
+  }
+
+  const fetchRevenueData = async () => {
+    const data = await DashboardService.getRevenueStats();
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+    }
+    setRevenueData(data.revenue);
+  }
+
+  const fetchProductsData = async (filter) => {
+    const data = await DashboardService.getProductsStats(filter);
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+    }
+    setProductsData(data.meals);
+  }
+
+  const fetchRecentOrders = async () => {
+    const data = await DashboardService.getRecentOrders();
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+    }
+    setRecentOrders(data.orders);
+  }
+
+  const fetchSalesTrend = async (period = 'month', type = 'revenue') => {
+    const data = await DashboardService.getSalesTrend(period, type);
+    if (!data || data.status !== "success") {
+      return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+    }
+    setSalesTrend(data.salesData);
+  }
+
   const calculatePercentChange = (current, previous) =>
     previous === 0 ? 100 : (((current - previous) / previous) * 100).toFixed(1);
 
@@ -107,8 +155,8 @@ function DashboardPage() {
       currentRange === 'day'
         ? dashboardData.dailyStats
         : currentRange === 'week'
-        ? dashboardData.weeklyStats
-        : dashboardData.monthlyStats;
+          ? dashboardData.weeklyStats
+          : dashboardData.monthlyStats;
 
     return base.map((stat) =>
       stat.channels
@@ -118,24 +166,34 @@ function DashboardPage() {
   }, [currentRange]);
 
   useEffect(() => {
+    fetchOrdersData();
+    fetchRevenueData();
+    fetchSalesTrend();
+    fetchProductsData(productTab);
+    fetchRecentOrders();
+  }, []);
+
+  useEffect(() => {
     if (!chartRef.current) return;
+
+    // distruggo il vecchio chart
     chartInstanceRef.current?.destroy();
-    setChartLoaded(false); // reset per ogni re-render del range
+    setChartLoaded(false);
 
-    // scegli labels e dati
-    let baseData;
-    if (currentRange === 'day')      baseData = dashboardData.dailyStats;
-    else if (currentRange === 'week') baseData = dashboardData.weeklyStats;
-    else                              baseData = dashboardData.monthlyStats;
+    // prendo sempre salesTrend, indipendentemente dal range…
+    const baseData = salesTrend;
 
-    // labels: usa la chiave corretta in base al range
-    const labels = baseData.map(s => s.day || s.week || s.month);
-    const data   = baseData.map(s => metric === 'revenue' ? s.revenue : s.orders);
+    // labels: Mongo restituisce il gruppo in _id
+    const labels = baseData.map(s => s.label);
 
-    // colori distinti per le due metriche
+    // dati: totalRevenue o totalOrders
+    const dataPoints = baseData.map(s =>
+      metric === 'revenue' ? s.totalRevenue : s.totalOrders
+    );
+
     const colors = {
       revenue: '#39a9dbB3',
-      orders:  '#e56399b3'
+      orders: '#e56399b3'
     };
 
     chartInstanceRef.current = new Chart(chartRef.current, {
@@ -143,8 +201,8 @@ function DashboardPage() {
       data: {
         labels,
         datasets: [{
-          label: '',
-          data,
+          label: metric === 'revenue' ? 'Revenue' : 'Orders',
+          data: dataPoints,
           backgroundColor: colors[metric],
           borderRadius: 6,
         }]
@@ -152,10 +210,11 @@ function DashboardPage() {
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        animation: { onComplete: () => setChartLoaded(true) },
+        animation: {
+          onComplete: () => setChartLoaded(true)
+        },
         plugins: {
-          legend: { display: false },    // toglie la legenda
-          
+          legend: { display: false }
         },
         scales: {
           y: {
@@ -165,16 +224,25 @@ function DashboardPage() {
         }
       }
     });
-  }, [currentRange, metric, dashboardData]); 
+  }, [salesTrend, metric, currentRange]);
+
+  useEffect(() => {
+    fetchSalesTrend(currentRange, metric);
+  }, [currentRange, metric])
+
+  useEffect(() => {
+    if (!productTab) return
+    fetchProductsData(productTab);
+  }, [productTab]);
 
   const renderTrend = (trend) => {
-    switch(trend) {
+    switch (trend) {
       case "up":
-        return <Chip color="success" className="text-white">↓</Chip>;
+        return <Chip color="success" className="text-white">↑</Chip>;
       case "down":
-        return <Chip color="danger" className="text-white">↑</Chip>;
+        return <Chip color="danger" className="text-white">↓</Chip>;
       default:
-        return <Chip color="default" className="text-black" classNames={{content: "text-lg mb-0.5"}}>–</Chip>;
+        return <Chip color="default" className="text-black" classNames={{ content: "text-lg mb-0.5" }}>–</Chip>;
     }
   };
 
@@ -200,31 +268,31 @@ function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Orders</h3>
-                <Chip color="blue" className="text-sm">Today: {dashboardData.dailyOrders}</Chip>
+                <Chip color="blue" className="text-sm">Today: {ordersData.today}</Chip>
               </div>
             </CardHeader>
             <CardBody>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-3xl font-bold">{dashboardData.monthlyOrders}</p>
+                  <p className="text-3xl font-bold">{ordersData.month}</p>
                   <p className="text-sm text-gray-500">This month</p>
                   <p className="text-xs text-green-500">
-                    {calculatePercentChange(dashboardData.monthlyOrders, dashboardData.previousMonthOrders)}% vs prev. month
+                    {calculatePercentChange(ordersData.month, ordersData.previousMonth)}% vs prev. month
                   </p>
                 </div>
                 <div className="border-l pl-4">
-                  <p className="text-xl font-semibold">{dashboardData.totalOrders}</p>
+                  <p className="text-xl font-semibold">{ordersData.total}</p>
                   <p className="text-sm text-gray-500">Total orders</p>
                 </div>
               </div>
               <div className="mt-3 border-t pt-2">
-                <p className="text-sm">This week: <span className="font-semibold">{dashboardData.weeklyOrders}</span>
-                  <span className={calculatePercentChange(dashboardData.weeklyOrders, dashboardData.previousWeekOrders) >= 0 ? 
+                <p className="text-sm">This week: <span className="font-semibold">{ordersData.week}</span>
+                  <span className={calculatePercentChange(ordersData.week, ordersData.previousWeek) >= 0 ?
                     "text-green-500 ml-2" : "text-red-500 ml-2"}>
-                    ({calculatePercentChange(dashboardData.weeklyOrders, dashboardData.previousWeekOrders)}%)
+                    ({calculatePercentChange(ordersData.week, ordersData.previousWeek)}%)
                   </span>
                 </p>
-                <p className="text-sm">Monthly order average: <span className="font-semibold">{dashboardData.monthlyOrderAverage}</span></p>
+                <p className="text-sm">Monthly order average: <span className="font-semibold">{ordersData.monthlyAverage}</span></p>
               </div>
             </CardBody>
           </Card>
@@ -233,31 +301,31 @@ function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <h3 className="text-lg font-semibold">Revenue</h3>
-                <Chip color="green" className="text-sm">Today: {formatCurrency(dashboardData.dailyRevenue)}</Chip>
+                <Chip color="green" className="text-sm">Today: {formatCurrency(revenueData.today)}</Chip>
               </div>
             </CardHeader>
             <CardBody>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-3xl font-bold">{formatCurrency(dashboardData.monthlyRevenue)}</p>
+                  <p className="text-3xl font-bold">{formatCurrency(revenueData.month)}</p>
                   <p className="text-sm text-gray-500">This month</p>
                   <p className="text-xs text-green-500">
-                    {calculatePercentChange(dashboardData.monthlyRevenue, dashboardData.previousMonthRevenue)}% vs prev. month
+                    {calculatePercentChange(revenueData.month, revenueData.previousMonth)}% vs prev. month
                   </p>
                 </div>
                 <div className="border-l pl-4">
-                  <p className="text-xl font-semibold">{formatCurrency(dashboardData.totalRevenue)}</p>
+                  <p className="text-xl font-semibold">{formatCurrency(revenueData.total)}</p>
                   <p className="text-sm text-gray-500">Total revenue</p>
                 </div>
               </div>
               <div className="mt-3 border-t pt-2">
-                <p className="text-sm">This week: <span className="font-semibold">{formatCurrency(dashboardData.weeklyRevenue)}</span>
-                  <span className={calculatePercentChange(dashboardData.weeklyRevenue, dashboardData.previousWeekRevenue) >= 0 ? 
+                <p className="text-sm">This week: <span className="font-semibold">{formatCurrency(revenueData.week)}</span>
+                  <span className={calculatePercentChange(revenueData.week, revenueData.previousWeek) >= 0 ?
                     "text-green-500 ml-1" : "text-red-500 ml-1"}>
-                    ({calculatePercentChange(dashboardData.weeklyRevenue, dashboardData.previousWeekRevenue)}%)
+                    ({calculatePercentChange(revenueData.week, revenueData.previousWeek)}%)
                   </span>
                 </p>
-                <p className="text-sm">Average ticket: <span className="font-semibold">{formatCurrency(dashboardData.avgOrderValue)}</span></p>
+                <p className="text-sm">Average ticket: <span className="font-semibold">{formatCurrency(revenueData.averageTotalPrice)}</span></p>
               </div>
             </CardBody>
           </Card>
@@ -268,28 +336,28 @@ function DashboardPage() {
             <div className="w-full flex flex-col justify-between flex-wrap gap-3">
               <h3 className="text-lg font-semibold">Sales Trend</h3>
               <div className="flex gap-2">
-                  <Select
-                    disallowEmptySelection
-                    size="sm"
-                    className='w-32'
-                    selectedKeys={timeRange}
-                    onSelectionChange={setTimeRange}
-                  >
-                    <SelectItem key="day">Day</SelectItem>
-                    <SelectItem key="week">Week</SelectItem>
-                    <SelectItem key="month">Month</SelectItem>
-                  </Select>
-                  {/* metric selector */}
-                  <Select
-                    disallowEmptySelection
-                    size="sm"
-                    className='w-32'
-                    selectedKeys={new Set([metric])}
-                    onSelectionChange={(keys) => setMetric([...keys][0])}
-                  >
-                    <SelectItem key="revenue">Revenue</SelectItem>
-                    <SelectItem key="orders">Orders</SelectItem>
-                  </Select>
+                <Select
+                  disallowEmptySelection
+                  size="sm"
+                  className='w-32'
+                  selectedKeys={timeRange}
+                  onSelectionChange={setTimeRange}
+                >
+                  <SelectItem key="day">Day</SelectItem>
+                  <SelectItem key="week">Week</SelectItem>
+                  <SelectItem key="month">Month</SelectItem>
+                </Select>
+                {/* metric selector */}
+                <Select
+                  disallowEmptySelection
+                  size="sm"
+                  className='w-32'
+                  selectedKeys={new Set([metric])}
+                  onSelectionChange={(keys) => setMetric([...keys][0])}
+                >
+                  <SelectItem key="revenue">Revenue</SelectItem>
+                  <SelectItem key="orders">Orders</SelectItem>
+                </Select>
               </div>
             </div>
           </CardHeader>
@@ -327,7 +395,7 @@ function DashboardPage() {
           </CardHeader>
           <CardBody className="pt-1">
             <Table
-              classNames={{ wrapper: "min-h-[18rem] sm:min-h-full overflow-y-auto" }} 
+              classNames={{ wrapper: "min-h-[18rem] sm:min-h-full overflow-y-auto" }}
               aria-label={productTab === "popular" ? "Most popular products" : "Least sold products"}>
               <TableHeader>
                 <TableColumn>Product</TableColumn>
@@ -336,13 +404,13 @@ function DashboardPage() {
                 <TableColumn>% of Revenue</TableColumn>
                 <TableColumn>Trend</TableColumn>
               </TableHeader>
-              <TableBody items={productTab === "popular" ? dashboardData.popularDishes : dashboardData.leastPopularDishes}>
+              <TableBody items={productsData}>
                 {(dish) => (
-                  <TableRow key={dish.name}>
+                  <TableRow key={dish._id}>
                     <TableCell className="font-medium">{dish.name}</TableCell>
-                    <TableCell>{dish.count}</TableCell>
-                    <TableCell>{formatCurrency(dish.revenue)}</TableCell>
-                    <TableCell>{dish.percentOfRevenue}%</TableCell>
+                    <TableCell>{dish.totalSold}</TableCell>
+                    <TableCell>{formatCurrency(dish.totalRevenue)}</TableCell>
+                    <TableCell>{dish.revenuePercent}%</TableCell>
                     <TableCell>{renderTrend(dish.trend)}</TableCell>
                   </TableRow>
                 )}
@@ -368,15 +436,15 @@ function DashboardPage() {
                 <TableColumn>Status</TableColumn>
                 <TableColumn>Date</TableColumn>
               </TableHeader>
-              <TableBody items={dashboardData.recentOrders}>
+              <TableBody items={recentOrders}>
                 {(order) => (
-                  <TableRow key={order.id}>
-                    <TableCell className="font-medium">{order.id}</TableCell>
-                    <TableCell>{order.customer}</TableCell>
-                    <TableCell>{formatCurrency(order.total)}</TableCell>
+                  <TableRow key={order._id}>
+                    <TableCell className="font-medium">{order._id.substr(-6).toUpperCase()}</TableCell>
+                    <TableCell>{order.user.name} {order.user.surname}</TableCell>
+                    <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
                     <TableCell>{order.paymentMethod}</TableCell>
                     <TableCell className="flex w-full bg-">
-                      <Chip 
+                      <Chip
                         size="sm"
                         classNames={{ content: "font-semibold", }}
                         className={`text-xs ${statuses[order.status].bgColor} text-white`}
@@ -384,7 +452,7 @@ function DashboardPage() {
                         {statuses[order.status].display}
                       </Chip>
                     </TableCell>
-                    <TableCell>{order.date}</TableCell>
+                    <TableCell>{order.createdAt}</TableCell>
                   </TableRow>
                 )}
               </TableBody>
