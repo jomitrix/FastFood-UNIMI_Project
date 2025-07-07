@@ -197,7 +197,7 @@ export default function RestaurantPage({ params }) {
         if (!restaurant.openingHours) return;
 
         const now = new Date();
-        const dayName = now.toLocaleDateString('it-IT', { weekday: 'long' }).toLowerCase();
+        const dayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
         const slot = restaurant.openingHours[dayName];
 
         if (!slot || slot.closed) {
