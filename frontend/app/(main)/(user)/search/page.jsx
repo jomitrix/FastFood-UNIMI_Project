@@ -21,22 +21,7 @@ import { Select, SelectItem } from '@heroui/select';
 import { FeedService } from '@/services/feedService';
 import { usePaginator } from '@/utils/paginator';
 import { useAuth } from '@/contexts/AuthContext';
-
-const mockAddresses = [
-  {
-    id: 1,
-    address: "Via Tiburtina 1361, Roma, 00131, Italy"
-  },
-  {
-    id: 2,
-    address: "Piazzale Loreto 9, Milano, 20131, Italy"
-  },
-  {
-    id: 3,
-    address: "Via Dante 20, Poggibonsi, 53036, Italy"
-  },
-];
-
+import { Spinner } from '@heroui/spinner';
 
 const mockTastesRest = [
   {
@@ -207,14 +192,33 @@ export default function Home() {
   const [searchType, setSearchType] = useState("restaurant");
 
   const nearbyRestaurantsPaginator = usePaginator(useCallback(
-    (page, _) => FeedService.getNearbyRestaurants(page, selectedAddress._id)
+    (page, _) => FeedService.getNearbyRestaurants(page, selectedAddress._id, orderType, selectedCategories, activeFilters.selectedCuisines, activeFilters.selectedAllergens, activeFilters.isOpenNow)
+      .then(data => data.status !== 'success' ? [] : data.restaurants), [selectedAddress._id, orderType, selectedCategories, activeFilters]),
+    10
+  );
+
+  const nearbyPreferredRestaurantsPaginator = usePaginator(useCallback(
+    (page, _) => FeedService.getNearbyPreferredRestaurants(page, selectedAddress._id)
       .then(data => data.status !== 'success' ? [] : data.restaurants), [selectedAddress._id]),
     10
   );
 
   useEffect(() => {
+    nearbyPreferredRestaurantsPaginator.reset();
     nearbyRestaurantsPaginator.reset();
-  }, [selectedAddress])
+  }, [selectedAddress]);
+
+  useEffect(() => {
+    nearbyRestaurantsPaginator.reset();
+  }, [orderType]);
+
+  useEffect(() => {
+    nearbyRestaurantsPaginator.reset();
+  }, [selectedCategories]);
+
+  useEffect(() => {
+    nearbyRestaurantsPaginator.reset();
+  }, [activeFilters]);
 
   useEffect(() => {
     const courseFromStorage = localStorage.getItem('course');
@@ -414,14 +418,23 @@ export default function Home() {
 
             {!searchValue && searchType === "restaurant" && (
               <HorizontalScroller title="Based on your tastes">
-                {mockTastesRest.map((r) => (
-                  <RestaurantCard
-                    key={r.restaurantname}
-                    {...r}
-                    className="w-72 shrink-0"
-                    restaurant={r}
+                {nearbyPreferredRestaurantsPaginator.isLoading ? (
+                  <Spinner
+                    className="w-100 h-100"
+                    variant="dots"
+                    classNames={{
+                      dots: 'bg-[#083d77]',
+                    }}
                   />
-                ))}
+                ) : (
+                  nearbyPreferredRestaurantsPaginator.items.map((r) => (
+                    <RestaurantCard
+                      key={r._id}
+                      className="w-72 shrink-0"
+                      restaurant={r}
+                    />
+                  ))
+                )}
               </HorizontalScroller>
             )}
 
@@ -434,14 +447,23 @@ export default function Home() {
 
             {searchType === "restaurant" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                {nearbyRestaurantsPaginator.items.map((r) => (
-                  <RestaurantCard
-                    key={r._id}
-                    // {...restaurant}
-                    className="w-full"
-                    restaurant={r}
+                {nearbyRestaurantsPaginator.isLoading ? (
+                  <Spinner
+                    className="w-100 h-100"
+                    variant="dots"
+                    classNames={{
+                      dots: 'bg-[#083d77]',
+                    }}
                   />
-                ))}
+                ) : (
+                  nearbyRestaurantsPaginator.items.map((r) => (
+                    <RestaurantCard
+                      key={r._id}
+                      className="w-full"
+                      restaurant={r}
+                    />
+                  ))
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">

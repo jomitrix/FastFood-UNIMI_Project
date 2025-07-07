@@ -9,11 +9,6 @@ export default function RestaurantCard({ restaurant, className }) {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
-  const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState({
-    min: 0,
-    max: 0
-  });
-
   const handleCardPress = () => {
     const existingOrderType = localStorage.getItem("orderType");
 
@@ -25,19 +20,6 @@ export default function RestaurantCard({ restaurant, className }) {
 
     router.push(`/restaurant/${restaurant._id}`);
   };
-
-  useEffect(() => {
-    if (!restaurant.estimatedDeliveryTime) return;
-    async function calculateDeliveryTime() {
-      const time = restaurant.estimatedDeliveryTime;
-      setEstimatedDeliveryTime({
-        min: time >= 20 ? time - 10 : time,
-        max: time + 10
-      });
-    }
-
-    calculateDeliveryTime();
-  }, [restaurant.estimatedDeliveryTime]);
 
   return (
     <Card
@@ -61,7 +43,7 @@ export default function RestaurantCard({ restaurant, className }) {
         </div>
         <p className="flex gap-1 text-sm text-gray-600">
           <Time className="inline-block mt-[1.5px] h-4 w-4 text-gray-500" />
-          {estimatedDeliveryTime.min} - {estimatedDeliveryTime.max} min
+          {restaurant.estimatedDeliveryTime?.min} - {restaurant.estimatedDeliveryTime?.max} min
         </p>
         <p className="flex text-sm text-gray-500 justify-start truncate">
           {restaurant.area?.join(' • ')}

@@ -23,11 +23,17 @@ export default function Home() {
   const router = useRouter();
   const { user, getUser } = useAuth();
 
+  const [deliveryAddress, setDeliveryAddress] = useState(user?.delivery[0]?._id || "");
+
   const restaurantsPaginator = usePaginator(useCallback(
-    (page, _) => FeedService.getRestaurants(page)
-      .then(data => data.status !== 'success' ? [] : data.restaurants), [user]),
+    (page, _) => FeedService.getNearbyRestaurants(page, deliveryAddress)
+      .then(data => data.status !== 'success' ? [] : data.restaurants), [deliveryAddress]),
     10
   );
+
+  useEffect(() => {
+    restaurantsPaginator.reset();
+  }, [user]);
 
   // Gli indirizzi ora sono gestiti nello stato del componente
   const [addresses, setAddresses] = useState([]);

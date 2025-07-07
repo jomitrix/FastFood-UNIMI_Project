@@ -4,11 +4,21 @@ const RestaurantSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: "Users", required: true },
     name: { type: String, required: true, trim: true },
     phoneNumber: { type: String, required: true, trim: true },
-    position: { type: {
+    position: {
         address: { type: String, required: true, trim: true },
-        lat: { type: Number, required: true },
-        lng: { type: Number, required: true }
-    }, required: true, trim: true },
+        geopoint: {
+            type: {
+                type: String,
+                enum: ["Point"],
+                required: true,
+                default: "Point"
+            },
+            coordinates: {
+                type: [Number],
+                required: true
+            }
+        }
+    },
     vat: { type: String, required: true, trim: true },
     logo: { type: String, required: true, trim: true, default: "/uploads/restaurants/default_logo.png" },
     banner: { type: String, required: true, trim: true, default: "/uploads/restaurants/default_banner.png" },
@@ -23,5 +33,7 @@ const RestaurantSchema = new mongoose.Schema({
     },
     serviceMode: { type: String, enum: ["delivery", "takeaway", "all"], default: "all" },
 }, { timestamps: true });
+
+RestaurantSchema.index({ "position.geopoint": "2dsphere" });
 
 module.exports = mongoose.model("Users.Restaurants", RestaurantSchema, "Users.Restaurants");

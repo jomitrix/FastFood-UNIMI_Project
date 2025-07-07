@@ -27,8 +27,10 @@ router.patch("/edit", authStrict, validate(validator.restaurantEditSchema), asyn
 
             updateFields.position = {
                 address,
-                lat: coordinates.lat,
-                lng: coordinates.lng
+                geopoint: {
+                    type: "Point",
+                    coordinates: [coordinates.lng, coordinates.lat]
+                }
             };
         }
         if (vat) updateFields.vat = vat;

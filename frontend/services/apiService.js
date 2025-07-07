@@ -56,10 +56,19 @@ export const ApiService = {
     const url = `${baseUrl}${path}`;
 
     const filteredParams = Object.fromEntries(
-      Object.entries(params).filter(([key, value]) => value !== null && value !== '' && value !== undefined)
+      Object.entries(params)
+        .filter(([key, value]) => {
+          // rimuovi null, undefined, stringhe vuote
+          if (value == null || value === "") return false;
+          // rimuovi array vuoti
+          if (Array.isArray(value) && value.length === 0) return false;
+          // se NON vuoi passare openNow=false, rimuovi anche i boolean false:
+          // if (typeof value === 'boolean' && value === false) return false;
+          return true;
+        })
     );
-    const queryString = new URLSearchParams(filteredParams).toString();
 
+    const queryString = new URLSearchParams(filteredParams).toString();
     const fullUrl = queryString ? `${url}?${queryString}` : url;
 
     const opts = {
