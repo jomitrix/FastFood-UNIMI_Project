@@ -288,16 +288,16 @@ export default function RestaurantPage({ params }) {
                             <div className='relative h-[12rem] sm:h-[20rem] aspect-video w-full bg-gray-200 rounded-b-xl'>
                                 {!isBannerLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full rounded-b-xl" />}
                                 <img 
-                                    src={mockRestaurant.banner} 
-                                    alt={`${mockRestaurant.restaurantname} banner`}
+                                    src={process.env.NEXT_PUBLIC_API_URL + restaurant.banner} 
+                                    alt={`${restaurant.name} banner`}
                                     className={`object-cover w-full h-full rounded-b-xl transition-opacity duration-300 ${isBannerLoaded ? 'opacity-100' : 'opacity-0'}`}
                                     onLoad={() => setIsBannerLoaded(true)}
                                 />
                                 <div className="absolute bottom-5 left-5 w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
                                     {!isIconLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
                                     <img 
-                                        src={mockRestaurant.icon} 
-                                        alt={`${mockRestaurant.restaurantname} logo`}
+                                        src={process.env.NEXT_PUBLIC_API_URL + restaurant.logo} 
+                                        alt={`${restaurant.name} logo`}
                                         className={`w-full h-full object-cover transition-opacity duration-300 ${isIconLoaded ? 'opacity-100' : 'opacity-0'}`}
                                         onLoad={() => setIsIconLoaded(true)}
                                     />
