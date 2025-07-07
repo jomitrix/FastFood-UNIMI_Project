@@ -369,7 +369,7 @@ router.get("/orders/recent/get", authStrict, async (req, res, next) => {
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
 
         const recentOrders = await Orders.find({ restaurant: restaurant._id })
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: -1, _id: -1 })
             .limit(5)
             .populate("user", "name surname")
             .lean();
