@@ -30,58 +30,21 @@ export default function Home() {
   );
 
   // Gli indirizzi ora sono gestiti nello stato del componente
-  const [addresses, setAddresses] = useState([
-    {
-      id: 1,
-      address: "Via Tiburtina 1361, Roma, 00131, Italy"
-    },
-    {
-      id: 2,
-      address: "Piazzale Loreto 9, Milano, 20131, Italy"
-    },
-    {
-      id: 3,
-      address: "Via Dante 20, Poggibonsi, 53036, Italy"
-    },
-  ]);
-
-  const mockTastesRest = [
-    {
-      id: 1,
-      img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
-      restaurantname: "Sushi Feltre",
-      minDeliveryTime: 10,
-      maxDeliveryTime: 20,
-      courses: ["Fish", "Starter", "Main Course", "First Course"],
-      area: ["Japanese", "Chinese", "Asian"],
-      allergens: ["Milk", "Egg", "Peanut"],
-      isOpenNow: true,
-      orderType: "both",
-      addressReference: { id: 1 }
-    },
-    {
-      id: 2,
-      img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
-      restaurantname: "Pizzeria da Mario",
-      minDeliveryTime: 20,
-      maxDeliveryTime: 40,
-      courses: ["Pizza", "Italian"],
-      area: ["Italian"],
-      allergens: ["Gluten", "Milk"],
-      isOpenNow: false,
-      orderType: "delivery",
-      addressReference: { id: 2 }
-    }
-  ];
+  const [addresses, setAddresses] = useState([]);
 
   const [addressQuery, setAddressQuery] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedAddress, setSelectedAddress] = useState("");
+  const [selectedAddress, setSelectedAddress] = useState({});
 
   useEffect(() => {
     // Recupera l'utente al caricamento della pagina
     getUser()
   }, [getUser]);
+
+  useEffect(() => {
+    if (!user) return;
+    setAddresses(user.delivery || []);
+  }, [user]);
 
   // Memoizzazione del filtro per performance migliori
   const filtered = useMemo(
@@ -98,11 +61,15 @@ export default function Home() {
   const handleSelect = (addr) => {
     setSelectedAddress(addr);
     setAddressQuery(addr.address);
-    localStorage.setItem('selectedAddressId', addr.id);
+    localStorage.setItem('selectedAddressId', addr._id);
   };
 
+  useEffect(() => {
+    console.log("Home", selectedAddress);
+  }, [selectedAddress]);
+
   // Il bottone è abilitato solo se l'indirizzo selezionato è valido
-  const isAddressValid = !!selectedAddress;
+  // const isAddressValid = !!selectedAddress?.address;
 
   return (
     <div className="w-full flex flex-col min-h-screen bg-[#f5f3f5]">
@@ -157,11 +124,11 @@ export default function Home() {
                     <AutocompleteSection title="Your Addresses">
                       {filtered.map(addr => (
                         <AutocompleteItem
-                          key={addr.id}
+                          key={addr._id}
                           value={addr.address}
                           textValue={addr.address}
                           onPress={() => handleSelect(addr)}
-                          className={selectedAddress?.id === addr.id ? "bg-[#ffe0c2]" : ""}
+                          className={selectedAddress?._id === addr._id ? "bg-[#ffe0c2]" : ""}
                         >
                           {addr.address}
                         </AutocompleteItem>
@@ -182,7 +149,7 @@ export default function Home() {
                     className="bg-[#083d77] text-white font-medium -ml-[5.25rem] sm:-ml-[6.5rem] w-0 px-0 sm:w-[6rem] h-[2rem] sm:h-[2.5rem]"
                     startContent={<Search className="text-white flex-shrink-0 m-0" />}
                     radius="md"
-                    isDisabled={!isAddressValid}
+                    // isDisabled={!isAddressValid}
                     onPress={() => router.push("/search")}
                   >
                     <span className="hidden sm:block">Search</span>
@@ -240,13 +207,13 @@ export default function Home() {
       )}
 
       <DeliveryAddressesSection
-        addresses={addresses.map(a => a.address)}
+        addresses={addresses}
         isOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
         onSave={(newAddresses) => {
           setAddresses(
             newAddresses.map((address, idx) => ({
-              id: addresses[idx]?.id || Date.now() + idx,
+              id: addresses[idx]?._id || Date.now() + idx,
               address,
             }))
           );

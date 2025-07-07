@@ -2,14 +2,9 @@ const router = require("express").Router();
 const { authStrict } = require("@middleware/authMiddleware");
 const Users = require("@models/Users");
 const Restaurants = require("@models/Users.Restaurants");
-const Menus = require("@models/Restaurants/Restaurants.Menus");
 const Meals = require("@models/Restaurants/Restaurants.Meals");
-const { validate } = require("@middleware/validationMiddleware");
-const validator = require("@validators/restaurantValidator");
-const { upload } = require("@utils/multerUploader");
 const mongoose = require("mongoose");
-const fs = require("fs");
-const path = require("path");
+const { getRouteDistance } = require("@utils/openStreetMap");
 
 router.get("/get", authStrict, async (req, res, next) => {
     try {
@@ -54,6 +49,49 @@ router.get("/restaurants/:restaurantId/get", authStrict, async (req, res, next) 
         const uniqueCategories = [...new Set(categories)];
 
         return res.send({ status: "success", restaurant: { ...restaurant, area: uniqueAreas, categories: uniqueCategories } });
+    } catch (err) { next(err); }
+});
+
+router.get("/restaurants/nearby", authStrict, async (req, res, next) => {
+    try {
+        const { page, address } = req.query;
+
+        const userAddress = req.user.delivery.find((a) => a._id.toString() === address);
+        if (!userAddress) return res.status(400).send({ status: "error", error: "Delivery address not found" });
+
+        if (
+            !userAddress ||
+            typeof userAddress.lat !== "number" ||
+            typeof userAddress.lng !== "number"
+        ) {
+            return res.status(400).send({ status: "error", error: "Delivery address not set" });
+        }
+
+        const restaurants = await Restaurants.find().skip((page - 1) * 10).limit(10).lean();
+
+        const withDurations = await Promise.all(
+            restaurants.map(async (r) => {
+                try {
+                    const durationSec = await getRouteDistance(
+                        r.position,
+                        userAddress,
+                        "driving"
+                    );
+                    return { restaurant: r, durationSec };
+                } catch {
+                    return null;
+                }
+            })
+        );
+
+        const nearby = withDurations
+            .filter((x) => x && x.durationSec <= 3600)
+            .map(({ restaurant: r, durationSec }) => ({
+                ...r,
+                estimatedDeliveryTime: Math.ceil(durationSec / 60)
+            }));
+
+        return res.send({ status: "success", restaurants: nearby });
     } catch (err) { next(err); }
 });
 
