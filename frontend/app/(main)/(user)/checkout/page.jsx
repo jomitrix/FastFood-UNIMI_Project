@@ -138,7 +138,7 @@ export default function Checkout() {
         ] : []),
         {
             key: "time", title: orderType === "delivery" ? "Delivery Time" : "Takeaway Time",
-            subtitle: orderType === "delivery" ? `${estimatedDeliveryTime.min} - ${estimatedDeliveryTime.max} min` : `${estimatedDeliveryTime.min} - ${estimatedDeliveryTime.max} min`, icon: <Time />, missing: false
+            subtitle: orderType === "delivery" ? `${estimatedDeliveryTime.min} - ${estimatedDeliveryTime.max} min` : `ASAP`, icon: <Time />, missing: false
         },
         { key: "notes", title: "Additional Notes", subtitle: notes || "Add a note for your order", icon: <Notes />, missing: false },
     ]
