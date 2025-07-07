@@ -147,6 +147,8 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
         }
 
         try {
+            console.log(selectedAllergens);
+            console.log(ingredients);
             const data = await RestaurantService.addMeal(
                 restaurantId,
                 name,

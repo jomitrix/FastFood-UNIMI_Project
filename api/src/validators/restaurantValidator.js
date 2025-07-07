@@ -42,12 +42,26 @@ const addMealSchema = Joi.object({
         .allow('')
         .default('')
         .custom((value, helpers) => {
-            if (!value || value.trim() === '') return [];
-            return value
+            // se vuoto o solo spazi → array vuoto
+            if (!value || value.trim() === '') {
+                return [];
+            }
+            // split + trim + filtra empty
+            const arr = value
                 .split(',')
                 .map(s => s.trim())
                 .filter(s => s.length > 0);
-        }, 'Split comma-separated allergens'),
+
+            // validazione contro ALLOWED_ALLERGENS
+            const invalid = arr.filter(item => !ALLOWED_ALLERGENS.includes(item));
+            if (invalid.length) {
+                return helpers.error('any.invalid', {
+                    message: `Allergeni non validi: ${invalid.join(', ')}. Validi: ${ALLOWED_ALLERGENS.join(', ')}`,
+                });
+            }
+
+            return arr; // finalmente ritorni un array di stringhe valide
+        }, 'Split and validate allergens'),
     ingredients: Joi.string()
         .allow('')
         .default('')

@@ -61,7 +61,8 @@ const ALLOWED_CUISINES = [
     "Turkish",
     "Ukrainian",
     "Uruguayan",
-    "Vietnamese"
+    "Vietnamese",
+    "Unknown",
 ];
 
 module.exports = {

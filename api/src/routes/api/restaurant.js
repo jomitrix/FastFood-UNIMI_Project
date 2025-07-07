@@ -83,13 +83,16 @@ router.get("/:restaurantId/menu/meals/get", authStrict, async (req, res, next) =
     } catch (err) { next(err); }
 });
 
-router.post("/:restaurantId/menu/meals/add", authStrict, validate(validator.addMealSchema), upload.fields([
+router.post("/:restaurantId/menu/meals/add", authStrict, upload.fields([
     { name: 'mealImage', maxCount: 1 },
-]), async (req, res, next) => {
+]), validate(validator.addMealSchema), async (req, res, next) => {
     try {
         const { restaurantId } = req.params;
         const { name, category, area, allergens, ingredients, price } = req.body;
         const files = req.files;
+
+        console.log(allergens);
+        console.log(ingredients);
 
         if (!restaurantId || !mongoose.Types.ObjectId.isValid(restaurantId)) return res.status(400).send({ status: "error", error: "Invalid restaurant ID" });
 
@@ -354,9 +357,12 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
         const orderedMeals = await Meals.find({ _id: { $in: meals.map(m => m.meal) } }).lean();
         if (meals.length !== meals.length) return res.status(400).send({ status: "error", error: "Some meals not found" });
 
+        const address = req.user.delivery.find(d => d._id.toString() === deliveryAddress);
+        if (!address && orderType === "delivery") return res.status(400).send({ status: "error", error: "Invalid delivery address" });
+
         let deliveryTime = null;
         if (orderType == "delivery") {
-            deliveryTime = await getRouteDistance(req.user.delivery.find(d => d._id.toString() === deliveryAddress), restaurant.position);
+            deliveryTime = await getRouteDistance(address, restaurant.position);
             if (!deliveryTime) return res.status(400).send({ status: "error", error: "Invalid delivery address" });
 
             if (deliveryTime > 3600) return res.status(400).send({ status: "error", error: "Delivery time exceeds 1 hour" });
@@ -381,7 +387,7 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
             totalPrice,
             deliveryFee,
             orderType,
-            deliveryAddress: orderType === "delivery" ? deliveryAddress : null,
+            deliveryAddress: orderType === "delivery" ? address.address : null,
             deliveryTime,
             specialInstructions: specialInstructions || "",
             phoneNumber,
