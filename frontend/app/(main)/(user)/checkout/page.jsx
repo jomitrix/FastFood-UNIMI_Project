@@ -152,7 +152,7 @@ export default function Checkout() {
     const [isModalOpen, setIsModalOpen] = useState(null);
 
     useState(() => {
-        console.log(cart.deliveryAddress);
+        console.log(cart);
     }, [])
 
     const extractId = id =>
@@ -442,7 +442,7 @@ export default function Checkout() {
                                     />
                                     <div>
                                         <h3 className="font-semibold text-lg mb-1">{cart.restaurant.name}</h3>
-                                        <p className="text-sm text-gray-600">{cart.restaurant.address}</p>
+                                        <p className="text-sm text-gray-600">{cart.restaurant.position.address}</p>
                                     </div>
                                 </div>
 
