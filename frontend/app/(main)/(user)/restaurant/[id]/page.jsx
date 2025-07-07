@@ -178,6 +178,11 @@ export default function RestaurantPage({ params }) {
     );
 
     const handleCheckout = () => {
+        setCart(prev => ({
+            ...prev,
+            orderType: localStorage.getItem('orderType'),
+            deliveryAddress: user.delivery.find(addr => addr._id === localStorage.getItem('selectedAddressId'))
+        }));
         router.push('/checkout/');
     };
 
