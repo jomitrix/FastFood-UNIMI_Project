@@ -188,7 +188,7 @@ export default function Home() {
       {/* Sezione per i ristoranti consigliati in base ai gusti (da vedere solo in opt-in) 
       Li mostra in base alla vicinanza degli indirizzi inseriti, quando cliccato rimanda
       all'ordine con quell'indirizzo*/}
-      {user?.role === "user" && user?.preferences.specialOffersFeed && (
+      {user?.role === "user" && user?.preferences.specialOffersFeed && restaurantsPaginator.items.length > 0 && (
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <HorizontalScroller title="Based on your tastes">
             {restaurantsPaginator.isLoading ? (

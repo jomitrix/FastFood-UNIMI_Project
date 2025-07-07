@@ -183,7 +183,7 @@ export default function Home() {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
-    isOpenNow: false,
+    isOpenNow: true,
     selectedAllergens: [],
     selectedCuisines: [],
     priceRange: { min: '', max: '' }
@@ -381,7 +381,7 @@ export default function Home() {
                     setSearchType(newSearchType);
                     // Reset all filters when switching between restaurant and dishes
                     setActiveFilters({
-                      isOpenNow: false,
+                      isOpenNow: true,
                       selectedAllergens: [],
                       selectedCuisines: [],
                       priceRange: { min: '', max: '' }
@@ -416,26 +416,34 @@ export default function Home() {
               </div>
             </div>
 
-            {!searchValue && searchType === "restaurant" && (
-              <HorizontalScroller title="Based on your tastes">
-                {nearbyPreferredRestaurantsPaginator.isLoading ? (
-                  <Spinner
-                    className="w-100 h-100"
-                    variant="dots"
-                    classNames={{
-                      dots: 'bg-[#083d77]',
-                    }}
-                  />
-                ) : (
-                  nearbyPreferredRestaurantsPaginator.items.map((r) => (
-                    <RestaurantCard
-                      key={r._id}
-                      className="w-72 shrink-0"
-                      restaurant={r}
+            {/* Mostra "Based on your tastes" solo se NON ci sono filtri attivi, nessuna ricerca e nessuna categoria selezionata */}
+            {searchType === "restaurant" &&
+              !searchValue &&
+              selectedCategories.length === 0 &&
+              activeFilters.selectedAllergens.length === 0 &&
+              activeFilters.selectedCuisines.length === 0 &&
+              activeFilters.priceRange.min === '' &&
+              activeFilters.priceRange.max === '' &&
+              activeFilters.isOpenNow === true && (
+                <HorizontalScroller title="Based on your tastes">
+                  {nearbyPreferredRestaurantsPaginator.isLoading ? (
+                    <Spinner
+                      className="w-100 h-100"
+                      variant="dots"
+                      classNames={{
+                        dots: 'bg-[#083d77]',
+                      }}
                     />
-                  ))
-                )}
-              </HorizontalScroller>
+                  ) : (
+                    nearbyPreferredRestaurantsPaginator.items.map((r) => (
+                      <RestaurantCard
+                        key={r._id}
+                        className="w-72 shrink-0"
+                        restaurant={r}
+                      />
+                    ))
+                  )}
+                </HorizontalScroller>
             )}
 
             <h2 className="text-xl font-semibold mb-4">
@@ -448,13 +456,19 @@ export default function Home() {
             {searchType === "restaurant" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                 {nearbyRestaurantsPaginator.isLoading ? (
-                  <Spinner
-                    className="w-100 h-100"
-                    variant="dots"
-                    classNames={{
-                      dots: 'bg-[#083d77]',
-                    }}
-                  />
+                  <div className="col-span-full flex justify-center items-center py-16">
+                    <Spinner
+                      className="w-100 h-100"
+                      variant="dots"
+                      classNames={{
+                        dots: 'bg-[#083d77]',
+                      }}
+                    />
+                  </div>
+                ) : nearbyRestaurantsPaginator.items.length === 0 ? (
+                  <div className="col-span-full flex justify-center items-center py-16 text-gray-500">
+                    No restaurants found.
+                  </div>
                 ) : (
                   nearbyRestaurantsPaginator.items.map((r) => (
                     <RestaurantCard
@@ -467,17 +481,33 @@ export default function Home() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                {getFilteredResults.map((meal) => (
-                  <MealCard
-                    key={meal._id}
-                    img={meal.image}
-                    mealName={meal.name}
-                    price={meal.price}
-                    description={meal.area}
-                    restaurant={meal.restaurant}
-                    className="w-full"
-                  />
-                ))}
+                {nearbyRestaurantsPaginator.isLoading ? (
+                  <div className="col-span-full flex justify-center items-center py-16">
+                    <Spinner
+                      className="w-100 h-100"
+                      variant="dots"
+                      classNames={{
+                        dots: 'bg-[#083d77]',
+                      }}
+                    />
+                  </div>
+                ) : getFilteredResults.length === 0 ? (
+                  <div className="col-span-full flex justify-center items-center py-16 text-gray-500">
+                    No results found.
+                  </div>
+                ) : (
+                  getFilteredResults.map((meal) => (
+                    <MealCard
+                      key={meal._id}
+                      img={meal.image}
+                      mealName={meal.name}
+                      price={meal.price}
+                      description={meal.area}
+                      restaurant={meal.restaurant}
+                      className="w-full"
+                    />
+                  ))
+                )}
               </div>
             )}
           </div>
