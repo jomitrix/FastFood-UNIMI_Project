@@ -16,16 +16,12 @@ import { formatCurrency } from "@/utils/format";
 import { statuses } from "@/utils/lists";
 import { RestaurantService } from "@/services/restaurantService";
 
-export default function OrderRestaurant({ orders, restaurant, totalOrders, loadPage, currentPage, isLoading }) {
+export default function OrderRestaurant({ orders, totalOrders, loadPage, currentPage, isLoading, filterValue, setFilterValue, statusFilter, setStatusFilter, debouncedSearch }) {
   const statusOptions = useMemo(
     () => Object.keys(statuses).map(uid => ({ uid, name: statuses[uid].display })),
     []
   );
 
-  const [filterValue, setFilterValue] = useState("");
-  const [statusFilter, setStatusFilter] = useState(
-    () => new Set(statusOptions.map(opt => opt.uid))
-  );
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [newStatus, setNewStatus] = useState("");
@@ -54,11 +50,11 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
   }, [orders, filterValue, statusFilter, statusOptions.length]);
 
   // Reset dei filtri -> torna alla prima pagina
-  useEffect(() => {
-    if (filterValue.trim() || statusFilter.size !== statusOptions.length) {
-      loadPage(1);
-    }
-  }, [filterValue, statusFilter]);
+  // useEffect(() => {
+  //   if (debouncedSearch.trim() || statusFilter.size !== statusOptions.length) {
+  //     loadPage(1);
+  //   }
+  // }, [debouncedSearch, statusFilter]);
 
   // order id
   const findOrderById = (orderId) => {
@@ -190,7 +186,7 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
         </TableHeader>
 
         <TableBody 
-          items={filteredOrders}
+          items={orders}
           emptyContent={
             isLoading ? (
               <div className="flex justify-center py-8 w-full">
@@ -297,7 +293,7 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
                   <div>
                     <h2 className="text-xl font-bold">Manage Order</h2>
                     <p className="text-sm text-gray-500">
-                      {selectedOrder._id} - {selectedOrder.customer}
+                      {selectedOrder._id.substr(-6).toUpperCase()} - {selectedOrder.user.name} {selectedOrder.user.surname}
                     </p>
                   </div>
                   <Chip
@@ -396,16 +392,16 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
                               })}
                             </p>
                           </div>
-                          {selectedOrder.estimatedDelivery && (
+                          {selectedOrder.orderType == "delivery" && (
                             <div className="p-2 bg-neutral-50 rounded-lg">
                               <p className="text-xs text-gray-500">Est. Delivery</p>
-                              <p className="text-sm font-medium">10m</p>
+                              <p className="text-sm font-medium">{Math.ceil(selectedOrder.deliveryTime / 60)}m</p>
                             </div>
                           )}
-                          {selectedOrder.estimatedPickup && (
+                          {selectedOrder.orderType == "takeaway" && (
                             <div className="p-2 bg-neutral-50 rounded-lg">
                               <p className="text-xs text-gray-500">Est. Pickup</p>
-                              <p className="text-sm font-medium">10m</p>
+                              <p className="text-sm font-medium">{Math.ceil(selectedOrder.deliveryTime / 60)}m</p>
                             </div>
                           )}
                         </div>

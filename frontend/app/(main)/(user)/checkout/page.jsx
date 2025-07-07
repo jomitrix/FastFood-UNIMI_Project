@@ -367,7 +367,7 @@ export default function Checkout() {
                 title="Order Checkout"
                 subtitle="Complete your order"
             />
-            <div className={`w-full flex flex-wrap sm:flex-nowrap justify-center ${mockOrder.orderType === "delivery" ? "items-stretch" : "items-start"} mt-8 px-3 gap-4`}>
+            <div className={`w-full flex flex-wrap sm:flex-nowrap justify-center ${cart.orderType === "delivery" ? "items-stretch" : "items-start"} mt-8 px-3 gap-4`}>
                 <div className="flex flex-col flex-1 max-w-3xl gap-4">
                     <Card>
                         <CardHeader>
@@ -447,7 +447,7 @@ export default function Checkout() {
                                 </div>
 
                                 {/* Card cliccabile per gli order items */}
-                                <div className={`w-full mb-4 ${mockOrder.orderType === "delivery" ? "border-b pb-3" : ""}`}>
+                                <div className={`w-full mb-4 ${cart.orderType === "delivery" ? "border-b pb-3" : ""}`}>
                                     <Card
                                         className={`w-full rounded-md hover:bg-gray-100 shadow-none`}
                                         isPressable
@@ -480,7 +480,7 @@ export default function Checkout() {
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-gray-600">Delivery fee</span>
-                                                <span>{mockOrder.deliveryFee.toFixed(2)}€</span>
+                                                <span>{"12"}€</span>
                                             </div>
                                             <div className="flex justify-between text-sm text-gray-500">
                                                 <span>Estimated delivery time</span>

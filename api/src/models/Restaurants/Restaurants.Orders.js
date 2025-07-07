@@ -16,6 +16,7 @@ const OrderSchema = new mongoose.Schema({
     specialInstructions: { type: String, trim: true, default: "" },
     phoneNumber: { type: String, trim: true, required: true },
     paymentMethod: { type: String, enum: ["credit_card", "cash"], required: true },
+    code: { type: String, trim: true, required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model("Restaurants.Orders", OrderSchema, "Restaurants.Orders");

@@ -12,6 +12,7 @@ const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
 const { geocodeAddress, getRouteDistance } = require("@utils/openStreetMap");
+const crypto = require("crypto");
 
 router.patch("/edit", authStrict, validate(validator.restaurantEditSchema), async (req, res, next) => {
     try {
@@ -348,6 +349,8 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
         const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
 
+        if (orderType !== restaurant.serviceMode && restaurant.serviceMode !== "all") return res.status(400).send({ status: "error", error: "This restaurant does not support the selected order type" });
+
         const orderedMeals = await Meals.find({ _id: { $in: meals.map(m => m.meal) } }).lean();
         if (meals.length !== meals.length) return res.status(400).send({ status: "error", error: "Some meals not found" });
 
@@ -368,6 +371,9 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
 
         if (totalPrice <= 0) return res.status(400).send({ status: "error", error: "Total price must be greater than zero" });
 
+        const code = crypto.randomInt(0, 1000);
+        const formattedCode = code.toString().padStart(3, '0');
+
         const order = new Orders({
             restaurant: restaurant._id,
             user: req.user._id,
@@ -379,7 +385,8 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
             deliveryTime,
             specialInstructions: specialInstructions || "",
             phoneNumber,
-            paymentMethod
+            paymentMethod,
+            code: formattedCode,
         });
         await order.save();
 
@@ -389,16 +396,25 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
 
 router.get("/orders/get", authStrict, async (req, res, next) => {
     try {
-        const { page = 1 } = req.query;
+        const { page = 1, query, status } = req.query;
 
         const restaurant = await Restaurants.findOne({ user: req.user._id }).lean();
         if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
         if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
 
-        const orders = await Orders.find({ restaurant: restaurant._id })
+        let matchConditions = { restaurant: restaurant._id };
+        if (query) {
+            const regex = new RegExp(query, 'i');
+            matchConditions.$or = [
+                { "user.name": { $regex: regex } },
+                { "user.surname": { $regex: regex } }
+            ];
+        }
+        if (status) matchConditions.status = { $in: status.split(",").map(s => s.trim()) };
+        const orders = await Orders.find(matchConditions)
             .populate("user", "name surname email")
             .populate("meals.meal", "name price ingredients")
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: -1, _id: -1 })
             .skip((page - 1) * 10)
             .limit(10)
             .lean();

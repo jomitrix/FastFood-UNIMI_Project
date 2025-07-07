@@ -52,10 +52,15 @@ const cardsEditSchema = Joi.object({
     cvv: Joi.string().length(3).pattern(/^[0-9]+$/).trim().required()
 });
 
+const completeOrderSchema = Joi.object({
+    code: Joi.string().length(3).pattern(/^[0-9]+$/).required()
+});
+
 module.exports = {
     accountEditSchema,
     preferencesEditSchema,
     billingEditSchema,
     deliveryEditSchema,
-    cardsEditSchema
+    cardsEditSchema,
+    completeOrderSchema
 };

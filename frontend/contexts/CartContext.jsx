@@ -1,17 +1,19 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 
 const CartContext = createContext();
 
 export function CartProvider({ children }) {
-    const initialOrderType = typeof window !== 'undefined' 
-        ? localStorage.getItem('orderType') 
-        : null;
-        
-    const [cart, setCart] = useState({
-        restaurant: null,
-        items: [],
-        orderType: initialOrderType,
-        deliveryAddress: null,
+    const [cart, setCart] = useState(() => {
+        let savedOrderType = null;
+        if (typeof window !== 'undefined') {
+            savedOrderType = localStorage.getItem('orderType')
+        }
+        return {
+            restaurant: null,
+            items: [],
+            orderType: savedOrderType,
+            deliveryAddress: null,
+        };
     });
 
     return (

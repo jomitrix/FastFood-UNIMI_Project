@@ -8,12 +8,13 @@ import { Takeaway, Delivery, ChevronRight } from "@/components/icons/heroicons";
 import OrderList from "@/components/app/orders/OrderList";
 import { InputOtp } from "@heroui/input-otp"
 import { Button } from "@heroui/button";
+import { UserService } from "@/services/userService";
+import { addToast } from "@heroui/toast";
 
-export default function OrderUser({orders, statuses, lastElementRef, isLoadingMore}) {
+export default function OrderUser({orders, statuses, lastElementRef, isLoadingMore, hidePastOrders, setHidePastOrders}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderModalId, setOrderModalId] = useState(null);
   const [order, setOrder] = useState(null);
-  const [hidePastOrders, setHidePastOrders] = useState(false);
   const [code, setCode] = useState("");
   const [codeError, setCodeError] = useState(false);
 
@@ -32,12 +33,14 @@ export default function OrderUser({orders, statuses, lastElementRef, isLoadingMo
     }
   }, [orderModalId, orders]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Se il codice corrisponde a quello dal dal ristoratore/rider
-    // aggiorna lo stato dell'ordine in completato
-    if (code !== "001") {
+
+    const data = await UserService.completeOrder(order._id, code);
+    if (!data || data.status !== "success") {
       setCodeError(true);
+      addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+      return;
     }
 
     setIsModalOpen(true);
@@ -50,7 +53,7 @@ export default function OrderUser({orders, statuses, lastElementRef, isLoadingMo
         <OrderList
           hidePastOrders={hidePastOrders}
           setHidePastOrders={setHidePastOrders}
-          orders={filteredOrders}
+          orders={orders}
           statuses={statuses}
           setIsModalOpen={setIsModalOpen}
           setOrderModalId={setOrderModalId}

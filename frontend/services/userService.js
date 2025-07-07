@@ -43,9 +43,15 @@ export const UserService = {
         return ApiService.delete('/user/account/delete');
     },
 
-    getOrders(page = 1) {
+    getOrders(page = 1, hidePast = false) {
         return ApiService.get('/user/orders/get', {
-            params: { page }
+            params: { page, hidePast }
+        });
+    },
+
+    completeOrder(orderId, code) {
+        return ApiService.patch(`/user/orders/${orderId}/complete`, {
+            body: { code }
         });
     }
 };

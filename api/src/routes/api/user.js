@@ -183,12 +183,14 @@ router.delete("/account/delete", authStrict, async (req, res, next) => {
 
 router.get("/orders/get", authStrict, async (req, res, next) => {
     try {
-        const { page = 1 } = req.query;
+        const { page = 1, hidePast } = req.query;
         
-        const orders = await Orders.find({ user: req.user._id })
+        let filter = { user: req.user._id };
+        if (hidePast == "true") filter.status = { $ne: "completed" };
+        const orders = await Orders.find(filter)
             .populate("restaurant", "name logo")
             .populate("meals.meal", "name price ingredients")
-            .sort({ createdAt: -1 })
+            .sort({ createdAt: -1, _id: -1 })
             .skip((page - 1) * 10)
             .limit(10)
             .lean();
@@ -196,6 +198,30 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
         const totalOrders = await Orders.countDocuments({ user: req.user._id });
 
         return res.send({ status: "success", orders, totalOrders });
+    } catch (err) { next(err); }
+});
+
+router.patch("/orders/:orderId/complete", authStrict, validate(validator.completeOrderSchema), async (req, res, next) => {
+    try {
+        const { orderId } = req.params;
+        const { code } = req.body;
+
+        if (!mongoose.Types.ObjectId.isValid(orderId)) return res.status(400).send({ status: "error", error: "Invalid order ID" });
+
+        const order = await Orders.findOne({ _id: orderId, user: req.user._id }).lean();
+        if (!order) return res.status(404).send({ status: "error", error: "Order not found" });
+
+        if (code !== order.code) return res.status(400).send({ status: "error", error: "Invalid code" });
+
+        if (order.status !== "ready") return res.status(400).send({ status: "error", error: "Order is not ready for completion" });
+
+        const updatedOrder = await Orders.findByIdAndUpdate(
+            orderId,
+            { status: "completed" },
+            { new: true }
+        );
+
+        res.send({ status: "success", order: updatedOrder });
     } catch (err) { next(err); }
 });
 

@@ -15,112 +15,18 @@ import { FeedService } from '@/services/feedService';
 import { RestaurantService } from '@/services/restaurantService';
 import { useDebounce } from '@/utils/useDebounce';
 import { useCart } from '@/contexts/CartContext';
-
-const mockRestaurant = {
-    banner: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,w_1537,h_480/f_auto/q_auto/dpr_1.0/d_it:cuisines:pollo-6.jpg/v1/it/restaurants/282166.jpg",
-    icon: "https://upload.wikimedia.org/wikipedia/sco/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png",
-    address: "Via Cassanese 1, 20090 Segrate MI, Italy",
-    phone: "+39 02 2131 1234",
-    restaurantname: "KFC - Abruzzi",
-    minDeliveryTime: 10,
-    maxDeliveryTime: 20,
-    courses: ["Fast Food", "Miscellaneous"],
-    area: ["American"],
-    isOpenNow: true,
-    orderType: "both",
-    times: {
-        monday: { open: "10:00", close: "23:00" },
-        tuesday: { open: "", close: "" },
-        wednesday: { open: "10:00", close: "23:00" },
-        thursday: { open: "10:00", close: "23:00" },
-        friday: { open: "10:00", close: "23:00" },
-        saturday: { open: "10:00", close: "23:00" },
-        sunday: { open: "10:00", close: "23:00" }
-    }
-}
-
-const mockMeals = [
-    {
-        id: "1",
-        price: 6.50,
-        currency: "€",
-        name: "Classic Burger e il nome è molto lungo per testare il layout",
-        category: "Fast Food",
-        area: "American",
-        allergens: ["Egg", "Wheat", "Sesame"],
-        image: "https://www.mcdonalds.be/_webdata/product-images/double-royal-crispy-bacon_500x500px.png",
-        ingredients: [
-            "Beef Patty",
-            "Lettuce",
-            "Tomato",
-            "Onion",
-            "Pickles",
-            "Burger Bun",
-            "Ketchup",
-            "Mustard",
-            "Mayonnaise"
-        ],
-    },
-    {
-        id: "2",
-        price: 7.20,
-        currency: "€",
-        name: "Chicken Wrap",
-        category: "Fast Food",
-        allergens: ["Egg", "Wheat"],
-        area: "American",
-        image: "https://mcdonalds.bg/wp-content/uploads/2023/01/BG_CSO_2054.png",
-        ingredients: [
-            "Chicken",
-            "Lettuce",
-            "Tomato",
-            "Onion",
-            "Tortilla",
-            "Salsa",
-            "Sour Cream"
-        ],
-    },
-    {
-        id: "3",
-        price: 2.50,
-        currency: "€",
-        name: "Cola",
-        category: "Miscellaneous",
-        area: "American",
-        image: "https://m.media-amazon.com/images/I/519hKzKgJML.jpg",
-        ingredients: [
-            "Carbonated Water",
-            "Sugar",
-            "Caffeine",
-            "Caramel Color",
-            "Phosphoric Acid",
-            "Natural Flavors"
-        ],
-    },
-    {
-        id: "4",
-        price: 3.00,
-        currency: "€",
-        name: "Fries",
-        category: "Fast Food",
-        area: "American",
-        image: "https://www.toineskitchen.com/wp-content/uploads/2021/05/2021-05-23-14.57.03-Toines-Kitchen-CX0A1132-500x500.jpg",
-        ingredients: [
-            "Potatoes",
-            "Vegetable Oil",
-            "Salt"
-        ],
-    }
-]
+import { getRouteDistance } from '@/utils/getRouteDistance';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function RestaurantPage({ params }) {
     const router = useRouter();
     const id = React.use(params);
     const { cart, setCart } = useCart();
+    const { user } = useAuth();
 
     const [restaurant, setRestaurant] = useState({});
+    const [isOpenNow, setIsOpenNow] = useState(false);
     const [activeCategory, setActiveCategory] = useState('All');
-    const [filteredMeals, setFilteredMeals] = useState(mockMeals);
     const [isModalOpen, setIsModalOpen] = useState(null);
     const [productId, setProductId] = useState(null);
     const [product, setProduct] = useState(null);
@@ -128,13 +34,13 @@ export default function RestaurantPage({ params }) {
     const [isCartOpen, setIsCartOpen] = useState(false);
     const [deliveryFee, setDeliveryFee] = useState(2.50);
     const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState({
-        min: mockRestaurant.minDeliveryTime,
-        max: mockRestaurant.maxDeliveryTime
+        min: 0,
+        max: 0
     });
     const [isBannerLoaded, setIsBannerLoaded] = useState(false);
     const [isIconLoaded, setIsIconLoaded] = useState(false);
     const [isProductImageLoaded, setIsProductImageLoaded] = useState(false);
-  
+
     const [categories, setCategories] = useState([]);
     const [searchValue, setSearchValue] = useState('');
 
@@ -275,24 +181,64 @@ export default function RestaurantPage({ params }) {
         router.push('/checkout/');
     };
 
+    useEffect(() => {
+        if (!restaurant.position || !user.delivery[0]) return;
+        async function calculateDeliveryTime() {
+            const time = await getRouteDistance(restaurant.position, user.delivery[0]);
+            const deliveryDistance = Math.ceil(time / 60);
+            setEstimatedDeliveryTime({
+                min: deliveryDistance >= 20 ? deliveryDistance - 10 : deliveryDistance,
+                max: deliveryDistance + 10
+            });
+        }
+
+        calculateDeliveryTime();
+
+        if (!restaurant.openingHours) return;
+
+        const now = new Date();
+        const dayName = now.toLocaleDateString('it-IT', { weekday: 'long' }).toLowerCase();
+        const slot = restaurant.openingHours[dayName];
+
+        if (!slot || slot.closed) {
+            setIsOpenNow(false);
+            return;
+        }
+
+        const [oh, om] = slot.open.split(':').map(Number);
+        const [ch, cm] = slot.close.split(':').map(Number);
+
+        const openTime = new Date(now);
+        openTime.setHours(oh, om, 0, 0);
+
+        const closeTime = new Date(now);
+        closeTime.setHours(ch, cm, 0, 0);
+
+        setIsOpenNow(now >= openTime && now <= closeTime);
+    }, [restaurant.position,
+    restaurant.minDeliveryTime,
+    restaurant.maxDeliveryTime,
+    restaurant.openingHours,
+    user.deliveryAddress]);
+
     return (
         <div>
             <div className="relative bg-[#f5f3f5] min-h-screen">
-                <div className="pr-0 md:pr-[350px]"> 
+                <div className="pr-0 md:pr-[350px]">
                     <div className="w-full 2xl:w-4/5 mx-auto px-4 flex flex-col gap-7 pb-20">
                         <div className='flex flex-col gap-2'>
                             <div className='relative h-[12rem] sm:h-[20rem] aspect-video w-full bg-gray-200 rounded-b-xl'>
                                 {!isBannerLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full rounded-b-xl" />}
-                                <img 
-                                    src={process.env.NEXT_PUBLIC_API_URL + restaurant.banner} 
+                                <img
+                                    src={process.env.NEXT_PUBLIC_API_URL + restaurant.banner}
                                     alt={`${restaurant.name} banner`}
                                     className={`object-cover w-full h-full rounded-b-xl transition-opacity duration-300 ${isBannerLoaded ? 'opacity-100' : 'opacity-0'}`}
                                     onLoad={() => setIsBannerLoaded(true)}
                                 />
                                 <div className="absolute bottom-5 left-5 w-24 h-24 sm:w-28 sm:h-28 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
                                     {!isIconLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
-                                    <img 
-                                        src={process.env.NEXT_PUBLIC_API_URL + restaurant.logo} 
+                                    <img
+                                        src={process.env.NEXT_PUBLIC_API_URL + restaurant.logo}
                                         alt={`${restaurant.name} logo`}
                                         className={`w-full h-full object-cover transition-opacity duration-300 ${isIconLoaded ? 'opacity-100' : 'opacity-0'}`}
                                         onLoad={() => setIsIconLoaded(true)}
@@ -314,11 +260,11 @@ export default function RestaurantPage({ params }) {
                                 <p className="flex gap-1 text-sm text-gray-700">
                                     <span className='flex py-1 gap-1'>
                                         <Time className="inline-block h-4 w-4 mt-[3px]" />
-                                        {"10"} - {"20"} min
+                                        {estimatedDeliveryTime.min} - {estimatedDeliveryTime.max} min
                                     </span>
                                     <span className='py-1'>•</span>
-                                    <span className={`rounded-full px-2 py-1 ${mockRestaurant.isOpenNow ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                                        {mockRestaurant.isOpenNow ? "Open Now" : "Closed"}
+                                    <span className={`rounded-full px-2 py-1 ${isOpenNow ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
+                                        {isOpenNow ? "Open Now" : "Closed"}
                                     </span>
                                 </p>
                             </div>
@@ -370,7 +316,7 @@ export default function RestaurantPage({ params }) {
                     )}
                 </button>
 
-                
+
 
                 {/* Modal per il carrello su mobile */}
                 <Modal
@@ -424,7 +370,7 @@ export default function RestaurantPage({ params }) {
                                 </h3>
                                 <ul className='bg-gray-100 p-3 border-1 border-gray-500/25 rounded-lg flex flex-col gap-3'>
                                     <li className=''>
-                                        {restaurant.address?.split(", ").map((part, index) => (
+                                        {restaurant.position?.address?.split(", ").map((part, index) => (
                                             <span key={index} className="block -my-0.5">{part}</span>
                                         ))}
                                     </li>
@@ -436,13 +382,20 @@ export default function RestaurantPage({ params }) {
                                     <Time />
                                     Opening Hours
                                 </h3>
-                                <ul className='bg-gray-100 p-3 border-1 border-gray-500/25 rounded-lg'>
-                                    {mockRestaurant.times && Object.entries(mockRestaurant.times).map(([day, times]) => {
+                                <ul className="bg-gray-100 p-3 border border-gray-300 rounded-lg">
+                                    {[
+                                        "monday", "tuesday", "wednesday",
+                                        "thursday", "friday", "saturday", "sunday"
+                                    ].map(day => {
+                                        if (!restaurant.openingHours) return;
+                                        const { open, close, closed } = restaurant.openingHours[day] || {};
                                         return (
-                                            <li key={day} className="flex justify-between">
+                                            <li key={day} className="flex justify-between py-1">
                                                 <span className="capitalize font-medium">{day}</span>
-                                                <span className={`${!times.open || !times.close ? "text-red-500" : "text-gray-700"}`}>
-                                                    {!times.open || !times.close ? "Closed" : `${times.open} - ${times.close}`}
+                                                <span className={closed ? "text-red-500" : "text-gray-700"}>
+                                                    {closed || !open || !close
+                                                        ? "Closed"
+                                                        : `${open} - ${close}`}
                                                 </span>
                                             </li>
                                         );

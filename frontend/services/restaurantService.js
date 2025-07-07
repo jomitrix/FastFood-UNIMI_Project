@@ -70,9 +70,9 @@ export const RestaurantService = {
         });
     },
 
-    getOrders(page = 1) {
+    getOrders(page = 1, query = null, status = "ordered,preparing,out,ready,completed,canceled") {
         return ApiService.get('/restaurant/orders/get', {
-            params: { page }
+            params: { page, query, status }
         });
     },
 
