@@ -263,11 +263,15 @@ export default function RestaurantPage({ params }) {
                             </div>
                             <div className="flex">
                                 <p className="flex gap-1 text-sm text-gray-700">
-                                    <span className='flex py-1 gap-1'>
-                                        <Time className="inline-block h-4 w-4 mt-[3px]" />
-                                        {estimatedDeliveryTime.min} - {estimatedDeliveryTime.max} min
-                                    </span>
-                                    <span className='py-1'>•</span>
+                                    { estimatedDeliveryTime.min !== 0 && estimatedDeliveryTime.max !== 0 && isOpenNow && (
+                                        <>
+                                            <span className='flex py-1 gap-1'>
+                                                <Time className="inline-block h-4 w-4 mt-[3px]" />
+                                                {estimatedDeliveryTime.min} - {estimatedDeliveryTime.max} min
+                                            </span>
+                                            <span className='py-1'>•</span>
+                                        </>
+                                    )}
                                     <span className={`rounded-full px-2 py-1 ${isOpenNow ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                                         {isOpenNow ? "Open Now" : "Closed"}
                                     </span>
@@ -561,6 +565,7 @@ export default function RestaurantPage({ params }) {
                         deliveryFee={deliveryFee}
                         estimatedDeliveryTime={estimatedDeliveryTime}
                         restaurantOrderType={restaurant.serviceMode || "all"}
+                        isRestaurantOpen={isOpenNow}
                     />
                 </div>
             </aside>
