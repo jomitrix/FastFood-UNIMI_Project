@@ -192,29 +192,34 @@ export default function RestaurantPage({ params }) {
             });
         }
 
-        calculateDeliveryTime();
-
-        if (!restaurant.openingHours) return;
-
-        const now = new Date();
-        const dayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
-        const slot = restaurant.openingHours[dayName];
-
-        if (!slot || slot.closed) {
-            setIsOpenNow(false);
-            return;
+        function valuateIsOpenNow() {
+            if (!restaurant.openingHours) return;
+    
+            const now = new Date();
+            const dayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+            console.log(dayName);
+            const slot = restaurant.openingHours[dayName];
+            console.log(slot);
+    
+            if (!slot || slot.closed) {
+                setIsOpenNow(false);
+                return;
+            }
+    
+            const [oh, om] = slot.open.split(':').map(Number);
+            const [ch, cm] = slot.close.split(':').map(Number);
+    
+            const openTime = new Date(now);
+            openTime.setHours(oh, om, 0, 0);
+    
+            const closeTime = new Date(now);
+            closeTime.setHours(ch, cm, 0, 0);
+    
+            setIsOpenNow(now >= openTime && now <= closeTime);
         }
 
-        const [oh, om] = slot.open.split(':').map(Number);
-        const [ch, cm] = slot.close.split(':').map(Number);
-
-        const openTime = new Date(now);
-        openTime.setHours(oh, om, 0, 0);
-
-        const closeTime = new Date(now);
-        closeTime.setHours(ch, cm, 0, 0);
-
-        setIsOpenNow(now >= openTime && now <= closeTime);
+        valuateIsOpenNow();
+        calculateDeliveryTime();
     }, [restaurant.position,
     restaurant.minDeliveryTime,
     restaurant.maxDeliveryTime,
