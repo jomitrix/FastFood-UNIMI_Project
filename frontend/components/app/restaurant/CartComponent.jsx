@@ -12,6 +12,7 @@ export default function CartComponent({
   cartTotal, 
   removeFromCart, 
   updateCartItemQuantity,
+  isRestaurantOpen,
   setIsCartOpen,
   onCheckout,
   deliveryFee = 2.50,
@@ -195,12 +196,18 @@ export default function CartComponent({
             className="w-full bg-[#083d77] text-white py-3 rounded-xl font-medium hover:bg-[#062f5c] disabled:bg-gray-300 disabled:cursor-not-allowed"
             onPress={onCheckout}
             size='lg'
-            disabled={orderType === 'delivery' && !selectedAddress}
+            disabled={(orderType === 'delivery' && !selectedAddress) || isRestaurantOpen === false}
           >
             <Cash />
-            {orderType === 'delivery' && !selectedAddress 
-              ? "Please select an address" 
-              : "Proceed to checkout"}
+            {(orderType === 'delivery' && !selectedAddress) || isRestaurantOpen === false ? (
+              isRestaurantOpen === false ? (
+                "Restaurant is closed"
+              ) : (
+                "Select an address"
+              )
+            ) : (
+              "Proceed to Checkout"
+            )}
           </Button>
         </div>
       )}
