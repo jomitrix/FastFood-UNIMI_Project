@@ -7,6 +7,7 @@ import { addToast } from "@heroui/toast";
 import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@heroui/modal";
 import { ScrollShadow } from "@heroui/scroll-shadow";
 import { UserService } from '@/services/userService';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function DeliveryAddressesSection({
   addresses = [],

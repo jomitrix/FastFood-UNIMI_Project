@@ -1,9 +1,9 @@
-"use client"; 
+"use client";
 import { Time } from '@/components/icons/heroicons';
 import { useRouter } from 'next/navigation';
 import { Card } from '@heroui/card';
 import { Skeleton } from '@heroui/skeleton';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function RestaurantCard({ restaurant, className }) {
   const router = useRouter();
@@ -11,11 +11,11 @@ export default function RestaurantCard({ restaurant, className }) {
 
   const handleCardPress = () => {
     const existingOrderType = localStorage.getItem("orderType");
-    
+
     if (!existingOrderType && restaurant.serviceMode) {
-    restaurant.serviceMode === "delivery"
-      ? localStorage.setItem("orderType", "delivery")
-      : localStorage.setItem("orderType", "takeaway"); // se è all lascia takeaway
+      restaurant.serviceMode === "delivery"
+        ? localStorage.setItem("orderType", "delivery")
+        : localStorage.setItem("orderType", "takeaway"); // se è all lascia takeaway
     }
 
     router.push(`/restaurant/${restaurant._id}`);
@@ -43,7 +43,7 @@ export default function RestaurantCard({ restaurant, className }) {
         </div>
         <p className="flex gap-1 text-sm text-gray-600">
           <Time className="inline-block mt-[1.5px] h-4 w-4 text-gray-500" />
-          {"10"} - {"20"} min
+          {restaurant.estimatedDeliveryTime?.min} - {restaurant.estimatedDeliveryTime?.max} min
         </p>
         <p className="flex text-sm text-gray-500 justify-start truncate">
           {(restaurant.area?.filter(a => a !== "Unknown") || []).join(' • ')}

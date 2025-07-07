@@ -7,7 +7,7 @@ import HorizontalScroller from '@/components/app/search/HorizontalScroller';
 import DeliveryAddressesSection from '@/components/app/home/DeliveryAddressesSection';
 import AddressOrderType from '@/components/app/search/AddressOrderType';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@heroui/button';
 import { Search, Funnel } from '@/components/icons/heroicons';
 import {
@@ -18,53 +18,41 @@ import {
 import { Input } from "@heroui/input";
 import { allergens } from "@/utils/lists";
 import { Select, SelectItem } from '@heroui/select';
+import { FeedService } from '@/services/feedService';
+import { usePaginator } from '@/utils/paginator';
+import { useAuth } from '@/contexts/AuthContext';
+import { Spinner } from '@heroui/spinner';
 
-const mockAddresses = [
-    {
-      id: 1,
-      address: "Via Tiburtina 1361, Roma, 00131, Italy"
-    },
-    {
-      id: 2,
-      address: "Piazzale Loreto 9, Milano, 20131, Italy"
-    },
-    {
-      id: 3,
-      address: "Via Dante 20, Poggibonsi, 53036, Italy"
-    },
-  ];
-
-
-  const mockTastesRest = [
-    {
-      id: 1,
-      img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
-      restaurantname: "Sushi Feltre",
-      minDeliveryTime: 10,
-      maxDeliveryTime: 20,
-      courses: ["Fish", "Starter", "Main Course", "First Course"],
-      area: ["Japanese", "Chinese", "Asian"],
-      allergens: ["Milk", "Egg", "Peanut"],
-      rating: 4.5,
-      isOpenNow: true,
-      orderType: "both",
-      addressReference: {id: 1}
-    },
-    {
-      id: 2,
-      img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
-      restaurantname: "Pizzeria da Mario",
-      minDeliveryTime: 20,
-      maxDeliveryTime: 40,
-      courses: ["Pizza", "Italian"],
-      area: ["Italian"],
-      allergens: ["Gluten", "Milk"],
-      rating: 4.8,
-      isOpenNow: false,
-      orderType: "delivery",
-      addressReference: {id: 2}
-    }
-  ];
+const mockTastesRest = [
+  {
+    id: 1,
+    img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
+    restaurantname: "Sushi Feltre",
+    minDeliveryTime: 10,
+    maxDeliveryTime: 20,
+    courses: ["Fish", "Starter", "Main Course", "First Course"],
+    area: ["Japanese", "Chinese", "Asian"],
+    allergens: ["Milk", "Egg", "Peanut"],
+    rating: 4.5,
+    isOpenNow: true,
+    orderType: "both",
+    addressReference: { id: 1 }
+  },
+  {
+    id: 2,
+    img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
+    restaurantname: "Pizzeria da Mario",
+    minDeliveryTime: 20,
+    maxDeliveryTime: 40,
+    courses: ["Pizza", "Italian"],
+    area: ["Italian"],
+    allergens: ["Gluten", "Milk"],
+    rating: 4.8,
+    isOpenNow: false,
+    orderType: "delivery",
+    addressReference: { id: 2 }
+  }
+];
 // filtro richiesto dal prof (i ristoranti devono essere mostrati per vicinanza dall'indirizzo selezionato
 // già filtrati per delivery, takeaway e entrambi
 // inoltre al caricamento della pagina mettere già tra i filtri di esclusione gli allergeni onboarding
@@ -136,27 +124,27 @@ const mockMeals = [
       ...mockRestaurants[3]
     },
     ingredients: [
-              "Chicken Thighs",
-              "Lime",
-              "Spring Onions",
-              "Ginger",
-              "Garlic",
-              "Onion",
-              "Red Chilli",
-              "Thyme",
-              "Lime",
-              "Soy Sauce",
-              "Vegetable Oil",
-              "Brown Sugar",
-              "Allspice",
-              "Basmati Rice",
-              "Coconut Milk",
-              "Spring Onions",
-              "Thyme",
-              "Garlic",
-              "Allspice",
-              "Kidney Beans"
-          ],
+      "Chicken Thighs",
+      "Lime",
+      "Spring Onions",
+      "Ginger",
+      "Garlic",
+      "Onion",
+      "Red Chilli",
+      "Thyme",
+      "Lime",
+      "Soy Sauce",
+      "Vegetable Oil",
+      "Brown Sugar",
+      "Allspice",
+      "Basmati Rice",
+      "Coconut Milk",
+      "Spring Onions",
+      "Thyme",
+      "Garlic",
+      "Allspice",
+      "Kidney Beans"
+    ],
   },
   {
     id: "2",
@@ -186,9 +174,11 @@ const mockMeals = [
 ];
 
 export default function Home() {
+  const { user } = useAuth();
+
   const [orderType, setOrderType] = useState("takeaway");
-  const [selectedAddress, setSelectedAddress] = useState(null);
-  const [addresses, setAddresses] = useState(mockAddresses);
+  const [selectedAddress, setSelectedAddress] = useState({});
+  const [addresses, setAddresses] = useState(user?.delivery);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -200,7 +190,36 @@ export default function Home() {
   });
   const [searchValue, setSearchValue] = useState("");
   const [searchType, setSearchType] = useState("restaurant");
-  
+
+  const nearbyRestaurantsPaginator = usePaginator(useCallback(
+    (page, _) => FeedService.getNearbyRestaurants(page, selectedAddress._id, orderType, selectedCategories, activeFilters.selectedCuisines, activeFilters.selectedAllergens, activeFilters.isOpenNow)
+      .then(data => data.status !== 'success' ? [] : data.restaurants), [selectedAddress._id, orderType, selectedCategories, activeFilters]),
+    10
+  );
+
+  const nearbyPreferredRestaurantsPaginator = usePaginator(useCallback(
+    (page, _) => FeedService.getNearbyPreferredRestaurants(page, selectedAddress._id)
+      .then(data => data.status !== 'success' ? [] : data.restaurants), [selectedAddress._id]),
+    10
+  );
+
+  useEffect(() => {
+    nearbyPreferredRestaurantsPaginator.reset();
+    nearbyRestaurantsPaginator.reset();
+  }, [selectedAddress]);
+
+  useEffect(() => {
+    nearbyRestaurantsPaginator.reset();
+  }, [orderType]);
+
+  useEffect(() => {
+    nearbyRestaurantsPaginator.reset();
+  }, [selectedCategories]);
+
+  useEffect(() => {
+    nearbyRestaurantsPaginator.reset();
+  }, [activeFilters]);
+
   useEffect(() => {
     const courseFromStorage = localStorage.getItem('course');
     if (courseFromStorage) {
@@ -240,8 +259,8 @@ export default function Home() {
 
   const handleAddressSelect = (address) => {
     setSelectedAddress(address);
-    if (address && address.id) {
-      localStorage.setItem('selectedAddressId', address.id);
+    if (address && address._id) {
+      localStorage.setItem('selectedAddressId', address._id);
     }
   };
 
@@ -278,11 +297,11 @@ export default function Home() {
     if (!searchValue) {
       return results;
     }
-    
+
     const query = searchValue.toLowerCase();
-    
+
     if (searchType === "restaurant") {
-      return results.filter(restaurant => 
+      return results.filter(restaurant =>
         restaurant.restaurantname.toLowerCase().includes(query) ||
         restaurant.area.some(area => area.toLowerCase().includes(query))
       );
@@ -293,14 +312,14 @@ export default function Home() {
         if (meal.name.toLowerCase().includes(query)) {
           return true;
         }
-        
+
         // Controlla gli ingredienti
         if (meal.ingredients && Array.isArray(meal.ingredients)) {
-          return meal.ingredients.some(ingredient => 
+          return meal.ingredients.some(ingredient =>
             ingredient.toLowerCase().includes(query)
           );
         }
-        
+
         return false;
       });
     }
@@ -310,19 +329,14 @@ export default function Home() {
     <div className='bg-[#f5f3f5] w-full flex flex-col min-h-screen overflow-x-hidden'>
       {/* Header fisso */}
       <header className="fixed w-full top-16 z-40 bg-[#ff8844] shadow-sm">
-        <AddressOrderType 
+        <AddressOrderType
           addresses={addresses}
           onAddressSelect={handleAddressSelect}
           onOrderTypeChange={setOrderType}
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}
           onAddressesSave={(newAddresses) => {
-            setAddresses(
-              newAddresses.map((address, idx) => ({
-                id: addresses[idx]?.id || Date.now() + idx,
-                address,
-              }))
-            );
+            setAddresses(newAddresses);
           }}
           initialOrderType={orderType}
         />
@@ -332,14 +346,14 @@ export default function Home() {
       {/* Contenuto - aumentato padding-top per evitare sovrapposizioni */}
       <div className="pt-[13rem] sm:pt-[12.5rem] w-full">
         <main className="max-w-7xl mx-auto flex flex-col lg:flex-row px-4 w-full overflow-hidden">
-          <FilterSidebar 
+          <FilterSidebar
             onFiltersChange={handleFiltersChange}
             isDrawerOpen={isFilterDrawerOpen}
             setIsDrawerOpen={setIsFilterDrawerOpen}
             searchType={searchType}
             activeFilters={activeFilters}
           />
-  
+
           <div className="flex-1 pt-6 w-full">
             <div className="flex flex-col lg:flex-row lg:items-center gap-3 mb-8">
               <Input
@@ -357,7 +371,7 @@ export default function Home() {
                 onChange={handleSearchChange}
                 className="w-full lg:flex-1"
               />
-              
+
               <div className="flex items-center gap-3">
                 <Select
                   disallowEmptySelection
@@ -385,9 +399,9 @@ export default function Home() {
                   <SelectItem key="restaurant" value="restaurant">Restaurant</SelectItem>
                   <SelectItem key="dishes" value="dishes">Dishes</SelectItem>
                 </Select>
-                
-                <Button 
-                  onPress={() => setIsFilterDrawerOpen(true)} 
+
+                <Button
+                  onPress={() => setIsFilterDrawerOpen(true)}
                   className="lg:hidden flex items-center overflow-auto justify-center gap-2 border rounded-lg px-3 py-2 bg-gray-200 shrink-0 relative"
                   size="lg"
                 >
@@ -401,41 +415,61 @@ export default function Home() {
                 </Button>
               </div>
             </div>
-  
-            { !searchValue && searchType === "restaurant" && (
+
+            {!searchValue && searchType === "restaurant" && (
               <HorizontalScroller title="Based on your tastes">
-                {mockTastesRest.map((r) => (
-                  <RestaurantCard
-                    key={r.restaurantname}
-                    {...r}
-                    className="w-72 shrink-0"
+                {nearbyPreferredRestaurantsPaginator.isLoading ? (
+                  <Spinner
+                    className="w-100 h-100"
+                    variant="dots"
+                    classNames={{
+                      dots: 'bg-[#083d77]',
+                    }}
                   />
-                ))}
+                ) : (
+                  nearbyPreferredRestaurantsPaginator.items.map((r) => (
+                    <RestaurantCard
+                      key={r._id}
+                      className="w-72 shrink-0"
+                      restaurant={r}
+                    />
+                  ))
+                )}
               </HorizontalScroller>
-            ) }
-  
+            )}
+
             <h2 className="text-xl font-semibold mb-4">
-              {searchType === "restaurant" 
+              {searchType === "restaurant"
                 ? `Order from ${mockRestaurants.length} restaurants`
                 : `Choose from ${mockMeals.length} dishes`
               }
             </h2>
-            
+
             {searchType === "restaurant" ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                {getFilteredResults.map((restaurant, i) => (
-                  <RestaurantCard
-                    key={`${restaurant.restaurantname}-${i}`}
-                    {...restaurant}
-                    className="w-full"
+                {nearbyRestaurantsPaginator.isLoading ? (
+                  <Spinner
+                    className="w-100 h-100"
+                    variant="dots"
+                    classNames={{
+                      dots: 'bg-[#083d77]',
+                    }}
                   />
-                ))}
+                ) : (
+                  nearbyRestaurantsPaginator.items.map((r) => (
+                    <RestaurantCard
+                      key={r._id}
+                      className="w-full"
+                      restaurant={r}
+                    />
+                  ))
+                )}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
                 {getFilteredResults.map((meal) => (
                   <MealCard
-                    key={meal.id}
+                    key={meal._id}
                     img={meal.image}
                     mealName={meal.name}
                     price={meal.price}
@@ -449,8 +483,8 @@ export default function Home() {
           </div>
         </main>
       </div>
-  
-      <FilterSidebar 
+
+      <FilterSidebar
         onFiltersChange={handleFiltersChange}
         isDrawerOpen={isFilterDrawerOpen}
         setIsDrawerOpen={setIsFilterDrawerOpen}
