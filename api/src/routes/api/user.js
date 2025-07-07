@@ -186,7 +186,7 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
         const { page = 1, hidePast } = req.query;
         
         let filter = { user: req.user._id };
-        if (hidePast == "true") filter.status = { $ne: "completed" };
+        if (hidePast == "true") filter.status = { $nin: ["completed", "canceled"] };
         const orders = await Orders.find(filter)
             .populate("restaurant", "name logo")
             .populate("meals.meal", "name price ingredients")

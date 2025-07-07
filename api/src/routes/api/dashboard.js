@@ -17,7 +17,8 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
             createdAt: {
                 $gte: new Date(new Date().setHours(0, 0, 0, 0)),
                 $lt: new Date(new Date().setHours(23, 59, 59, 999))
-            }
+            },
+            status: { $ne: "canceled" }
         });
 
         const monthOrdersCount = await Orders.countDocuments({
@@ -25,7 +26,8 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
             createdAt: {
                 $gte: new Date(new Date().setDate(1)),
                 $lt: new Date(new Date().setMonth(new Date().getMonth() + 1, 1))
-            }
+            },
+            status: { $ne: "canceled" }
         });
 
         const previousMonthOrdersCount = await Orders.countDocuments({
@@ -33,17 +35,19 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
             createdAt: {
                 $gte: new Date(new Date().setMonth(new Date().getMonth() - 1, 1)),
                 $lt: new Date(new Date().setDate(1))
-            }
+            },
+            status: { $ne: "canceled" }
         });
 
-        const totalOrdersCount = await Orders.countDocuments({ restaurant: restaurant._id });
+        const totalOrdersCount = await Orders.countDocuments({ restaurant: restaurant._id, status: { $ne: "canceled" } });
 
         const weekOrdersCount = await Orders.countDocuments({
             restaurant: restaurant._id,
             createdAt: {
                 $gte: new Date(new Date().setDate(new Date().getDate() - 7)),
                 $lt: new Date()
-            }
+            },
+            status: { $ne: "canceled" }
         });
 
         const monthlyOrdersAverage = await Orders.aggregate([
@@ -53,7 +57,8 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
                     createdAt: {
                         $gte: new Date(new Date().setDate(1)),
                         $lt: new Date(new Date().setMonth(new Date().getMonth() + 1, 1))
-                    }
+                    },
+                    status: { $ne: "canceled" }
                 }
             },
             {
@@ -77,7 +82,8 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
                     createdAt: {
                         $gte: new Date(new Date().setDate(new Date().getDate() - 14)),
                         $lt: new Date(new Date().setDate(new Date().getDate() - 7))
-                    }
+                    },
+                    status: { $ne: "canceled" }
                 }
             },
             {
@@ -115,7 +121,8 @@ router.get("/revenue/get", authStrict, async (req, res, next) => {
                     createdAt: {
                         $gte: new Date(new Date().setHours(0, 0, 0, 0)),
                         $lt: new Date(new Date().setHours(23, 59, 59, 999))
-                    }
+                    },
+                    status: "completed"
                 }
             },
             {
@@ -133,7 +140,8 @@ router.get("/revenue/get", authStrict, async (req, res, next) => {
                     createdAt: {
                         $gte: new Date(new Date().setDate(1)),
                         $lt: new Date(new Date().setMonth(new Date().getMonth() + 1, 1))
-                    }
+                    },
+                    status: "completed"
                 }
             },
             {
@@ -151,7 +159,8 @@ router.get("/revenue/get", authStrict, async (req, res, next) => {
                     createdAt: {
                         $gte: new Date(new Date().setMonth(new Date().getMonth() - 1, 1)),
                         $lt: new Date(new Date().setDate(1))
-                    }
+                    },
+                    status: "completed"
                 }
             },
             {
@@ -169,7 +178,8 @@ router.get("/revenue/get", authStrict, async (req, res, next) => {
                     createdAt: {
                         $gte: new Date(new Date().setDate(new Date().getDate() - 7)),
                         $lt: new Date()
-                    }
+                    },
+                    status: "completed"
                 }
             },
             {
@@ -182,7 +192,7 @@ router.get("/revenue/get", authStrict, async (req, res, next) => {
 
         const totalRevenue = await Orders.aggregate([
             {
-                $match: { restaurant: restaurant._id }
+                $match: { restaurant: restaurant._id, status: "completed" }
             },
             {
                 $group: {
@@ -194,7 +204,7 @@ router.get("/revenue/get", authStrict, async (req, res, next) => {
 
         const averageTotalPrice = await Orders.aggregate([
             {
-                $match: { restaurant: restaurant._id }
+                $match: { restaurant: restaurant._id, status: "completed" }
             },
             {
                 $group: {
@@ -211,7 +221,8 @@ router.get("/revenue/get", authStrict, async (req, res, next) => {
                     createdAt: {
                         $gte: new Date(new Date().setDate(new Date().getDate() - 14)),
                         $lt: new Date(new Date().setDate(new Date().getDate() - 7))
-                    }
+                    },
+                    status: "completed"
                 }
             },
             {
@@ -256,6 +267,7 @@ router.get("/products/get", authStrict, async (req, res, next) => {
                             { $match: { $expr: { $eq: ["$restaurant", restaurant._id] } } },
                             { $unwind: "$meals" },
                             { $match: { $expr: { $eq: ["$meals.meal", "$$mealId"] } } },
+                            { $match: { $eq: ["$status", "completed"] } },
                             {
                                 $project: {
                                     quantity: "$meals.quantity",

@@ -7,7 +7,7 @@ import HorizontalScroller from '@/components/app/search/HorizontalScroller';
 import DeliveryAddressesSection from '@/components/app/home/DeliveryAddressesSection';
 import AddressOrderType from '@/components/app/search/AddressOrderType';
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Button } from '@heroui/button';
 import { Search, Funnel } from '@/components/icons/heroicons';
 import {
@@ -22,156 +22,7 @@ import { FeedService } from '@/services/feedService';
 import { usePaginator } from '@/utils/paginator';
 import { useAuth } from '@/contexts/AuthContext';
 import { Spinner } from '@heroui/spinner';
-
-const mockTastesRest = [
-  {
-    id: 1,
-    img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
-    restaurantname: "Sushi Feltre",
-    minDeliveryTime: 10,
-    maxDeliveryTime: 20,
-    courses: ["Fish", "Starter", "Main Course", "First Course"],
-    area: ["Japanese", "Chinese", "Asian"],
-    allergens: ["Milk", "Egg", "Peanut"],
-    rating: 4.5,
-    isOpenNow: true,
-    orderType: "both",
-    addressReference: { id: 1 }
-  },
-  {
-    id: 2,
-    img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
-    restaurantname: "Pizzeria da Mario",
-    minDeliveryTime: 20,
-    maxDeliveryTime: 40,
-    courses: ["Pizza", "Italian"],
-    area: ["Italian"],
-    allergens: ["Gluten", "Milk"],
-    rating: 4.8,
-    isOpenNow: false,
-    orderType: "delivery",
-    addressReference: { id: 2 }
-  }
-];
-// filtro richiesto dal prof (i ristoranti devono essere mostrati per vicinanza dall'indirizzo selezionato
-// già filtrati per delivery, takeaway e entrambi
-// inoltre al caricamento della pagina mettere già tra i filtri di esclusione gli allergeni onboarding
-const mockRestaurants = [
-  {
-    id: 1,
-    img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:sushi-5.jpg/v1/it/restaurants/288525.jpg",
-    restaurantname: "Sushi Feltre",
-    minDeliveryTime: 10,
-    maxDeliveryTime: 20,
-    courses: ["Fish", "Starter", "Main Course", "First Course"],
-    area: ["Japanese", "Chinese", "Asian"],
-    allergens: ["Milk", "Egg", "Peanut"],
-    rating: 4.5,
-    isOpenNow: true,
-    orderType: "both",
-  },
-  {
-    id: 2,
-    img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_240/f_auto/q_auto/dpr_1.0/d_it:cuisines:pizza-2.jpg/v1/it/restaurants/225192.jpg",
-    restaurantname: "Pizzeria da Mario",
-    minDeliveryTime: 20,
-    maxDeliveryTime: 40,
-    courses: ["Pizza", "Italian"],
-    area: ["Italian"],
-    allergens: ["Gluten", "Milk"],
-    rating: 4.8,
-    isOpenNow: false,
-    orderType: "delivery",
-  },
-  {
-    id: 3,
-    img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:pollo-6.jpg/v1/it/restaurants/282166.jpg",
-    restaurantname: "KFC - Abruzzi",
-    minDeliveryTime: 15,
-    maxDeliveryTime: 35,
-    courses: ["Chicken", "Fast Food"],
-    area: ["American"],
-    allergens: ["Gluten"],
-    rating: 4.1,
-    isOpenNow: true,
-    orderType: "takeaway",
-  },
-  {
-    id: 4,
-    img: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,h_144,w_287/f_auto/q_auto/dpr_1.0/d_it:cuisines:hamburger-9.jpg/v1/it/restaurants/270039.jpg",
-    restaurantname: "Burger King",
-    minDeliveryTime: 25,
-    maxDeliveryTime: 45,
-    courses: ["Burgers", "Fast Food"],
-    area: ["American"],
-    allergens: ["Gluten", "Milk", "Sesame"],
-    rating: 4.3,
-    isOpenNow: true,
-    orderType: "both",
-  },
-];
-
-const mockMeals = [
-  {
-    id: "1",
-    price: 12.99,
-    currency: "€",
-    name: "Jerk chicken with rice & peas",
-    category: "Chicken",
-    area: "Jamaican",
-    image: "https://www.themealdb.com/images/media/meals/tytyxu1515363282.jpg",
-    restaurant: {
-      ...mockRestaurants[3]
-    },
-    ingredients: [
-      "Chicken Thighs",
-      "Lime",
-      "Spring Onions",
-      "Ginger",
-      "Garlic",
-      "Onion",
-      "Red Chilli",
-      "Thyme",
-      "Lime",
-      "Soy Sauce",
-      "Vegetable Oil",
-      "Brown Sugar",
-      "Allspice",
-      "Basmati Rice",
-      "Coconut Milk",
-      "Spring Onions",
-      "Thyme",
-      "Garlic",
-      "Allspice",
-      "Kidney Beans"
-    ],
-  },
-  {
-    id: "2",
-    price: 12.99,
-    currency: "€",
-    name: "Jamaican Beef Patties",
-    category: "Beef",
-    area: "Jamaican",
-    image: "https://www.themealdb.com/images/media/meals/wsqqsw1515364068.jpg",
-    restaurant: {
-      ...mockRestaurants[2]
-    },
-    ingredients: [
-      "Beef",
-      "Salt",
-      "Black Pepper",
-      "Garlic",
-      "Onion",
-      "Paprika",
-      "Allspice",
-      "Turmeric",
-      "Flour",
-      "Butter",
-      "Water"
-    ]
-  },
-];
+import { useDebounce } from '@/utils/useDebounce';
 
 export default function Home() {
   const { user } = useAuth();
@@ -191,9 +42,12 @@ export default function Home() {
   const [searchValue, setSearchValue] = useState("");
   const [searchType, setSearchType] = useState("restaurant");
 
+  const debouncedSearch = useDebounce(searchValue, 300);
+  const scrollController = useRef(null);
+
   const nearbyRestaurantsPaginator = usePaginator(useCallback(
-    (page, _) => FeedService.getNearbyRestaurants(page, selectedAddress._id, orderType, selectedCategories, activeFilters.selectedCuisines, activeFilters.selectedAllergens, activeFilters.isOpenNow)
-      .then(data => data.status !== 'success' ? [] : data.restaurants), [selectedAddress._id, orderType, selectedCategories, activeFilters]),
+    (page, _) => FeedService.getNearbyRestaurants(page, selectedAddress._id, orderType, selectedCategories, activeFilters.selectedCuisines, activeFilters.selectedAllergens, activeFilters.isOpenNow, debouncedSearch)
+      .then(data => data.status !== 'success' ? [] : data.restaurants), [selectedAddress._id, orderType, selectedCategories, activeFilters, debouncedSearch]),
     10
   );
 
@@ -203,22 +57,61 @@ export default function Home() {
     10
   );
 
+  const nearbyMealsPaginator = usePaginator(useCallback(
+    (page, _) => FeedService.getNearbyMeals(page, selectedAddress._id, orderType, selectedCategories, activeFilters.selectedCuisines, activeFilters.selectedAllergens, activeFilters.isOpenNow, debouncedSearch, activeFilters.priceRange.min, activeFilters.priceRange.max)
+      .then(data => data.status !== 'success' ? [] : data.meals), [selectedAddress._id, orderType, selectedCategories, activeFilters, debouncedSearch]),
+    10
+  );
+
+  const lastElementRef = (node) => {
+    // Controlla solo il loading appropriato per il tipo di ricerca corrente
+    if ((searchType === 'restaurant' && nearbyRestaurantsPaginator.isLoading) || 
+        (searchType === 'dishes' && nearbyMealsPaginator.isLoading)) return;
+    
+    if (scrollController.current) scrollController.current.disconnect();
+    scrollController.current = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        console.log("Last element is intersecting, loading next page");
+        if (searchType === 'restaurant' && nearbyRestaurantsPaginator.hasMore) {
+          nearbyRestaurantsPaginator.loadNext();
+        } else if (searchType === 'dishes' && nearbyMealsPaginator.hasMore) {
+          nearbyMealsPaginator.loadNext();
+        }
+      }
+    });
+    if (node) scrollController.current.observe(node);
+  };
+
   useEffect(() => {
     nearbyPreferredRestaurantsPaginator.reset();
-    nearbyRestaurantsPaginator.reset();
+    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
+    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
   }, [selectedAddress]);
 
   useEffect(() => {
-    nearbyRestaurantsPaginator.reset();
+    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
+    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
   }, [orderType]);
 
   useEffect(() => {
-    nearbyRestaurantsPaginator.reset();
+    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
+    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
   }, [selectedCategories]);
 
   useEffect(() => {
-    nearbyRestaurantsPaginator.reset();
+    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
+    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
   }, [activeFilters]);
+
+  useEffect(() => {
+    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
+    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
+    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
+  }, [searchType]);
 
   useEffect(() => {
     const courseFromStorage = localStorage.getItem('course');
@@ -241,20 +134,17 @@ export default function Home() {
         newCategories.add(categoryName);
       }
       const updatedCategories = Array.from(newCategories);
-      console.log("Categorie filtrate:", updatedCategories);
       return updatedCategories;
     });
   };
 
   const handleFiltersChange = (filters) => {
     setActiveFilters(filters);
-    console.log("Filtri applicati:", filters);
   };
 
   const handleSearchChange = (e) => {
     const query = e.target.value;
     setSearchValue(query);
-    console.log("Search query:", query);
   }
 
   const handleAddressSelect = (address) => {
@@ -272,58 +162,6 @@ export default function Home() {
     if (searchType === 'dishes' && (activeFilters.priceRange.min || activeFilters.priceRange.max)) count++;
     return count;
   }, [activeFilters, searchType]);
-
-  // Aggiungi questa funzione per filtrare i risultati
-  const getFilteredResults = useMemo(() => {
-    let results;
-
-    if (searchType === "restaurant") {
-      // Per ora, i filtri si applicano solo ai piatti.
-      // Aggiungere qui la logica per i filtri dei ristoranti se necessario.
-      results = mockRestaurants;
-    } else { // searchType === 'dishes'
-      results = mockMeals.filter(meal => {
-        const { priceRange } = activeFilters;
-        const minPrice = priceRange.min !== '' ? parseFloat(priceRange.min) : -Infinity;
-        const maxPrice = priceRange.max !== '' ? parseFloat(priceRange.max) : Infinity;
-
-        if (meal.price < minPrice || meal.price > maxPrice) {
-          return false;
-        }
-        return true;
-      });
-    }
-
-    if (!searchValue) {
-      return results;
-    }
-
-    const query = searchValue.toLowerCase();
-
-    if (searchType === "restaurant") {
-      return results.filter(restaurant =>
-        restaurant.restaurantname.toLowerCase().includes(query) ||
-        restaurant.area.some(area => area.toLowerCase().includes(query))
-      );
-    } else { // searchType === 'dishes'
-      // Filtra ulteriormente i risultati già filtrati per prezzo
-      return results.filter(meal => {
-        // Controlla il nome del piatto
-        if (meal.name.toLowerCase().includes(query)) {
-          return true;
-        }
-
-        // Controlla gli ingredienti
-        if (meal.ingredients && Array.isArray(meal.ingredients)) {
-          return meal.ingredients.some(ingredient =>
-            ingredient.toLowerCase().includes(query)
-          );
-        }
-
-        return false;
-      });
-    }
-  }, [searchValue, searchType, activeFilters]);
 
   return (
     <div className='bg-[#f5f3f5] w-full flex flex-col min-h-screen overflow-x-hidden'>
@@ -444,12 +282,12 @@ export default function Home() {
                     ))
                   )}
                 </HorizontalScroller>
-            )}
+              )}
 
             <h2 className="text-xl font-semibold mb-4">
               {searchType === "restaurant"
-                ? `Order from ${mockRestaurants.length} restaurants`
-                : `Choose from ${mockMeals.length} dishes`
+                ? `Order from 999 restaurants`
+                : `Choose from 999 dishes`
               }
             </h2>
 
@@ -470,18 +308,19 @@ export default function Home() {
                     No restaurants found.
                   </div>
                 ) : (
-                  nearbyRestaurantsPaginator.items.map((r) => (
+                  nearbyRestaurantsPaginator.items.map((r, idx) => (
                     <RestaurantCard
                       key={r._id}
                       className="w-full"
                       restaurant={r}
+                      ref={idx === nearbyRestaurantsPaginator.items.length - 1 ? lastElementRef : null}
                     />
                   ))
                 )}
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-                {nearbyRestaurantsPaginator.isLoading ? (
+                {nearbyMealsPaginator.isLoading ? (
                   <div className="col-span-full flex justify-center items-center py-16">
                     <Spinner
                       className="w-100 h-100"
@@ -491,20 +330,22 @@ export default function Home() {
                       }}
                     />
                   </div>
-                ) : getFilteredResults.length === 0 ? (
+                ) : nearbyMealsPaginator.items.length === 0 ? (
                   <div className="col-span-full flex justify-center items-center py-16 text-gray-500">
                     No results found.
                   </div>
                 ) : (
-                  getFilteredResults.map((meal) => (
+                  nearbyMealsPaginator.items.map((meal, idx) => (
                     <MealCard
-                      key={meal._id}
-                      img={meal.image}
-                      mealName={meal.name}
-                      price={meal.price}
-                      description={meal.area}
-                      restaurant={meal.restaurant}
+                      key={meal.meal._id}
+                      img={process.env.NEXT_PUBLIC_API_URL + meal.meal.image}
+                      mealName={meal.meal.name}
+                      price={meal.meal.price}
+                      description={meal.meal.area}
+                      restaurant={meal.restaurantName}
                       className="w-full"
+                      restaurantId={meal.restaurantId}
+                      ref={idx === nearbyMealsPaginator.items.length - 1 ? lastElementRef : null}
                     />
                   ))
                 )}
