@@ -116,7 +116,7 @@ export default function RestaurantPage({ params }) {
                 name: restaurant.name,
                 banner: restaurant.banner,
                 logo: restaurant.logo,
-                address: restaurant.address,
+                position: restaurant.position,
             };
 
             // Trovo se il prodotto esiste già
