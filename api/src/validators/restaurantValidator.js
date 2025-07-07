@@ -120,7 +120,7 @@ const checkoutSchema = Joi.object({
             }
         ]
     }),
-    paymentMethod: Joi.string().valid("credit_card", "cash").required(),
+    paymentMethod: Joi.string().valid("card", "cash").required(),
     specialInstructions: Joi.string().max(200).allow("").optional(),
     phoneNumber: Joi.string()
         .custom((value, helpers) => {

@@ -350,7 +350,7 @@ export default function OrderRestaurant({ orders, totalOrders, loadPage, current
                                 <p className="text-sm font-medium mb-2">{selectedOrder.type === "takeaway" ? "Pickup" : "Delivery"} Verification Code</p>
                                 <div className="flex items-center justify-center">
                                   <p className="text-3xl font-bold tracking-widest bg-white py-2 px-4 rounded-md border border-gray-300 shadow-sm">
-                                    {getDeliveryCode(selectedOrder._id)}
+                                    {selectedOrder.code}
                                   </p>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2 text-center">
