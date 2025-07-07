@@ -24,8 +24,6 @@ const mockRestaurant = {
     restaurantname: "KFC - Abruzzi",
     minDeliveryTime: 10,
     maxDeliveryTime: 20,
-    minTakeawayTime: 5,
-    maxTakeawayTime: 10,
     courses: ["Fast Food", "Miscellaneous"],
     area: ["American"],
     isOpenNow: true,
@@ -204,7 +202,7 @@ export default function Checkout() {
         ] : []),
         {
             key: "time", title: orderType === "delivery" ? "Delivery Time" : "Takeaway Time",
-            subtitle: orderType === "delivery" ? `${mockRestaurant.minDeliveryTime} - ${mockRestaurant.maxDeliveryTime}` : `${mockRestaurant.minTakeawayTime} - ${mockRestaurant.maxTakeawayTime}`, icon: <Time />, missing: false
+            subtitle: orderType === "delivery" ? `${mockRestaurant.minDeliveryTime} - ${mockRestaurant.maxDeliveryTime}` : `As soon as possible`, icon: <Time />, missing: false
         },
         { key: "notes", title: "Additional Notes", subtitle: notes || "Add a note for your order", icon: <Notes />, missing: false },
     ]
