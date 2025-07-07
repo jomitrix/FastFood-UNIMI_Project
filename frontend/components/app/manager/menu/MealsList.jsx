@@ -113,7 +113,6 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
         }
     };
 
-    // Trasformiamo i dati nel formato corretto per i Select
     const formattedCourses = courses.map(course => ({
         value: course.name,
         label: course.name
@@ -295,7 +294,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                     {localMeals.length > 0 && isLoadingMore && (
                         <div className="w-full flex justify-center py-3">
                             <Spinner 
-                                variant="dots" 
+                                variant="dots"
                                 classNames={{
                                     dots: 'bg-[#083d77]',
                                 }} 

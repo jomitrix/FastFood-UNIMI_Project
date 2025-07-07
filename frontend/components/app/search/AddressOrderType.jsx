@@ -14,10 +14,11 @@ const AddressOrderType = ({
   addresses, 
   onAddressSelect, 
   onOrderTypeChange, 
-  initialOrderType = "takeaway",
+  initialOrderType,
   isModalOpen,
   setIsModalOpen,
   isCartComponent = false,
+  restaurantOrderType = "all",
   onAddressesSave
 }) => {
   const { cart, setCart } = useCart();
@@ -31,6 +32,21 @@ const AddressOrderType = ({
   });
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addressQuery, setAddressQuery] = useState("");
+
+  useEffect(() => {
+    // Se il ristorante accetta solo un tipo di ordine specifico, forza quell'opzione
+    if (restaurantOrderType === "delivery" && orderType !== "delivery") {
+      setOrderType("delivery");
+      onOrderTypeChange("delivery");
+    } else if (restaurantOrderType === "takeaway" && orderType !== "takeaway") {
+      setOrderType("takeaway");
+      onOrderTypeChange("takeaway");
+    } 
+    // Altrimenti sincronizza con initialOrderType se è diverso dallo stato attuale
+    else if (initialOrderType !== orderType) {
+      setOrderType(initialOrderType);
+    }
+  }, [initialOrderType, restaurantOrderType]);
 
   const filtered = useMemo(
     () =>
@@ -84,6 +100,10 @@ const AddressOrderType = ({
   // Nasconde l'indirizzo se è takeaway nel carrello
   const showAddressField = !isCartComponent || (isCartComponent && orderType === 'delivery');
 
+  // Determina quali tab mostrare in base al tipo di ordine del ristorante
+  const showDelivery = restaurantOrderType === "all" || restaurantOrderType === "delivery";
+  const showTakeaway = restaurantOrderType === "all" || restaurantOrderType === "takeaway";
+
   return (
     <>
       <div className={`w-full py-3 px-4 gap-3 flex ${isCartComponent ? 'flex-col' : 'flex-wrap sm:flex-nowrap'} items-center justify-center`}>
@@ -102,18 +122,22 @@ const AddressOrderType = ({
             selectedKey={orderType}
             onSelectionChange={handleOrderTypeChange}
           >
-            <Tab key="takeaway" title={
-              <div className='flex justify-center items-center gap-2'>
-                <Takeaway size={16} className="text-[#083d77]" />
-                <span>Takeaway</span>
-              </div>}
-            />
-            <Tab key="delivery" title={
-              <div className='flex justify-center items-center gap-2'>
-                <Delivery size={16} className="text-[#083d77]" />
-                <span>Delivery</span>
-              </div>}
-            />
+            {showTakeaway && (
+              <Tab key="takeaway" title={
+                <div className='flex justify-center items-center gap-2'>
+                  <Takeaway size={16} className="text-[#083d77]" />
+                  <span>Takeaway</span>
+                </div>}
+              />
+            )}
+            {showDelivery && (
+              <Tab key="delivery" title={
+                <div className='flex justify-center items-center gap-2'>
+                  <Delivery size={16} className="text-[#083d77]" />
+                  <span>Delivery</span>
+                </div>}
+              />
+            )}
           </Tabs>
         )}
         
@@ -188,18 +212,22 @@ const AddressOrderType = ({
             selectedKey={orderType}
             onSelectionChange={handleOrderTypeChange}
           >
-            <Tab key="takeaway" title={
-              <div className='flex justify-center items-center gap-2'>
-                <Takeaway size={16} className="text-[#083d77]" />
-                <span>Takeaway</span>
-              </div>}
-            />
-            <Tab key="delivery" title={
-              <div className='flex justify-center items-center gap-2'>
-                <Delivery size={16} className="text-[#083d77]" />
-                <span>Delivery</span>
-              </div>}
-            />
+            {showTakeaway && (
+              <Tab key="takeaway" title={
+                <div className='flex justify-center items-center gap-2'>
+                  <Takeaway size={16} className="text-[#083d77]" />
+                  <span>Takeaway</span>
+                </div>}
+              />
+            )}
+            {showDelivery && (
+              <Tab key="delivery" title={
+                <div className='flex justify-center items-center gap-2'>
+                  <Delivery size={16} className="text-[#083d77]" />
+                  <span>Delivery</span>
+                </div>}
+              />
+            )}
           </Tabs>
         )}
       </div>

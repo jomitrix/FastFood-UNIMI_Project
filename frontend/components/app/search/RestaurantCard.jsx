@@ -9,11 +9,23 @@ export default function RestaurantCard({ restaurant, className }) {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
+  const handleCardPress = () => {
+    const existingOrderType = localStorage.getItem("orderType");
+    
+    if (!existingOrderType && restaurant.serviceMode) {
+    restaurant.serviceMode === "delivery"
+      ? localStorage.setItem("orderType", "delivery")
+      : localStorage.setItem("orderType", "takeaway"); // se è all lascia takeaway
+    }
+
+    router.push(`/restaurant/${restaurant._id}`);
+  };
+
   return (
     <Card
       className={`rounded-lg overflow-hidden shadow hover:shadow-lg transition ${className}`}
       isPressable
-      onPress={() => router.push(`/restaurant/${restaurant._id}`)}
+      onPress={handleCardPress}
     >
       <div className="relative aspect-video bg-gray-200">
         {!isImageLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}

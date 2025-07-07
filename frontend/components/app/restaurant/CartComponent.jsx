@@ -15,16 +15,21 @@ export default function CartComponent({
   setIsCartOpen,
   onCheckout,
   deliveryFee = 2.50,
-  estimatedDeliveryTime = { min: 20, max: 35 }
+  estimatedDeliveryTime = { min: 20, max: 35 },
+  restaurantOrderType = "all"
 }) {
   const { user } = useAuth();
   const { cart, setCart } = useCart();
 
   const [orderType, setOrderType] = useState(() => {
     if (typeof window !== 'undefined') {
-      return localStorage.getItem('orderType') || 'takeaway';
+      // Se il ristorante accetta solo un tipo di ordine seleziona quello
+      if (restaurantOrderType === "delivery") return "delivery";
+      if (restaurantOrderType === "takeaway") return "takeaway";
+      
+      // Altrimenti usiamo quello memorizzato
+      return localStorage.getItem('orderType');
     }
-    return 'takeaway';
   });
   
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -42,6 +47,17 @@ export default function CartComponent({
       }
     }
   }, [addresses]);
+
+  // Se il ristorante accetta solo un tipo di ordine, forziamo quel tipo
+  useEffect(() => {
+    if (restaurantOrderType === "delivery" && orderType !== "delivery") {
+      setOrderType("delivery");
+      localStorage.setItem('orderType', "delivery");
+    } else if (restaurantOrderType === "takeaway" && orderType !== "takeaway") {
+      setOrderType("takeaway");
+      localStorage.setItem('orderType', "takeaway");
+    }
+  }, [restaurantOrderType, orderType]);
 
   const handleOrderTypeChange = (newType) => {
     setOrderType(newType);
@@ -89,6 +105,7 @@ export default function CartComponent({
         isModalOpen={isModalOpen}
         setIsModalOpen={setIsModalOpen}
         isCartComponent={true}
+        restaurantOrderType={restaurantOrderType}
         onAddressesSave={(newAddresses) => {
           setAddresses(newAddresses);
         }}

@@ -100,8 +100,7 @@ const mockCards = [
     }
 ];
 
-export default function Checkout({ params }) {
-    const id = params;
+export default function Checkout() {
     const router = useRouter();
     const { user } = useAuth();
     const { cart, setCart } = useCart();

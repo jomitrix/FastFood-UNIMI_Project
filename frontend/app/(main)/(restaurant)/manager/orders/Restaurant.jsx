@@ -216,7 +216,17 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
                   {statuses[order.status].display}
                 </Chip>
               </TableCell>
-              <TableCell>{order.createdAt}</TableCell>
+              <TableCell>
+                {new Date(order.createdAt).toLocaleDateString("it", { 
+                  day: 'numeric',
+                  month: 'numeric',
+                  year: 'numeric'
+                }) + " - " + new Date(order.createdAt).toLocaleTimeString("it", {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  hour12: false
+                })}
+              </TableCell>
               <TableCell>
                 <Dropdown
                   placement="bottom-end"
@@ -374,7 +384,17 @@ export default function OrderRestaurant({ orders, restaurant, totalOrders, loadP
                           </div>
                           <div className="p-2 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-gray-500">Order Date</p>
-                            <p className="text-sm font-medium">{selectedOrder.createdAt}</p>
+                            <p className="text-sm font-medium">
+                              {new Date(selectedOrder.createdAt).toLocaleDateString("it", { 
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric'
+                              }) + " - " + new Date(selectedOrder.createdAt).toLocaleTimeString("it", {
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                  hour12: false
+                              })}
+                            </p>
                           </div>
                           {selectedOrder.estimatedDelivery && (
                             <div className="p-2 bg-neutral-50 rounded-lg">

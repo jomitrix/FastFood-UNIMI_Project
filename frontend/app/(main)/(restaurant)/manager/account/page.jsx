@@ -71,6 +71,21 @@ export default function ProfilePage() {
     [stagedHours]
   );
 
+  const hasHoursOrServiceChanges = useMemo(() => {
+    if (stagedServiceMode !== serviceMode) return true;
+    
+    for (let i = 0; i < stagedHours.length; i++) {
+      const staged = stagedHours[i];
+      const original = openingHours[i];
+      if (staged.open !== original.open || 
+          staged.close !== original.close || 
+          staged.closed !== original.closed) {
+        return true;
+      }
+    }
+    return false;
+  }, [stagedHours, openingHours, stagedServiceMode, serviceMode]);
+
   // Validation functions for restaurant info
   const validateEmail = (email) =>
     email.match(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i);
@@ -785,7 +800,7 @@ export default function ProfilePage() {
                 return (
                   <div
                     key={day}
-                    className="flex flex-col md:flex-row items-center gap-3 w-full"
+                    className="flex flex-col md:flex-row items-center w-full"
                   >
                     <div className="w-24 font-medium">{day}</div>
 
@@ -840,26 +855,27 @@ export default function ProfilePage() {
               >
                 <Radio value="all">All</Radio>
                 <Radio value="delivery">Delivery</Radio>
-                <Radio value="takeaway">Take-away</Radio>
+                <Radio value="takeaway">Takeaway</Radio>
               </RadioGroup>
 
               <div className="self-end flex gap-2">
-                <Button
-                  size="lg"
-                  radius="sm"
-                  variant="flat"
-                  onPress={handleCancelHoursAndService}
-                  type="button"
-
-                >
-                  Undo Changes
-                </Button>
+                { hasHoursOrServiceChanges && (
+                  <Button
+                    size="lg"
+                    radius="sm"
+                    variant="flat"
+                    onPress={handleCancelHoursAndService}
+                    type="button"
+                  >
+                    Undo Changes
+                  </Button>
+                )}
                 <Button
                   color="primary"
                   size="lg"
                   radius="sm"
                   onPress={handleSaveHoursAndService}
-                  isDisabled={hasHourErrors}
+                  isDisabled={hasHourErrors || !hasHoursOrServiceChanges}
                   type="button"
                 >
                   Save

@@ -13,7 +13,6 @@ import { Skeleton } from '@heroui/skeleton';
 import { usePaginator } from '@/utils/paginator';
 import { FeedService } from '@/services/feedService';
 import { RestaurantService } from '@/services/restaurantService';
-import { Spinner } from '@heroui/spinner';
 import { useDebounce } from '@/utils/useDebounce';
 import { useCart } from '@/contexts/CartContext';
 
@@ -267,16 +266,13 @@ export default function RestaurantPage({ params }) {
         });
     };
 
-    // Calcola il totale del carrello
     const cartTotal = cart.items.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
     );
 
     const handleCheckout = () => {
-        // Logica per procedere all'ordine
-        router.push('/checkout/id');
-        console.log('Procedi all\'ordine', cart);
+        router.push('/checkout/');
     };
 
     return (
@@ -374,20 +370,7 @@ export default function RestaurantPage({ params }) {
                     )}
                 </button>
 
-                {/* Carrello desktop fisso */}
-                <div className="hidden md:block fixed top-0 right-0 w-[350px] h-screen border-l border-gray-200 bg-white shadow-lg">
-                    <CartComponent
-                        isDesktop={true}
-                        cartItems={cart.items}
-                        cartTotal={cartTotal}
-                        removeFromCart={removeFromCart}
-                        updateCartItemQuantity={updateCartItemQuantity}
-                        setIsCartOpen={setIsCartOpen}
-                        onCheckout={handleCheckout}
-                        deliveryFee={deliveryFee}
-                        estimatedDeliveryTime={estimatedDeliveryTime}
-                    />
-                </div>
+                
 
                 {/* Modal per il carrello su mobile */}
                 <Modal
@@ -422,6 +405,7 @@ export default function RestaurantPage({ params }) {
                             onCheckout={handleCheckout}
                             deliveryFee={deliveryFee}
                             estimatedDeliveryTime={estimatedDeliveryTime}
+                            restaurantOrderType={restaurant.serviceMode || "all"}
                         />
                     </ModalContent>
                 </Modal>
@@ -618,6 +602,7 @@ export default function RestaurantPage({ params }) {
                         onCheckout={handleCheckout}
                         deliveryFee={deliveryFee}
                         estimatedDeliveryTime={estimatedDeliveryTime}
+                        restaurantOrderType={restaurant.serviceMode || "all"}
                     />
                 </div>
             </aside>

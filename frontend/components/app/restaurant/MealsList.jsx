@@ -5,6 +5,7 @@ import { Chip } from "@heroui/chip";
 import { Skeleton } from "@heroui/skeleton";
 import { ForkKnife, Flag, ExclShield, Plus } from "@/components/icons/heroicons";
 import { Button } from "@heroui/button";
+import { Spinner } from "@heroui/spinner";
 
 const MealItem = ({ meal, setIsModalOpen, setProductId, isLastElement, lastElementRef }) => {
     const [isImageLoaded, setIsImageLoaded] = useState(false);
@@ -111,7 +112,9 @@ export default function ReadOnlyMealsList({ title, meals, setIsModalOpen, setPro
             ))}
             {isLoadingMore && (
                 <div className="flex justify-center py-4">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#083d77]"></div>
+                    <Spinner className='w-100 h-100' variant="dots" classNames={{
+                        dots: 'bg-[#083d77]',
+                    }} />
                 </div>
             )}
         </div>
