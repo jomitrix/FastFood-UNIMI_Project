@@ -16,7 +16,7 @@ export default function CartComponent({
   setIsCartOpen,
   onCheckout,
   deliveryFee,
-  estimatedDeliveryTime = { min: 20, max: 35 },
+  estimatedDeliveryTime,
   restaurantOrderType = "all"
 }) {
   const { user } = useAuth();
@@ -81,6 +81,34 @@ export default function CartComponent({
       deliveryAddress: orderType === 'delivery' ? selectedAddress : null,
     }));
   }, [orderType, selectedAddress, setCart]);
+
+  const [isCheckoutDisabled, setIsCheckoutDisabled] = useState(true);
+  const [checkoutDisabledReason, setCheckoutDisabledReason] = useState("");
+
+  useEffect(() => {
+    if (isRestaurantOpen === false) {
+      setIsCheckoutDisabled(true);
+      setCheckoutDisabledReason("Restaurant is closed");
+      return;
+    }
+
+    if (orderType === 'delivery') {
+      if (!selectedAddress) {
+        setIsCheckoutDisabled(true);
+        setCheckoutDisabledReason("Select an address");
+        return;
+      }
+      if ((estimatedDeliveryTime.max - 10) > 60) {
+        setIsCheckoutDisabled(true);
+        setCheckoutDisabledReason("Delivery is over 60 minutes");
+        return;
+      }
+    }
+
+    setIsCheckoutDisabled(false);
+    setCheckoutDisabledReason("Proceed to Checkout");
+
+  }, [orderType, selectedAddress, isRestaurantOpen, estimatedDeliveryTime, cartTotal]);
 
   return (
     <div className={`bg-white flex flex-col ${isDesktop ? 'h-screen border-l border-gray-200' : 'h-full'}`}>
@@ -196,18 +224,10 @@ export default function CartComponent({
             className="w-full bg-[#083d77] text-white py-3 rounded-xl font-medium hover:bg-[#062f5c] disabled:bg-gray-300 disabled:cursor-not-allowed"
             onPress={onCheckout}
             size='lg'
-            disabled={(orderType === 'delivery' && !selectedAddress) || isRestaurantOpen === false}
+            disabled={isCheckoutDisabled}
           >
             <Cash />
-            {(orderType === 'delivery' && !selectedAddress) || isRestaurantOpen === false ? (
-              isRestaurantOpen === false ? (
-                "Restaurant is closed"
-              ) : (
-                "Select an address"
-              )
-            ) : (
-              "Proceed to Checkout"
-            )}
+            {checkoutDisabledReason}
           </Button>
         </div>
       )}

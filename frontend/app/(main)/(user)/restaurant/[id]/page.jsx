@@ -366,6 +366,7 @@ export default function RestaurantPage({ params }) {
                             deliveryFee={deliveryFee}
                             estimatedDeliveryTime={estimatedDeliveryTime}
                             restaurantOrderType={restaurant.serviceMode || "all"}
+                            isRestaurantOpen={isOpenNow}
                         />
                     </ModalContent>
                 </Modal>
@@ -506,9 +507,9 @@ export default function RestaurantPage({ params }) {
                                     </div>
                                 )}
 
-                                <div>
-                                    <h3 className='font-bold text-lg text-gray-800'>Ingredients</h3>
-                                    {product.ingredients && product.ingredients.length > 0 && (
+                                {product.ingredients && product.ingredients.length > 0 && (
+                                    <div>
+                                        <h3 className='font-bold text-lg text-gray-800'>Ingredients</h3>
                                         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
                                             {product.ingredients.map((ingredient, i) => (
                                                 <li key={i} className="flex items-center text-gray-700">
@@ -517,8 +518,9 @@ export default function RestaurantPage({ params }) {
                                                 </li>
                                             ))}
                                         </ul>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                                
                             </ModalBody>
                             <ModalFooter className="flex justify-between border-t pt-4">
                                 <div className="flex items-center border rounded-xl w-32 h-[50px] overflow-hidden">

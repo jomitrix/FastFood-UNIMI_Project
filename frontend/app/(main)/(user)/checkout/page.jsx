@@ -368,11 +368,11 @@ export default function Checkout() {
                         <CardBody>
                             <div className="border-t p-4">
                                 {/* Informazioni sul ristorante */}
-                                <div className="mb-4 pb-3 border-b flex rounded-lg items-center gap-5">
+                                <div className="mb-4 pb-3 border-b flex items-center gap-5">
                                     <img
                                         src={process.env.NEXT_PUBLIC_API_URL + cart.restaurant.logo}
                                         alt={cart.restaurant.name}
-                                        className="w-10 h-10 object-contain"
+                                        className="w-12 h-12 object-contain rounded-full"
                                     />
                                     <div>
                                         <h3 className="font-semibold text-lg mb-1">{cart.restaurant.name}</h3>
@@ -410,11 +410,11 @@ export default function Checkout() {
                                                 <span>{cart.items.reduce(
                                                     (sum, item) => sum + item.price * item.quantity,
                                                     0
-                                                )}€</span>
+                                                ).toFixed(2)}€</span>
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-gray-600">Delivery fee</span>
-                                                <span>{"12"}€</span>
+                                                <span>{"12.00"}€</span>
                                             </div>
                                             <div className="flex justify-between text-sm text-gray-500">
                                                 <span>Estimated delivery time</span>
@@ -426,10 +426,10 @@ export default function Checkout() {
                                     <div className="flex justify-between pt-2 border-t mt-1">
                                         <span className="font-semibold">Total</span>
                                         <span className="font-bold text-lg">
-                                            {cart.items.reduce(
+                                            {(cart.items.reduce(
                                                 (sum, item) => sum + item.price * item.quantity,
                                                 0
-                                            ) + 2}€
+                                            ) + 2).toFixed(2)}€
                                         </span>
                                     </div>
                                 </div>
@@ -445,7 +445,7 @@ export default function Checkout() {
                                     isDisabled={isCheckoutDisabled}
                                 >
                                     {paymentMethod === 'cash' ? <Cash /> : <CreditCard />}
-                                    Proceed to checkout
+                                    Proceed to Checkout
                                 </Button>
                             </div>
                         </CardBody>
@@ -684,7 +684,7 @@ export default function Checkout() {
                             <span className="font-bold">{cart.items.reduce(
                                 (sum, item) => sum + item.price * item.quantity,
                                 0
-                            )}€</span>
+                            ).toFixed(2)}€</span>
                         </div>
                         <Button
                             className="w-full mt-3 bg-[#083d77] text-white py-2 rounded-xl font-medium hover:bg-[#062f5c]"

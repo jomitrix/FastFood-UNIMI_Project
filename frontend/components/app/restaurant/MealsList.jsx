@@ -100,22 +100,32 @@ export default function ReadOnlyMealsList({ title, meals, setIsModalOpen, setPro
     return (
         <div className="w-full flex flex-col gap-3">
             <h1 className="font-bold text-2xl">{title}</h1>
-            {localMeals.map((meal, index) => (
-                <MealItem 
-                    key={meal._id}
-                    meal={meal}
-                    setIsModalOpen={setIsModalOpen}
-                    setProductId={setProductId}
-                    isLastElement={index === localMeals.length - 1}
-                    lastElementRef={lastElementRef}
-                />
-            ))}
-            {isLoadingMore && (
-                <div className="flex justify-center py-4">
-                    <Spinner className='w-100 h-100' variant="dots" classNames={{
-                        dots: 'bg-[#083d77]',
-                    }} />
+            {localMeals.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-10 bg-white rounded-xl border border-gray-200">
+                    <ForkKnife size={40} className="text-gray-300 mb-3" />
+                    <h3 className="text-xl font-medium text-gray-700">No dishes found</h3>
+                    <p className="text-gray-500 mt-1">This restaurant hasn't added any dishes yet.</p>
                 </div>
+            ) : (
+                <>
+                    {localMeals.map((meal, index) => (
+                        <MealItem 
+                            key={meal._id}
+                            meal={meal}
+                            setIsModalOpen={setIsModalOpen}
+                            setProductId={setProductId}
+                            isLastElement={index === localMeals.length - 1}
+                            lastElementRef={lastElementRef}
+                        />
+                    ))}
+                    {isLoadingMore && (
+                        <div className="flex justify-center py-4">
+                            <Spinner className='w-100 h-100' variant="dots" classNames={{
+                                dots: 'bg-[#083d77]',
+                            }} />
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

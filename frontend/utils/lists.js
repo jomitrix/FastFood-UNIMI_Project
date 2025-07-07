@@ -99,6 +99,7 @@ export const areas = [
         "Thai",
         "Tunisian",
         "Turkish",
+        "Unknown",
         "Ukrainian",
         "Uruguayan",
         "Vietnamese"

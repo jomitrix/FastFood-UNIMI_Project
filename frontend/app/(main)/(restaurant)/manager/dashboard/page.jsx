@@ -258,7 +258,14 @@ function DashboardPage() {
                     <div>
                       <p className="text-3xl font-bold">{ordersData.month}</p>
                       <p className="text-sm text-gray-500">This month</p>
-                      <p className="text-xs text-green-500">
+                      <p
+                        className={
+                          "text-xs " +
+                          (calculatePercentChange(ordersData.month, ordersData.previousMonth) >= 0
+                            ? "text-green-500"
+                            : "text-red-500")
+                        }
+                      >
                         {calculatePercentChange(ordersData.month, ordersData.previousMonth)}% vs prev. month
                       </p>
                     </div>
@@ -269,8 +276,13 @@ function DashboardPage() {
                   </div>
                   <div className="mt-3 border-t pt-2">
                     <p className="text-sm">This week: <span className="font-semibold">{ordersData.week}</span>
-                      <span className={calculatePercentChange(ordersData.week, ordersData.previousWeek) >= 0 ?
-                        "text-green-500 ml-2" : "text-red-500 ml-2"}>
+                      <span
+                        className={
+                          calculatePercentChange(ordersData.week, ordersData.previousWeek) >= 0
+                            ? "text-green-500 ml-2"
+                            : "text-red-500 ml-2"
+                        }
+                      >
                         ({calculatePercentChange(ordersData.week, ordersData.previousWeek)}%)
                       </span>
                     </p>
@@ -317,7 +329,14 @@ function DashboardPage() {
                     <div>
                       <p className="text-3xl font-bold">{formatCurrency(revenueData.month)}</p>
                       <p className="text-sm text-gray-500">This month</p>
-                      <p className="text-xs text-green-500">
+                      <p
+                        className={
+                          "text-xs " +
+                          (calculatePercentChange(revenueData.month, revenueData.previousMonth) >= 0
+                            ? "text-green-500"
+                            : "text-red-500")
+                        }
+                      >
                         {calculatePercentChange(revenueData.month, revenueData.previousMonth)}% vs prev. month
                       </p>
                     </div>
@@ -328,8 +347,13 @@ function DashboardPage() {
                   </div>
                   <div className="mt-3 border-t pt-2">
                     <p className="text-sm">This week: <span className="font-semibold">{formatCurrency(revenueData.week)}</span>
-                      <span className={calculatePercentChange(revenueData.week, revenueData.previousWeek) >= 0 ?
-                        "text-green-500 ml-1" : "text-red-500 ml-1"}>
+                      <span
+                        className={
+                          calculatePercentChange(revenueData.week, revenueData.previousWeek) >= 0
+                            ? "text-green-500 ml-1"
+                            : "text-red-500 ml-1"
+                        }
+                      >
                         ({calculatePercentChange(revenueData.week, revenueData.previousWeek)}%)
                       </span>
                     </p>
@@ -414,7 +438,7 @@ function DashboardPage() {
               </TableHeader>
               <TableBody 
                 items={productsData}
-                loadingState={productsLoading || productsData.length === 0 ? "loading" : "idle"}
+                loadingState={productsLoading ? "loading" : "idle"}
                 loadingContent={
                   <div className="p-3 flex flex-col mt-12 gap-5 w-full">
                     {Array(4).fill(0).map((_, index) => (

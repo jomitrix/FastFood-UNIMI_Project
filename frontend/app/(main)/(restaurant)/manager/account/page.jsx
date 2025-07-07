@@ -45,8 +45,8 @@ export default function ProfilePage() {
 
   const [profileImage, setProfileImage] = useState(null);
   const [bannerImage, setBannerImage] = useState(null);
-  const [profileImagePreview, setProfileImagePreview] = useState(`${process.env.NEXT_PUBLIC_API_URL}${user.restaurant.logo || null}`);
-  const [bannerImagePreview, setBannerImagePreview] = useState(`${process.env.NEXT_PUBLIC_API_URL}${user.restaurant.banner || null}`);
+  const [profileImagePreview, setProfileImagePreview] = useState(`${process.env.NEXT_PUBLIC_API_URL}${user?.restaurant.logo || null}`);
+  const [bannerImagePreview, setBannerImagePreview] = useState(`${process.env.NEXT_PUBLIC_API_URL}${user?.restaurant.banner || null}`);
 
   const [name, setName] = useState(user.name);
   const [surname, setSurname] = useState(user.surname);
@@ -329,7 +329,6 @@ export default function ProfilePage() {
       }
 
       setProfileImage(null);
-      setProfileImagePreview(null);
     } else {
       const data = await RestaurantService.editBanner(bannerImage);
       if (!data || data.status !== "success") {
@@ -337,7 +336,6 @@ export default function ProfilePage() {
       }
 
       setBannerImage(null);
-      setBannerImagePreview(null);
     }
   };
 

@@ -114,11 +114,11 @@ export default function OrderUser({orders, statuses, lastElementRef, isLoadingMo
                 </h1>
                 { order.status === "completed" && (
                   <p className="text-lg text-center text-medium">
-                    {new Date(order.createdAt).toLocaleDateString("it", { 
+                    {new Date(order.updatedAt).toLocaleDateString("it", { 
                         day: 'numeric',
                         month: 'short',
                         year: 'numeric'
-                    }) + " - " + new Date(order.createdAt).toLocaleTimeString("it", {
+                    }) + " - " + new Date(order.updatedAt).toLocaleTimeString("it", {
                         hour: '2-digit',
                         minute: '2-digit',
                         hour12: false
@@ -238,7 +238,7 @@ export default function OrderUser({orders, statuses, lastElementRef, isLoadingMo
                       {order.totalPrice.toFixed(2)}€
                     </span>
                   </div>
-                  {order.deliveryFee && (
+                  {order.serviceType === "delivery" && (
                     <div className="flex justify-between items-center text-sm text-gray-600">
                       <span>Delivery fee included</span>
                       <span>{order.deliveryFee.toFixed(2)}€</span>

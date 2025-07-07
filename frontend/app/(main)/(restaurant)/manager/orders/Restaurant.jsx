@@ -376,7 +376,7 @@ export default function OrderRestaurant({ orders, totalOrders, loadPage, current
                           </div>
                           <div className="p-2 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-gray-500">Payment Method</p>
-                            <p className="text-sm font-medium">{selectedOrder.paymentMethod}</p>
+                            <p className="text-sm font-medium">{selectedOrder.paymentMethod.charAt(0).toUpperCase() + selectedOrder.paymentMethod.slice(1)}</p>
                           </div>
                           <div className="p-2 bg-neutral-50 rounded-lg">
                             <p className="text-xs text-gray-500">Order Date</p>
@@ -395,13 +395,7 @@ export default function OrderRestaurant({ orders, totalOrders, loadPage, current
                           {selectedOrder.orderType == "delivery" && (
                             <div className="p-2 bg-neutral-50 rounded-lg">
                               <p className="text-xs text-gray-500">Est. Delivery</p>
-                              <p className="text-sm font-medium">{Math.ceil(selectedOrder.deliveryTime / 60)}m</p>
-                            </div>
-                          )}
-                          {selectedOrder.orderType == "takeaway" && (
-                            <div className="p-2 bg-neutral-50 rounded-lg">
-                              <p className="text-xs text-gray-500">Est. Pickup</p>
-                              <p className="text-sm font-medium">{Math.ceil(selectedOrder.deliveryTime / 60)}m</p>
+                              <p className="text-sm font-medium">{Math.ceil(selectedOrder.deliveryTime / 60)}mins</p>
                             </div>
                           )}
                         </div>
@@ -461,7 +455,7 @@ export default function OrderRestaurant({ orders, totalOrders, loadPage, current
                             <span className="text-sm text-gray-600">Subtotal</span>
                             <span className="text-sm">{formatCurrency(selectedOrder.totalPrice)}</span>
                           </div>
-                          {selectedOrder.deliveryFee && (
+                          {selectedOrder.orderType === "delivery" && (
                             <div className="flex justify-between mt-1">
                               <span className="text-sm text-gray-600">Delivery Fee</span>
                               <span className="text-sm">{formatCurrency(selectedOrder.deliveryFee)}</span>

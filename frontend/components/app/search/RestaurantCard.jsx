@@ -46,7 +46,7 @@ export default function RestaurantCard({ restaurant, className }) {
           {"10"} - {"20"} min
         </p>
         <p className="flex text-sm text-gray-500 justify-start truncate">
-          {restaurant.area?.join(' • ')}
+          {(restaurant.area?.filter(a => a !== "Unknown") || []).join(' • ')}
         </p>
       </div>
     </Card>

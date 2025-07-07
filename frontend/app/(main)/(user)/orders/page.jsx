@@ -35,7 +35,6 @@ function OrderPage() {
   };
 
   useEffect(() => {
-    console.log("OrdersPaginator reset due to hidePastOrders change:", hidePastOrders);
     ordersPaginator.reset();
   }, [hidePastOrders]);
 
