@@ -212,14 +212,6 @@ function DashboardPage() {
     }
   };
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const token = !localStorage.getItem("token");
-    if (!token) {
-      router.push("/auth/login");
-    }
-  }, [router]);
-
   return (
     <div className="w-full flex flex-col min-h-screen items-center bg-[#f5f3f5]">
       <AccountHeader

@@ -214,7 +214,7 @@ export default function Checkout() {
             if (newAddress) {
                 const addressRegex = /^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u;
                 if (!addressRegex.test(newAddress)) {
-                    setNewAddressError("Format: Road, City, ZIP, Country");
+                    setNewAddressError("Format: Road, City, ZIP, Province");
                     return;
                 }
                 const newAddr = { id: addresses.length + 1, address: newAddress };
@@ -434,7 +434,7 @@ export default function Checkout() {
                         <CardBody>
                             <div className="border-t p-4">
                                 {/* Informazioni sul ristorante */}
-                                <div className="mb-4 pb-3 border-b flex items-center gap-5">
+                                <div className="mb-4 pb-3 border-b flex rounded-lg items-center gap-5">
                                     <img
                                         src={process.env.NEXT_PUBLIC_API_URL + cart.restaurant.logo}
                                         alt={cart.restaurant.name}
@@ -543,7 +543,7 @@ export default function Checkout() {
                             <div className="mt-4">
                                 <Input
                                     label="New address"
-                                    placeholder="Street, City, ZIP, Country"
+                                    placeholder="Street, City, ZIP, Province"
                                     value={newAddress}
                                     onChange={(e) => {
                                         setNewAddress(e.target.value);

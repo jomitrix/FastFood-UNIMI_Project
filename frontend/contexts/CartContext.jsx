@@ -5,9 +5,9 @@ const CartContext = createContext();
 export function CartProvider({ children }) {
     const [cart, setCart] = useState(() => {
         let savedOrderType = null;
-        if (typeof window !== 'undefined') {
+        //if (typeof window !== 'undefined') {
             savedOrderType = localStorage.getItem('orderType')
-        }
+        //}
         return {
             restaurant: null,
             items: [],

@@ -113,7 +113,7 @@ export default function OnboardingPreferences() {
                   setErrors((prev) => ({ ...prev, address: undefined }));
                 }}
                 isInvalid={!!errors.address || invalidAddress}
-                errorMessage={errors.address || "Format: Road, City, ZIP, Country"}
+                errorMessage={errors.address || "Format: Road, City, ZIP, Province"}
                 type="text"
                 label={
                   <span>

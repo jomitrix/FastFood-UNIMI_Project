@@ -200,7 +200,7 @@ function ProfilePage() {
       return;
     }
     if (!validateAddress(newDeliveryAddress)) {
-      setDeliveryAddressError("Format: Road, City, ZIP, Country");
+      setDeliveryAddressError("Format: Road, City, ZIP, Province");
       return;
     }
 
@@ -233,7 +233,7 @@ function ProfilePage() {
       return;
     }
     if (!validateAddress(billingAddress)) {
-      setBillingAddressError("Format: Road, City, ZIP, Country");
+      setBillingAddressError("Format: Road, City, ZIP, Province");
       return;
     }
 

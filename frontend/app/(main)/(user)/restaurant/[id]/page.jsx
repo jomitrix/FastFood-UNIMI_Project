@@ -32,7 +32,7 @@ export default function RestaurantPage({ params }) {
     const [product, setProduct] = useState(null);
     const [quantity, setQuantity] = useState(1);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [deliveryFee, setDeliveryFee] = useState(2.50);
+    const [deliveryFee, setDeliveryFee] = useState(0);
     const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState({
         min: 0,
         max: 0

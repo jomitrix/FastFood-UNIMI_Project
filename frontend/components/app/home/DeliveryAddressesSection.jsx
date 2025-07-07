@@ -143,7 +143,7 @@ export default function DeliveryAddressesSection({
                   isInvalid={!!errors[i]?.address || invalidAddress[i]}
                   errorMessage={
                     errors[i]?.address ||
-                    (invalidAddress[i] && "Format: Road, City, ZIP, Country")
+                    (invalidAddress[i] && "Format: Road, City, ZIP, Province")
                   }
                   endContent={<MapPin className="text-2xl text-default-500" />}
                   size="sm"

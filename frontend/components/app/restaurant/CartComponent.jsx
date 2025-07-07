@@ -15,7 +15,7 @@ export default function CartComponent({
   isRestaurantOpen,
   setIsCartOpen,
   onCheckout,
-  deliveryFee = 2.50,
+  deliveryFee,
   estimatedDeliveryTime = { min: 20, max: 35 },
   restaurantOrderType = "all"
 }) {

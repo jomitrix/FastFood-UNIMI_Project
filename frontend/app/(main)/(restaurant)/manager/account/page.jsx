@@ -169,7 +169,7 @@ export default function ProfilePage() {
     if (!phone) newErrors.phone = "Phone number required";
     else if (invalidPhone) newErrors.phone = "Invalid phone number";
     if (!address) newErrors.address = "Address required";
-    else if (invalidAddress) newErrors.address = "Format: Road, City, ZIP, Country";
+    else if (invalidAddress) newErrors.address = "Format: Road, City, ZIP, Province";
     if (!iva) newErrors.iva = "VAT Number required";
     else if (invalidIva) newErrors.iva = "Invalid VAT Number";
 
@@ -664,7 +664,7 @@ export default function ProfilePage() {
                     setErrors((prev) => ({ ...prev, address: undefined }));
                   }}
                   isInvalid={!!errors.address || invalidAddress}
-                  errorMessage={errors.address || "Format: Road, City, ZIP, Country"}
+                  errorMessage={errors.address || "Format: Road, City, ZIP, Province"}
                   type="text"
                   label={
                     <span>
