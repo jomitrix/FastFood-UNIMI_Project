@@ -11,7 +11,7 @@ import { Button } from "@heroui/button";
 import { UserService } from "@/services/userService";
 import { addToast } from "@heroui/toast";
 
-export default function OrderUser({orders, statuses, lastElementRef, isLoadingMore, hidePastOrders, setHidePastOrders}) {
+export default function OrderUser({orders, statuses, lastElementRef, isLoadingMore, hidePastOrders, setHidePastOrders, resetPaginator}) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [orderModalId, setOrderModalId] = useState(null);
   const [order, setOrder] = useState(null);
@@ -43,7 +43,10 @@ export default function OrderUser({orders, statuses, lastElementRef, isLoadingMo
       return;
     }
 
-    setIsModalOpen(true);
+    addToast({ title: "Success", description: "Order completed successfully", color: "success", timeout: 4000 });
+
+    setIsModalOpen(false);
+    resetPaginator();
     return;
   };
 

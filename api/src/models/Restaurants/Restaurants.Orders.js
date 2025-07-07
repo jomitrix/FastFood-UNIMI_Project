@@ -15,7 +15,7 @@ const OrderSchema = new mongoose.Schema({
     deliveryAddress: { type: String, trim: true },
     specialInstructions: { type: String, trim: true, default: "" },
     phoneNumber: { type: String, trim: true, required: true },
-    paymentMethod: { type: String, enum: ["credit_card", "cash"], required: true },
+    paymentMethod: { type: String, enum: ["card", "cash"], required: true },
     code: { type: String, trim: true, required: true },
 }, { timestamps: true });
 

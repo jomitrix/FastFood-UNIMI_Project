@@ -102,6 +102,7 @@ function OrderPage() {
           isLoadingMore={ordersPaginator.isLoadingMore}
           hidePastOrders={hidePastOrders}
           setHidePastOrders={setHidePastOrders}
+          resetPaginator={ordersPaginator.reset}
         />
       }
     </div>

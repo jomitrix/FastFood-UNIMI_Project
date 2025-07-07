@@ -10,93 +10,11 @@ import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@herou
 import { Input } from "@heroui/input";
 import { RadioGroup, Radio } from "@heroui/radio";
 import { Textarea } from "@heroui/input";
-import { ScrollShadow } from "@heroui/scroll-shadow";
 import { useCart } from '@/contexts/CartContext';
 import { UserService } from '@/services/userService';
 import { RestaurantService } from "@/services/restaurantService";
 import { addToast } from "@heroui/toast";
-
-const mockRestaurant = {
-    banner: "https://just-eat-prod-eu-res.cloudinary.com/image/upload/c_thumb,w_1537,h_480/f_auto/q_auto/dpr_1.0/d_it:cuisines:pollo-6.jpg/v1/it/restaurants/282166.jpg",
-    icon: "https://upload.wikimedia.org/wikipedia/sco/thumb/b/bf/KFC_logo.svg/1200px-KFC_logo.svg.png",
-    address: "Via Cassanese 1, 20090 Segrate MI, Italy",
-    phone: "+39 02 2131 1234",
-    restaurantname: "KFC - Abruzzi",
-    minDeliveryTime: 10,
-    maxDeliveryTime: 20,
-    courses: ["Fast Food", "Miscellaneous"],
-    area: ["American"],
-    isOpenNow: true,
-    orderType: "both",
-    times: {
-        monday: { open: "10:00", close: "23:00" },
-        tuesday: { open: "", close: "" },
-        wednesday: { open: "10:00", close: "23:00" },
-        thursday: { open: "10:00", close: "23:00" },
-        friday: { open: "10:00", close: "23:00" },
-        saturday: { open: "10:00", close: "23:00" },
-        sunday: { open: "10:00", close: "23:00" }
-    }
-}
-
-const mockAddresses = [
-    {
-        id: 1,
-        address: "Via Tiburtina 1361, Roma, 00131, Italy"
-    },
-    {
-        id: 2,
-        address: "Piazzale Loreto 9, Milano, 20131, Italy"
-    },
-    {
-        id: 3,
-        address: "Via Dante 20, Poggibonsi, 53036, Italy"
-    },
-];
-
-const mockOrder = {
-    id: "1234567890",
-    restaurant: mockRestaurant,
-    items: [
-        {
-            id: "1",
-            name: "Chicken Burger",
-            price: 5.99,
-            quantity: 2
-        },
-        {
-            id: "2",
-            name: "French Fries",
-            price: 2.49,
-            quantity: 1
-        }
-    ],
-    subtotal: 14.47,
-    deliveryFee: 2.00,
-    total: 16.47,
-    orderType: "delivery",
-    address: mockAddresses[0].address,
-}
-
-// Carte mockate
-const mockCards = [
-    {
-        _id: { $oid: "686638fc45f7d1d7545044cf" },
-        name: "Mastercard",
-        holder: "Mario",
-        number: "1234567890124568",
-        expiry: "12/24",
-        cvv: "123"
-    },
-    {
-        _id: { $oid: "686683e546b696669be2a6ac" },
-        name: "Visa",
-        holder: "Mario Rossi",
-        number: "1234123412341234",
-        expiry: "07/25",
-        cvv: "123"
-    }
-];
+import { getRouteDistance } from '@/utils/getRouteDistance';
 
 export default function Checkout() {
     const router = useRouter();
@@ -136,6 +54,10 @@ export default function Checkout() {
     const [newAddressError, setNewAddressError] = useState("");
     const [notes, setNotes] = useState("");
     const [tempNotes, setTempNotes] = useState("");
+    const [estimatedDeliveryTime, setEstimatedDeliveryTime] = useState({
+        min: 0,
+        max: 0
+    });
 
     // Payment data
     const [paymentMethod, setPaymentMethod] = useState(null); // 'cash' or 'card'
@@ -195,6 +117,20 @@ export default function Checkout() {
         setFilteredAddresses([addressParts[0], addressParts.slice(1).join(',')]);
     }, [address]);
 
+    useEffect(() => {
+        if (!cart.restaurant.position || !user.delivery[0]) return;
+        async function calculateDeliveryTime() {
+            const time = await getRouteDistance(cart.restaurant.position, user.delivery[0]);
+            const deliveryDistance = Math.ceil(time / 60);
+            setEstimatedDeliveryTime({
+                min: deliveryDistance >= 20 ? deliveryDistance - 10 : deliveryDistance,
+                max: deliveryDistance + 10
+            });
+        }
+
+        calculateDeliveryTime();
+    }, [cart.restaurant.position, user.deliveryAddress]);
+
     const cards = [
         { key: "info", title: `${name || "Name"} ${surname || "Surname"}`, subtitle: phone || "Phone Number", icon: <Profile />, missing: infoMissing },
         ...(orderType === "delivery" ? [
@@ -202,7 +138,7 @@ export default function Checkout() {
         ] : []),
         {
             key: "time", title: orderType === "delivery" ? "Delivery Time" : "Takeaway Time",
-            subtitle: orderType === "delivery" ? `${mockRestaurant.minDeliveryTime} - ${mockRestaurant.maxDeliveryTime}` : `As soon as possible`, icon: <Time />, missing: false
+            subtitle: orderType === "delivery" ? `${estimatedDeliveryTime.min} - ${estimatedDeliveryTime.max} min` : `ASAP`, icon: <Time />, missing: false
         },
         { key: "notes", title: "Additional Notes", subtitle: notes || "Add a note for your order", icon: <Notes />, missing: false },
     ]
@@ -482,7 +418,7 @@ export default function Checkout() {
                                             </div>
                                             <div className="flex justify-between text-sm text-gray-500">
                                                 <span>Estimated delivery time</span>
-                                                <span>{mockRestaurant.minDeliveryTime} - {mockRestaurant.maxDeliveryTime} min</span>
+                                                <span>{estimatedDeliveryTime.min} - {estimatedDeliveryTime.max} min</span>
                                             </div>
                                         </>
                                     )}
