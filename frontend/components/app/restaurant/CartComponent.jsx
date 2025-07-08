@@ -106,7 +106,7 @@ export default function CartComponent({
     }
 
     setIsCheckoutDisabled(false);
-    setCheckoutDisabledReason("Proceed to Checkout");
+    setCheckoutDisabledReason("Pay");
 
   }, [orderType, selectedAddress, isRestaurantOpen, estimatedDeliveryTime, cartTotal]);
 
