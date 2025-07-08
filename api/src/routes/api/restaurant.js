@@ -591,8 +591,9 @@ router.get("/:restaurantId/queue/get", authStrict, async (req, res, next) => {
             restaurant: restaurant._id,
             status: { $nin: ["completed", "canceled"] }
         });
+        console.log("Queue count for restaurant:", queueCount);
 
-        if (queue >= 50) return res.status(503).send({ status: "error", error: "Restaurant is currently too busy, please try again later" });
+        if (queueCount >= 50) return res.status(503).send({ status: "error", error: "Restaurant is currently too busy, please try again later" });
 
         res.send({ status: "success", queueCount: queueCount * 600 });
     } catch (err) { next(err); }

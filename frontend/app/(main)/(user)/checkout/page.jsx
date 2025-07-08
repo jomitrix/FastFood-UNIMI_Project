@@ -72,10 +72,7 @@ export default function Checkout() {
     const [isModalOpen, setIsModalOpen] = useState(null);
 
     const [fee, setFee] = useState(0);
-
-    useState(() => {
-        console.log(cart);
-    }, [])
+    const [queueTime, setQueueTime] = useState(0);
 
     const extractId = id =>
         typeof id === 'string'
@@ -95,6 +92,19 @@ export default function Checkout() {
         : false);
 
     const isCheckoutDisabled = infoMissing || addressMissing || paymentMissing;
+
+    const getQueueTime = async () => {
+        const data = await RestaurantService.getQueue(cart.restaurant._id);
+        if (!data || data.status !== "success") {
+            return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+        }
+        const time = Math.ceil(data.queue / 60) || 0; 
+        setQueueTime(time);
+    };
+
+    useEffect(() => {
+        getQueueTime();
+    }, [cart.restaurant._id]);
 
     useEffect(() => {
         if (user?.cards?.length) {
@@ -145,7 +155,7 @@ export default function Checkout() {
         ] : []),
         {
             key: "time", title: orderType === "delivery" ? "Delivery Time" : "Takeaway Time",
-            subtitle: orderType === "delivery" ? `${estimatedDeliveryTime.min} - ${estimatedDeliveryTime.max} min` : `ASAP`, icon: <Time />, missing: false
+            subtitle: orderType === "delivery" ? `${estimatedDeliveryTime.min + queueTime} - ${estimatedDeliveryTime.max + queueTime} min` : queueTime > 0 ? `${queueTime} min` : `ASAP`, icon: <Time />, missing: false
         },
         { key: "notes", title: "Additional Notes", subtitle: notes || "Add a note for your order", icon: <Notes />, missing: false },
     ]
