@@ -267,7 +267,7 @@ router.get("/products/get", authStrict, async (req, res, next) => {
                             { $match: { $expr: { $eq: ["$restaurant", restaurant._id] } } },
                             { $unwind: "$meals" },
                             { $match: { $expr: { $eq: ["$meals.meal", "$$mealId"] } } },
-                            { $match: { $eq: ["$status", "completed"] } },
+                            { $match: { $expr: { $eq: ["$status", "completed"] } } },
                             {
                                 $project: {
                                     quantity: "$meals.quantity",
