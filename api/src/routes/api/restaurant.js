@@ -439,7 +439,51 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
                     as: "user"
                 }
             },
-            { $unwind: "$user" }
+            { $unwind: "$user" },
+
+            // 3) unwind dei meals per poter fare il lookup
+            { $unwind: "$meals" },
+
+            // 4) join con i meals per ottenere nome e prezzo
+            {
+                $lookup: {
+                    from: "Restaurants.Meals",           // nome della collection dei meals
+                    localField: "meals.meal",
+                    foreignField: "_id",
+                    as: "mealData"
+                }
+            },
+            { $unwind: "$mealData" },
+
+            // 5) ricostruisco la struttura dei meals con nome e prezzo
+            {
+                $group: {
+                    _id: "$_id",
+                    restaurant: { $first: "$restaurant" },
+                    user: { $first: "$user" },
+                    meals: {
+                        $push: {
+                            mealId: "$meals.meal",
+                            name: "$mealData.name",
+                            price: "$mealData.price",
+                            quantity: "$meals.quantity",
+                            ingredients: "$mealData.ingredients"
+                        }
+                    },
+                    totalPrice: { $first: "$totalPrice" },
+                    deliveryFee: { $first: "$deliveryFee" },
+                    orderType: { $first: "$orderType" },
+                    deliveryAddress: { $first: "$deliveryAddress" },
+                    deliveryTime: { $first: "$deliveryTime" },
+                    specialInstructions: { $first: "$specialInstructions" },
+                    phoneNumber: { $first: "$phoneNumber" },
+                    paymentMethod: { $first: "$paymentMethod" },
+                    code: { $first: "$code" },
+                    status: { $first: "$status" },
+                    createdAt: { $first: "$createdAt" },
+                    updatedAt: { $first: "$updatedAt" }
+                }
+            }
         ];
 
         // 3) filtro opzionale su nome/cognome

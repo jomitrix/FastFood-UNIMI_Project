@@ -439,13 +439,13 @@ export default function OrderRestaurant({ orders, totalOrders, loadPage, current
                           {selectedOrder.meals.map((item, idx) => (
                             <div key={idx} className="flex justify-between items-center p-2 border-b border-neutral-200 last:border-b-0">
                               <div className="flex-grow">
-                                <p className="text-sm font-semibold"><span className="px-2 py-1 mr-3 bg-neutral-100 rounded-md">{item.quantity}x</span>{item.meal.name}</p>
-                                {item.meal.ingredients && (
-                                  <p className="text-xs text-gray-500">{item.meal.ingredients.join(", ")}</p>
+                                <p className="text-sm font-semibold"><span className="px-2 py-1 mr-3 bg-neutral-100 rounded-md">{item.quantity}x</span>{item.name}</p>
+                                {item.ingredients && (
+                                  <p className="text-xs text-gray-500">{item.ingredients.join(", ")}</p>
                                 )}
                               </div>
                               <div className="flex items-center gap-2 text-sm">
-                                <span className="font-medium">{formatCurrency(item.quantity * item.meal.price)}</span>
+                                <span className="font-medium">{formatCurrency(item.quantity * item.price)}</span>
                               </div>
                             </div>
                           ))}
@@ -453,7 +453,7 @@ export default function OrderRestaurant({ orders, totalOrders, loadPage, current
                         <div className="pt-3 border-t border-neutral-200">
                           <div className="flex justify-between">
                             <span className="text-sm text-gray-600">Subtotal</span>
-                            <span className="text-sm">{formatCurrency(selectedOrder.totalPrice)}</span>
+                            <span className="text-sm">{formatCurrency(selectedOrder.meals.reduce((acc, m) => acc + (m.quantity * m.price), 0))}</span>
                           </div>
                           {selectedOrder.orderType === "delivery" && (
                             <div className="flex justify-between mt-1">
