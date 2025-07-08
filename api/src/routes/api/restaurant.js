@@ -364,12 +364,12 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
 
         let deliveryTime = null;
         if (orderType == "delivery") {
-            deliveryTime = await getRouteDistance(address, restaurant.position);
+            deliveryTime = await getRouteDistance(address, { lng: restaurant.position.geopoint.coordinates[0], lat: restaurant.position.geopoint.coordinates[1] }, "driving");
             if (!deliveryTime) return res.status(400).send({ status: "error", error: "Invalid delivery address" });
 
             if (deliveryTime > 3600) return res.status(400).send({ status: "error", error: "Delivery time exceeds 1 hour" });
         }
-        
+
         const deliveryFee = deliveryTime ? Math.ceil(deliveryTime / 60) * 0.15 : 0; // 0.15€ per minute of delivery time
 
         const totalPrice = meals.reduce((sum, meal) => {

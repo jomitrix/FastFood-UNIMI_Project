@@ -189,7 +189,7 @@ export default function RestaurantPage({ params }) {
     useEffect(() => {
         if (!restaurant.position || !user.delivery[0]) return;
         async function calculateDeliveryTime() {
-            const time = await getRouteDistance(restaurant.position, user.delivery[0]);
+            const time = await getRouteDistance({ lng: restaurant.position.geopoint.coordinates[0], lat: restaurant.position.geopoint.coordinates[1] }, user.delivery[0]);
             const deliveryDistance = Math.ceil(time / 60);
             setEstimatedDeliveryTime({
                 min: deliveryDistance >= 20 ? deliveryDistance - 10 : deliveryDistance,
