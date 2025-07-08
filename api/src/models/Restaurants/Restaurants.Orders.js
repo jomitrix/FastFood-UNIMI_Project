@@ -10,6 +10,7 @@ const OrderSchema = new mongoose.Schema({
     totalPrice: { type: Number, required: true, min: 0 },
     deliveryFee: { type: Number, default: 0, min: 0 },
     deliveryTime: { type: Number, default: 0, min: 0 },
+    queueTime: { type: Number, default: 0, min: 0 },
     status: { type: String, enum: ["ordered", "preparing", "out", "ready", "completed", "canceled"], default: "ordered" },
     orderType: { type: String, enum: ["takeaway", "delivery"], required: true, default: "takeaway" },
     deliveryAddress: { type: String, trim: true },

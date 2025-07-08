@@ -112,7 +112,7 @@ export default function CartComponent({
     getFee(selectedAddress);
     setIsCheckoutDisabled(false);
     setCheckoutDisabledReason("Pay");
-  }, [orderType, selectedAddress, isRestaurantOpen, estimatedDeliveryTime, cartTotal]);
+  }, [orderType, selectedAddress, isRestaurantOpen]);
 
   return (
     <div className={`bg-white flex flex-col ${isDesktop ? 'h-screen border-l border-gray-200' : 'h-full'}`}>

@@ -89,6 +89,27 @@ export default function RestaurantPage({ params }) {
     };
 
     useEffect(() => {
+        // Make sure the restaurant data has been loaded
+        if (restaurant && restaurant._id) {
+            // Check if a different restaurant is already in the cart
+            if (cart.restaurant && cart.restaurant._id !== restaurant._id) {
+                // Reset the cart: update to the new restaurant and clear the items array
+                setCart(prev => ({
+                    ...prev, // Keep existing settings like orderType if needed
+                    restaurant: {
+                        _id: restaurant._id,
+                        name: restaurant.name,
+                        banner: restaurant.banner,
+                        logo: restaurant.logo,
+                        position: restaurant.position,
+                    },
+                    items: [] // Clear the items
+                }));
+            }
+        }
+    }, [restaurant, cart.restaurant, setCart]);
+
+    useEffect(() => {
         mealsPaginator.reset();
     }, [debouncedSearch]);
 
@@ -235,12 +256,10 @@ export default function RestaurantPage({ params }) {
         }
 
         valuateIsOpenNow();
-        calculateDeliveryTime(user.delivery[0]);
     }, [restaurant.position,
     restaurant.minDeliveryTime,
     restaurant.maxDeliveryTime,
-    restaurant.openingHours,
-    user.deliveryAddress]);
+    restaurant.openingHours]);
 
     return (
         <div>

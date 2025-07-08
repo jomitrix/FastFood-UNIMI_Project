@@ -362,6 +362,10 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
         const address = req.user.delivery.find(d => d._id.toString() === deliveryAddress);
         if (!address && orderType === "delivery") return res.status(400).send({ status: "error", error: "Invalid delivery address" });
 
+        const queue = await Orders.countDocuments({ restaurant: restaurant._id, status: { $nin: ["completed", "canceled"] } });
+        console.log(queue);
+        if (queue >= 50) return res.status(503).send({ status: "error", error: "Restaurant is currently too busy, please try again later" });
+
         let deliveryTime = null;
         if (orderType == "delivery") {
             deliveryTime = await getRouteDistance(address, { lng: restaurant.position.geopoint.coordinates[0], lat: restaurant.position.geopoint.coordinates[1] }, "driving");
@@ -391,6 +395,7 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
             orderType,
             deliveryAddress: orderType === "delivery" ? address.address : null,
             deliveryTime,
+            queueTime: queue * 600,
             specialInstructions: specialInstructions || "",
             phoneNumber,
             paymentMethod,
@@ -570,6 +575,26 @@ router.get("/:restaurantId/fee/get", authStrict, async (req, res, next) => {
         const fee = Math.ceil(deliveryTime / 60) * 0.15;
 
         res.send({ status: "success", fee });
+    } catch (err) { next(err); }
+});
+
+router.get("/:restaurantId/queue/get", authStrict, async (req, res, next) => {
+    try {
+        const { restaurantId } = req.params;
+
+        if (!restaurantId || !mongoose.Types.ObjectId.isValid(restaurantId)) return res.status(400).send({ status: "error", error: "Invalid restaurant ID" });
+
+        const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
+        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+
+        const queueCount = await Orders.countDocuments({
+            restaurant: restaurant._id,
+            status: { $nin: ["completed", "canceled"] }
+        });
+
+        if (queue >= 50) return res.status(503).send({ status: "error", error: "Restaurant is currently too busy, please try again later" });
+
+        res.send({ status: "success", queueCount: queueCount * 600 });
     } catch (err) { next(err); }
 });
 

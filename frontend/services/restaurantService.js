@@ -86,5 +86,9 @@ export const RestaurantService = {
         return ApiService.get(`/restaurant/${restaurantId}/fee/get`, {
             params: { address }
         });
+    },
+
+    getQueue(restaurantId) {
+        return ApiService.get(`/restaurant/${restaurantId}/queue/get`);
     }
 };
