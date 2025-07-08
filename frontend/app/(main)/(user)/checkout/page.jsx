@@ -21,6 +21,12 @@ export default function Checkout() {
     const { user } = useAuth();
     const { cart, setCart } = useCart();
 
+    useEffect(() => {
+        if (!cart.restaurant || !cart.items || cart.items.length === 0) {
+            return router.push('/');
+        }
+    }, [cart, router]);
+
     const validatePhone = (phone) => phone.match(/^\+(?:[0-9] ?){6,14}[0-9]$/);
     // Regex validazione carta (base)
     const validateCardNumber = (num) => num.replace(/\s/g, '').match(/^\d{16}$/);
@@ -94,17 +100,17 @@ export default function Checkout() {
     const isCheckoutDisabled = infoMissing || addressMissing || paymentMissing;
 
     const getQueueTime = async () => {
-        const data = await RestaurantService.getQueue(cart.restaurant._id);
+        const data = await RestaurantService.getQueue(cart.restaurant?._id);
         if (!data || data.status !== "success") {
             return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
         }
-        const time = Math.ceil(data.queueCount / 60) || 0; 
+        const time = Math.ceil(data.queueCount / 60) || 0;
         setQueueTime(time);
     };
 
     useEffect(() => {
         getQueueTime();
-    }, [cart.restaurant._id]);
+    }, [cart.restaurant?._id]);
 
     useEffect(() => {
         if (user?.cards?.length) {
@@ -127,7 +133,7 @@ export default function Checkout() {
     }, [address]);
 
     const getFee = async () => {
-        const data = await RestaurantService.getFee(cart.restaurant._id, address?._id);
+        const data = await RestaurantService.getFee(cart.restaurant?._id, address?._id);
         if (!data || data.status !== "success") {
             return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
         }
@@ -135,9 +141,9 @@ export default function Checkout() {
     };
 
     useEffect(() => {
-        if (!cart.restaurant.position || !address) return;
+        if (!cart.restaurant?.position || !address) return;
         async function calculateDeliveryTime() {
-            const time = await getRouteDistance({ lng: cart.restaurant.position.geopoint.coordinates[0], lat: cart.restaurant.position.geopoint.coordinates[1] }, address);
+            const time = await getRouteDistance({ lng: cart.restaurant?.position.geopoint.coordinates[0], lat: cart.restaurant?.position.geopoint.coordinates[1] }, address);
             const deliveryDistance = Math.ceil(time / 60);
             setEstimatedDeliveryTime({
                 min: deliveryDistance >= 20 ? deliveryDistance - 10 : deliveryDistance,
@@ -146,7 +152,7 @@ export default function Checkout() {
         }
 
         calculateDeliveryTime();
-    }, [cart.restaurant.position, address]);
+    }, [cart.restaurant?.position, address]);
 
     const cards = [
         { key: "info", title: `${name || "Name"} ${surname || "Surname"}`, subtitle: phone || "Phone Number", icon: <Profile />, missing: infoMissing },
@@ -293,7 +299,7 @@ export default function Checkout() {
 
     const handleCheckout = async () => {
         const orderData = {
-            restaurantId: cart.restaurant._id,
+            restaurantId: cart.restaurant?._id,
             orderType: cart.orderType,
             meals: cart.items.map(item => ({ meal: item._id, quantity: item.quantity })),
             deliveryAddress: orderType === "delivery" ? address._id : null,
@@ -310,6 +316,10 @@ export default function Checkout() {
 
         setCart({ ...cart, items: [], orderType: 'takeaway', deliveryAddress: null });
         router.push(`/orders`);
+    }
+
+    if (!cart.restaurant || !cart.items || cart.items.length === 0) {
+        return null; // or a loading spinner <Spinner />
     }
 
     return (
