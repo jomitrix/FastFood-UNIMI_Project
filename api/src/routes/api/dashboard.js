@@ -404,6 +404,7 @@ router.get("/salestrend/get", authStrict, async (req, res, next) => {
         // 1) costruisci match e groupBy
         const match = { restaurant: restaurant._id };
         const groupBy = { _id: null, totalRevenue: { $sum: "$totalPrice" } };
+        let allPeriods = [];
 
         if (period === "day") {
             // 1) match: dall’inizio del mese corrente fino al prossimo mese
@@ -417,6 +418,17 @@ router.get("/salestrend/get", authStrict, async (req, res, next) => {
 
             // 2) groupBy: giorno del mese (1–31)
             groupBy._id = { $dayOfMonth: "$createdAt" };
+
+            // 3) genera tutti i giorni del mese
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            for (let day = 1; day <= daysInMonth; day++) {
+                allPeriods.push({
+                    _id: day,
+                    label: day.toString(),
+                    totalRevenue: 0,
+                    totalOrders: 0
+                });
+            }
         }
         else if (period === "week") {
             match.createdAt = {
@@ -432,13 +444,45 @@ router.get("/salestrend/get", authStrict, async (req, res, next) => {
                     ]
                 }
             };
+
+            // 3) genera tutte le settimane del mese (massimo 5)
+            for (let week = 1; week <= 5; week++) {
+                allPeriods.push({
+                    _id: week,
+                    label: `Week ${week}`,
+                    totalRevenue: 0,
+                    totalOrders: 0
+                });
+            }
         }
         else if (period === "month") {
+            // Per i mesi, mostra gli ultimi 12 mesi
+            const now = new Date();
+            const startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+            const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+            
             match.createdAt = {
-                $gte: new Date(new Date().setDate(1)),
-                $lt: new Date(new Date().setMonth(new Date().getMonth() + 1, 1))
+                $gte: startDate,
+                $lt: endDate
             };
             groupBy._id = { $month: "$createdAt" };
+
+            // 3) genera tutti i mesi degli ultimi 12 mesi
+            const monthNames = [
+                "January", "February", "March", "April", "May", "June",
+                "July", "August", "September", "October", "November", "December"
+            ];
+            
+            for (let i = 0; i < 12; i++) {
+                const monthDate = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+                const monthNumber = monthDate.getMonth() + 1;
+                allPeriods.push({
+                    _id: monthNumber,
+                    label: monthNames[monthNumber - 1],
+                    totalRevenue: 0,
+                    totalOrders: 0
+                });
+            }
         }
 
         if (type === "orders") {
@@ -450,31 +494,25 @@ router.get("/salestrend/get", authStrict, async (req, res, next) => {
             delete groupBy.totalOrders;
         }
 
-        // 2) esegui l’aggregate
+        // 2) esegui l'aggregate
         const rawData = await Orders.aggregate([
             { $match: match },
             { $group: groupBy },
             { $sort: { _id: 1 } }
         ]);
 
-        // 3) arricchisci con la label
-        const monthNames = [
-            "January", "February", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"
-        ];
-        const salesData = rawData.map(item => {
-            let label;
-            if (period === "day") {
-                // item._id è un numero 1–31
-                label = item._id.toString();
-            } else if (period === "week") {
-                // 1-4 in base alla settimana nel mese
-                label = `Week ${item._id}`;
-            } else if (period === "month") {
-                // item._id: 1–12
-                label = monthNames[item._id - 1];
+        // 3) merge dei dati reali con tutti i periodi
+        const salesData = allPeriods.map(period => {
+            const actualData = rawData.find(item => item._id === period._id);
+            if (actualData) {
+                return {
+                    _id: period._id,
+                    label: period.label,
+                    totalRevenue: actualData.totalRevenue || 0,
+                    totalOrders: actualData.totalOrders || 0
+                };
             }
-            return { ...item, label };
+            return period;
         });
 
         // 4) invia
