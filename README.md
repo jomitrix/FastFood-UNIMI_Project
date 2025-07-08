@@ -6,6 +6,7 @@ Per avviare il progetto
 - cd api
 - npm i
 - npm run dev
+
 - cd frontend
 - npm i
 - npm run dev
