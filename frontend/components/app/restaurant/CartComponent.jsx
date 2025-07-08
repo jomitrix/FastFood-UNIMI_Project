@@ -59,7 +59,8 @@ export default function CartComponent({
     if (!data || data.status !== "success") {
       return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
-    const time = Math.ceil(data.queue / 60) || 0;
+    
+    const time = Math.ceil(data.queueCount / 60) || 0;
     console.log("Queue time:", time);
     setQueueTime(time);
   };
