@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useMemo } from 'react';
-import { Funnel, XCircle } from '@/components/icons/heroicons';
+import { Funnel } from '@/components/icons/heroicons';
 import { Badge } from '@heroui/badge';
 import { Checkbox } from '@heroui/checkbox';
 import { Accordion, AccordionItem } from '@heroui/accordion';
@@ -23,22 +23,18 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
   }), [isOpenNow, selectedAllergens, selectedCuisines, priceRange]);
 
   useEffect(() => {
-    // On desktop, apply filters instantly.
+    setIsOpenNow(pageFilters.isOpenNow);
+    setSelectedAllergens(pageFilters.selectedAllergens);
+    setSelectedCuisines(pageFilters.selectedCuisines);
+    setPriceRange(pageFilters.priceRange);
+  }, [pageFilters]);
+
+  useEffect(() => {
+    // Su desktop, applica i filtri istantaneamente.
     if (onFiltersChange && !isMobile) {
       onFiltersChange(localFilters);
     }
   }, [localFilters, onFiltersChange, isMobile]);
-
-  // When modal opens on mobile, sync local state with page state
-  useEffect(() => {
-    if (isMobile && isDrawerOpen) {
-      setIsOpenNow(pageFilters.isOpenNow);
-      setSelectedAllergens(pageFilters.selectedAllergens);
-      setSelectedCuisines(pageFilters.selectedCuisines);
-      setPriceRange(pageFilters.priceRange);
-    }
-  }, [isDrawerOpen, isMobile, pageFilters]);
-
 
   const activeFilterCount = useMemo(() => {
     const filters = isMobile ? pageFilters : localFilters;

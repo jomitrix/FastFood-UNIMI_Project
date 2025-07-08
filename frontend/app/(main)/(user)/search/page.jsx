@@ -23,6 +23,7 @@ import { usePaginator } from '@/utils/paginator';
 import { useAuth } from '@/contexts/AuthContext';
 import { Spinner } from '@heroui/spinner';
 import { useDebounce } from '@/utils/useDebounce';
+import { useMedia } from 'react-use';
 
 export default function Home() {
   const { user } = useAuth();
@@ -44,6 +45,7 @@ export default function Home() {
 
   const debouncedSearch = useDebounce(searchValue, 300);
   const scrollController = useRef(null);
+  const isMobileView = useMedia('(max-width: 1023px)');
 
   const nearbyRestaurantsPaginator = usePaginator(useCallback(
     (page, _) => FeedService.getNearbyRestaurants(page, selectedAddress._id, orderType, selectedCategories, activeFilters.selectedCuisines, activeFilters.selectedAllergens, activeFilters.isOpenNow, debouncedSearch)
@@ -188,6 +190,7 @@ export default function Home() {
             onFiltersChange={handleFiltersChange}
             isDrawerOpen={isFilterDrawerOpen}
             setIsDrawerOpen={setIsFilterDrawerOpen}
+            isMobile={isMobileView}
             searchType={searchType}
             activeFilters={activeFilters}
           />
@@ -286,8 +289,8 @@ export default function Home() {
 
             <h2 className="text-xl font-semibold mb-4">
               {searchType === "restaurant"
-                ? `Order from 999 restaurants`
-                : `Choose from 999 dishes`
+                ? `Order from MockNumber restaurants`
+                : `Choose from MockNumber dishes`
               }
             </h2>
 
@@ -341,10 +344,13 @@ export default function Home() {
                       img={process.env.NEXT_PUBLIC_API_URL + meal.meal.image}
                       mealName={meal.meal.name}
                       price={meal.meal.price}
-                      description={meal.meal.area}
+                      area={meal.meal.area}
+                      category={meal.meal.category}
                       restaurant={meal.restaurantName}
                       className="w-full"
                       restaurantId={meal.restaurantId}
+                      restaurantName={meal.restaurantName}
+                      estimatedDeliveryTime={meal.estimatedDeliveryTime}
                       ref={idx === nearbyMealsPaginator.items.length - 1 ? lastElementRef : null}
                     />
                   ))
@@ -354,15 +360,6 @@ export default function Home() {
           </div>
         </main>
       </div>
-
-      <FilterSidebar
-        onFiltersChange={handleFiltersChange}
-        isDrawerOpen={isFilterDrawerOpen}
-        setIsDrawerOpen={setIsFilterDrawerOpen}
-        isMobile={true}
-        searchType={searchType}
-        activeFilters={activeFilters}
-      />
     </div>
   );
 }

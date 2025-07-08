@@ -827,7 +827,7 @@ export default function ProfilePage() {
                       />
                     </div>
 
-                    <div className="w-full md:w-32 flex-shrink-0">
+                    <div className="w-full md:w-32 mt-2 sm:mt-0 sm:ml-2 flex-shrink-0">
                       <Button
                         size="sm"
                         variant={closed ? "flat" : "light"}
