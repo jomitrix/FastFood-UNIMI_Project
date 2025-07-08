@@ -56,7 +56,7 @@ router.get("/restaurants/nearby", authStrict, async (req, res, next) => {
     try {
         // 1) read & normalize query
         const page = Math.max(1, parseInt(req.query.page) || 1);
-        const perPage = 12;
+        const perPage = 10;
         const { address } = req.query;
         const serviceMode = req.query.serviceMode;   // "delivery" | "takeaway" | "all"
         const categories = req.query.categories
@@ -222,7 +222,7 @@ router.get("/restaurants/nearby", authStrict, async (req, res, next) => {
         }
 
         // sort, skip, limit
-        pipeline.push({ $sort: { geoDistance: 1 } });
+        pipeline.push({ $sort: { geoDistance: 1, _id: 1 } });
         pipeline.push({ $skip: (page - 1) * perPage });
         pipeline.push({ $limit: perPage });
 
@@ -263,7 +263,7 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
     try {
         // 1) read & normalize query
         const page = Math.max(1, parseInt(req.query.page) || 1);
-        const perPage = 12;
+        const perPage = 10;
         const { address } = req.query;
         const serviceMode = req.query.serviceMode;   // "delivery" | "takeaway" | "all"
         const categories = req.query.categories
@@ -438,7 +438,7 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
         }
 
         // sort by distance (closest restaurants first)
-        pipeline.push({ $sort: { geoDistance: 1 } });
+        pipeline.push({ $sort: { geoDistance: 1, _id: 1, "meal._id": 1 } });
         
         // pagination
         pipeline.push({ $skip: (page - 1) * perPage });
@@ -571,7 +571,7 @@ router.get("/restaurants/nearby/preferred", authStrict, async (req, res, next) =
             // D) mantieni solo chi ha almeno un meal corrispondente
             { $match: { "matchingMeals.0": { $exists: true } } },
             // E) ordina per distanza crescente
-            { $sort: { geoDistance: 1 } },
+            { $sort: { geoDistance: 1, _id: 1 } },
             // F) paginazione
             { $skip: (page - 1) * perPage },
             { $limit: perPage },

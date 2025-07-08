@@ -65,55 +65,52 @@ export default function Home() {
     10
   );
 
-  const lastElementRef = (node) => {
-    // Controlla solo il loading appropriato per il tipo di ricerca corrente
-    if ((searchType === 'restaurant' && nearbyRestaurantsPaginator.isLoading) || 
-        (searchType === 'dishes' && nearbyMealsPaginator.isLoading)) return;
-    
+  const lastElementRef = useCallback(node => {
+    // Se stiamo già caricando dati, non fare nulla.
+    // Questo è un primo livello di protezione.
+    const paginator = searchType === 'restaurant' ? nearbyRestaurantsPaginator : nearbyMealsPaginator;
+    if (paginator.isLoading) return;
+
+    // Se esiste un observer precedente, disconnettilo.
     if (scrollController.current) scrollController.current.disconnect();
-    scrollController.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        console.log("Last element is intersecting, loading next page");
-        if (searchType === 'restaurant' && nearbyRestaurantsPaginator.hasMore) {
-          nearbyRestaurantsPaginator.loadNext();
-        } else if (searchType === 'dishes' && nearbyMealsPaginator.hasMore) {
-          nearbyMealsPaginator.loadNext();
-        }
+
+    // Crea un nuovo observer.
+    scrollController.current = new IntersectionObserver(entries => {
+      // Controlla se l'elemento è visibile E se ci sono più dati da caricare E se NON stiamo già caricando.
+      // Questo è il controllo cruciale che risolve la race condition.
+      if (entries[0].isIntersecting && paginator.hasMore && !paginator.isLoading) {
+        console.log("Observer triggered: loading next page.");
+        paginator.loadNext();
+
+        // FONDAMENTALE: Una volta che l'observer ha fatto il suo lavoro, lo disconnettiamo
+        // per evitare che si attivi di nuovo per lo stesso elemento.
+        scrollController.current.disconnect();
       }
+    }, {
+      rootMargin: '300px',
     });
-    if (node) scrollController.current.observe(node);
-  };
+
+    // Se il nodo DOM esiste, inizia a osservarlo.
+    if (node) {
+      scrollController.current.observe(node);
+    }
+  }, [searchType, nearbyRestaurantsPaginator, nearbyMealsPaginator]); // Le dipendenze possono essere gli oggetti paginator stessi
 
   useEffect(() => {
-    nearbyPreferredRestaurantsPaginator.reset();
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [selectedAddress]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [orderType]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [selectedCategories]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [activeFilters]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [debouncedSearch]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [searchType]);
+    // This will reset the data and page count whenever a filter changes.
+    if (searchType === 'restaurant') {
+      nearbyRestaurantsPaginator.reset();
+    } else if (searchType === 'dishes') {
+      nearbyMealsPaginator.reset();
+    }
+  }, [
+    selectedAddress,
+    orderType,
+    selectedCategories,
+    activeFilters,
+    debouncedSearch,
+    searchType
+  ]);
 
   useEffect(() => {
     const courseFromStorage = localStorage.getItem('course');
@@ -316,7 +313,7 @@ export default function Home() {
                       key={r._id}
                       className="w-full"
                       restaurant={r}
-                      ref={idx === nearbyRestaurantsPaginator.items.length - 1 ? lastElementRef : null}
+                    // ref={idx === nearbyRestaurantsPaginator.items.length - 1 ? lastElementRef : null}
                     />
                   ))
                 )}
