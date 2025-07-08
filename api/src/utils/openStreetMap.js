@@ -7,10 +7,6 @@ async function geocodeAddress(address) {
         format: 'json',
         limit: 1
     };
-    // const headers = {
-    //     // Per cortesia verso il server, identifica la tua app
-    //     'User-Agent': 'LaMiaApp/1.0 (tuo@esempio.com)'
-    // };
 
     const res = await axios.get(url, { params });
     const data = res.data;

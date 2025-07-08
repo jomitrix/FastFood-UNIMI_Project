@@ -171,7 +171,6 @@ router.delete("/account/delete", authStrict, async (req, res, next) => {
         if (req.user.role === "restaurant") {
             const restaurant = await Restaurants.deleteOne({ user: req.user._id });
             if (restaurant) {
-                const menus = await Menus.deleteMany({ restaurant: req.user._id });
                 const meals = await Meals.deleteMany({ restaurant: req.user._id });
                 const orders = await Orders.deleteMany({ restaurant: req.user._id });
             }
