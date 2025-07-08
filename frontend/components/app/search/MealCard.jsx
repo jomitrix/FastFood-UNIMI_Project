@@ -1,11 +1,11 @@
 "use client"; 
 import { useRouter } from 'next/navigation';
 import { Time } from '@/components/icons/heroicons';
-import { useState } from 'react';
+import { useState, forwardRef } from 'react';
 import { Skeleton } from '@heroui/skeleton';
 import { Card } from '@heroui/card';
 
-export default function MealCard({
+const MealCard = forwardRef(({
   img,
   mealName,
   price,
@@ -15,7 +15,7 @@ export default function MealCard({
   restaurantName,
   estimatedDeliveryTime,
   className,
-}) {
+}, ref) => {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -24,6 +24,7 @@ export default function MealCard({
       className={`overflow-hidden ${className}`}
       isPressable
       onPress={() => router.push(`/restaurant/${restaurantId}`)}
+      ref={ref}
     >
         <div className="relative aspect-video bg-gray-200">
           {!isImageLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
@@ -60,4 +61,6 @@ export default function MealCard({
         </div>
     </Card>
   );
-}
+})
+
+export default MealCard;

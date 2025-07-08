@@ -56,7 +56,7 @@ router.get("/restaurants/nearby", authStrict, async (req, res, next) => {
     try {
         // 1) read & normalize query
         const page = Math.max(1, parseInt(req.query.page) || 1);
-        const perPage = 12;
+        const perPage = 10;
         const { address } = req.query;
         const serviceMode = req.query.serviceMode;   // "delivery" | "takeaway" | "all"
         const categories = req.query.categories
@@ -167,62 +167,60 @@ router.get("/restaurants/nearby", authStrict, async (req, res, next) => {
             }
         });
 
-        // openNow filtering (JS fallback)
-        if (openNowFlag) {
-            const now = new Date();
-            const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+        // openNow filtering
+        const now = new Date();
+        const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
 
-            pipeline.push({
-                $addFields: {
-                    openNow: {
-                        $let: {
-                            vars: {
-                                slot: { $ifNull: [`$openingHours.${dayName}`, null] }
-                            },
-                            in: {
-                                $cond: [
-                                    { $or: [{ $eq: ["$$slot", null] }, "$$slot.closed"] },
-                                    false,
-                                    {
-                                        $let: {
-                                            vars: {
-                                                nowHour: now.getHours(),
-                                                nowMinute: now.getMinutes(),
-                                                openH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 0] } },
-                                                openM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 1] } },
-                                                closeH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 0] } },
-                                                closeM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 1] } },
-                                            },
-                                            in: {
-                                                $and: [
-                                                    {
-                                                        $gte: [
-                                                            { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
-                                                            { $add: [{ $multiply: ["$$openH", 60] }, "$$openM"] }
-                                                        ]
-                                                    },
-                                                    {
-                                                        $lte: [
-                                                            { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
-                                                            { $add: [{ $multiply: ["$$closeH", 60] }, "$$closeM"] }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
+        pipeline.push({
+            $addFields: {
+                openNow: {
+                    $let: {
+                        vars: {
+                            slot: { $ifNull: [`$openingHours.${dayName}`, null] }
+                        },
+                        in: {
+                            $cond: [
+                                { $or: [{ $eq: ["$$slot", null] }, "$$slot.closed"] },
+                                false,
+                                {
+                                    $let: {
+                                        vars: {
+                                            nowHour: now.getHours(),
+                                            nowMinute: now.getMinutes(),
+                                            openH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 0] } },
+                                            openM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 1] } },
+                                            closeH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 0] } },
+                                            closeM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 1] } },
+                                        },
+                                        in: {
+                                            $and: [
+                                                {
+                                                    $gte: [
+                                                        { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
+                                                        { $add: [{ $multiply: ["$$openH", 60] }, "$$openM"] }
+                                                    ]
+                                                },
+                                                {
+                                                    $lte: [
+                                                        { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
+                                                        { $add: [{ $multiply: ["$$closeH", 60] }, "$$closeM"] }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
                 }
-            });
+            }
+        });
 
-            pipeline.push({ $match: { openNow: true } });
-        }
+        pipeline.push({ $match: { openNow: openNowFlag } });
 
         // sort, skip, limit
-        pipeline.push({ $sort: { geoDistance: 1 } });
+        pipeline.push({ $sort: { geoDistance: 1, _id: 1 } });
         pipeline.push({ $skip: (page - 1) * perPage });
         pipeline.push({ $limit: perPage });
 
@@ -263,7 +261,7 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
     try {
         // 1) read & normalize query
         const page = Math.max(1, parseInt(req.query.page) || 1);
-        const perPage = 12;
+        const perPage = 10;
         const { address } = req.query;
         const serviceMode = req.query.serviceMode;   // "delivery" | "takeaway" | "all"
         const categories = req.query.categories
@@ -338,7 +336,7 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
 
         // filter meals based on criteria
         const mealMatchConditions = {};
-        
+
         if (avoidAllergens.length > 0) {
             mealMatchConditions["meals.allergens"] = { $nin: avoidAllergens };
         }
@@ -383,63 +381,61 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
             }
         });
 
-        // openNow filtering (if needed)
-        if (openNowFlag) {
-            const now = new Date();
-            const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+        // openNow filtering
+        const now = new Date();
+        const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
 
-            pipeline.push({
-                $addFields: {
-                    openNow: {
-                        $let: {
-                            vars: {
-                                slot: { $ifNull: [`$openingHours.${dayName}`, null] }
-                            },
-                            in: {
-                                $cond: [
-                                    { $or: [{ $eq: ["$$slot", null] }, "$$slot.closed"] },
-                                    false,
-                                    {
-                                        $let: {
-                                            vars: {
-                                                nowHour: now.getHours(),
-                                                nowMinute: now.getMinutes(),
-                                                openH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 0] } },
-                                                openM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 1] } },
-                                                closeH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 0] } },
-                                                closeM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 1] } },
-                                            },
-                                            in: {
-                                                $and: [
-                                                    {
-                                                        $gte: [
-                                                            { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
-                                                            { $add: [{ $multiply: ["$$openH", 60] }, "$$openM"] }
-                                                        ]
-                                                    },
-                                                    {
-                                                        $lte: [
-                                                            { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
-                                                            { $add: [{ $multiply: ["$$closeH", 60] }, "$$closeM"] }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
+        pipeline.push({
+            $addFields: {
+                openNow: {
+                    $let: {
+                        vars: {
+                            slot: { $ifNull: [`$openingHours.${dayName}`, null] }
+                        },
+                        in: {
+                            $cond: [
+                                { $or: [{ $eq: ["$$slot", null] }, "$$slot.closed"] },
+                                false,
+                                {
+                                    $let: {
+                                        vars: {
+                                            nowHour: now.getHours(),
+                                            nowMinute: now.getMinutes(),
+                                            openH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 0] } },
+                                            openM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 1] } },
+                                            closeH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 0] } },
+                                            closeM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 1] } },
+                                        },
+                                        in: {
+                                            $and: [
+                                                {
+                                                    $gte: [
+                                                        { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
+                                                        { $add: [{ $multiply: ["$$openH", 60] }, "$$openM"] }
+                                                    ]
+                                                },
+                                                {
+                                                    $lte: [
+                                                        { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
+                                                        { $add: [{ $multiply: ["$$closeH", 60] }, "$$closeM"] }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
                 }
-            });
+            }
+        });
 
-            pipeline.push({ $match: { openNow: true } });
-        }
+        pipeline.push({ $match: { openNow: openNowFlag } });
 
         // sort by distance (closest restaurants first)
-        pipeline.push({ $sort: { geoDistance: 1 } });
-        
+        pipeline.push({ $sort: { geoDistance: 1, _id: 1, "meal._id": 1 } });
+
         // pagination
         pipeline.push({ $skip: (page - 1) * perPage });
         pipeline.push({ $limit: perPage });
@@ -491,117 +487,181 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
 
 router.get("/restaurants/nearby/preferred", authStrict, async (req, res, next) => {
     try {
-        const { page = 1, address } = req.query;
+        const { page = 1, address: singleAddressId } = req.query;
         const perPage = 10;
+        const { preferences } = req.user;
 
-        // 1) recupera l’indirizzo scelto dall’utente
-        const userAddress = req.user.delivery.find(a => a._id.toString() === address);
-        if (!userAddress) {
-            return res
-                .status(400)
-                .send({ status: "error", error: "Delivery address not found" });
-        }
+        if (singleAddressId) {
+            // --- SCENARIO 1: A SINGLE ADDRESS IS SPECIFIED ---
 
-        const { lat, lng } = userAddress;
-        if (typeof lat !== "number" || typeof lng !== "number") {
-            return res
-                .status(400)
-                .send({ status: "error", error: "Delivery address not set" });
-        }
+            const userAddress = req.user.delivery.find(a => a._id.toString() === singleAddressId);
+            if (!userAddress) {
+                return res.status(400).send({ status: "error", error: "Delivery address not found" });
+            }
+            if (typeof userAddress.lat !== "number" || typeof userAddress.lng !== "number") {
+                return res.status(400).send({ status: "error", error: "Delivery address not set" });
+            }
 
-        // 2) preferenze utente
-        const {
-            allergens: avoidAllergens,
-            preferredFoodTypes,
-            preferredCuisines
-        } = req.user.preferences;
+            const { lat, lng } = userAddress;
+            const { allergens: avoidAllergens, preferredFoodTypes, preferredCuisines } = preferences;
+            const maxDistance = 60_000;
 
-        // 3) raggio massimo in metri (ad es. 60 km)
-        const maxDistance = 60_000;
-
-        // 4) pipeline di aggregazione
-        const docs = await Restaurants.aggregate([
-            // A) primo stage: geoNear
-            {
-                $geoNear: {
-                    near: {
-                        type: "Point",
-                        coordinates: [lng, lat]
-                    },
-                    distanceField: "geoDistance",
-                    maxDistance,
-                    spherical: true
-                }
-            },
-            // B) unisci i pasti del ristorante
-            {
-                $lookup: {
-                    from: "Restaurants.Meals",
-                    localField: "_id",
-                    foreignField: "restaurant",
-                    as: "meals"
-                }
-            },
-            // C) filtra i pasti in base alle preferenze
-            {
-                $addFields: {
-                    matchingMeals: {
-                        $filter: {
-                            input: "$meals",
-                            as: "meal",
-                            cond: {
-                                $and: [
-                                    // niente allergeni proibiti
-                                    {
-                                        $eq: [
-                                            { $size: { $setIntersection: ["$$meal.allergens", avoidAllergens] } },
-                                            0
-                                        ]
-                                    },
-                                    // categoria consentita
-                                    { $in: ["$$meal.category", preferredFoodTypes] },
-                                    // cucina consentita
-                                    { $in: ["$$meal.area", preferredCuisines] }
-                                ]
+            // 1. Aggregation Pipeline
+            const docs = await Restaurants.aggregate([
+                {
+                    $geoNear: {
+                        near: { type: "Point", coordinates: [lng, lat] },
+                        distanceField: "geoDistance",
+                        maxDistance,
+                        spherical: true
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "Restaurants.Meals",
+                        localField: "_id",
+                        foreignField: "restaurant",
+                        as: "meals"
+                    }
+                },
+                {
+                    $addFields: {
+                        matchingMeals: {
+                            $filter: {
+                                input: "$meals",
+                                as: "meal",
+                                cond: {
+                                    $and: [
+                                        { $eq: [{ $size: { $setIntersection: ["$$meal.allergens", avoidAllergens] } }, 0] },
+                                        { $in: ["$$meal.category", preferredFoodTypes] },
+                                        { $in: ["$$meal.area", preferredCuisines] }
+                                    ]
+                                }
                             }
                         }
                     }
+                },
+                { $match: { "matchingMeals.0": { $exists: true } } },
+                { $sort: { geoDistance: 1, _id: 1 } },
+                { $skip: (parseInt(page, 10) - 1) * perPage },
+                { $limit: perPage },
+                {
+                    $project: {
+                        name: 1, logo: 1, banner: 1, "position.address": 1, serviceMode: 1, geoDistance: 1
+                    }
                 }
-            },
-            // D) mantieni solo chi ha almeno un meal corrispondente
-            { $match: { "matchingMeals.0": { $exists: true } } },
-            // E) ordina per distanza crescente
-            { $sort: { geoDistance: 1 } },
-            // F) paginazione
-            { $skip: (page - 1) * perPage },
-            { $limit: perPage },
-            // G) proietta solo i campi necessari
-            {
-                $project: {
-                    name: 1,
-                    logo: 1,
-                    banner: 1,
-                    "position.address": 1,
-                    serviceMode: 1,
-                    geoDistance: 1
+            ]).exec();
+
+            // 2. Add Estimated Delivery Time
+            const restaurants = docs.map(r => {
+                const distanceKm = r.geoDistance / 1000;
+                const durationMin = Math.ceil(distanceKm * 2);
+                return {
+                    ...r,
+                    estimatedDeliveryTime: {
+                        min: durationMin >= 20 ? durationMin - 10 : durationMin,
+                        max: durationMin + 10
+                    }
+                };
+            });
+
+            return res.send({ status: "success", restaurants });
+
+        } else {
+            // --- SCENARIO 2: NO ADDRESS SPECIFIED (SEARCH NEAR ALL) ---
+
+            const userAddresses = req.user.delivery;
+            if (!userAddresses || userAddresses.length === 0) {
+                return res.send({ status: "success", restaurants: [] });
+            }
+
+            // 1. Run aggregation for each address in parallel
+            const promises = userAddresses.map(address => {
+                const { lat, lng } = address;
+                const { allergens: avoidAllergens, preferredFoodTypes, preferredCuisines } = preferences;
+                const maxDistance = 60_000;
+
+                const pipeline = [
+                    {
+                        $geoNear: {
+                            near: { type: "Point", coordinates: [lng, lat] },
+                            distanceField: "geoDistance",
+                            maxDistance,
+                            spherical: true
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "Restaurants.Meals",
+                            localField: "_id",
+                            foreignField: "restaurant",
+                            as: "meals"
+                        }
+                    },
+                    {
+                        $addFields: {
+                            matchingMeals: {
+                                $filter: {
+                                    input: "$meals",
+                                    as: "meal",
+                                    cond: {
+                                        $and: [
+                                            { $eq: [{ $size: { $setIntersection: ["$$meal.allergens", avoidAllergens] } }, 0] },
+                                            { $in: ["$$meal.category", preferredFoodTypes] },
+                                            { $in: ["$$meal.area", preferredCuisines] }
+                                        ]
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    { $match: { "matchingMeals.0": { $exists: true } } },
+                    { $sort: { geoDistance: 1, _id: 1 } },
+                    {
+                        $project: {
+                            name: 1, logo: 1, banner: 1, "position.address": 1, serviceMode: 1, geoDistance: 1
+                        }
+                    }
+                ];
+                return Restaurants.aggregate(pipeline).exec();
+            });
+
+            const resultsByAddress = await Promise.all(promises);
+
+            // 2. Merge, de-duplicate, and sort results
+            const restaurantMap = new Map();
+            const allRestaurants = resultsByAddress.flat();
+
+            for (const restaurant of allRestaurants) {
+                const id = restaurant._id.toString();
+                const existing = restaurantMap.get(id);
+                if (!existing || restaurant.geoDistance < existing.geoDistance) {
+                    restaurantMap.set(id, restaurant);
                 }
             }
-        ]).exec();
 
-        // 5) stima il delivery time in minuti a partire dalla geoDistance
-        const restaurants = docs.map(r => {
-            const distanceKm = r.geoDistance / 1000;
-            const durationMin = Math.ceil(distanceKm * 2); // es. 30 km → 60 min
-            return {
-                ...r,
-                estimatedDeliveryTime: {
-                    min: durationMin >= 20 ? durationMin - 10 : durationMin,
-                    max: durationMin + 10
-                }
-            };
-        });
+            const uniqueRestaurants = Array.from(restaurantMap.values());
+            uniqueRestaurants.sort((a, b) => a.geoDistance - b.geoDistance);
 
-        return res.send({ status: "success", restaurants });
+            // 3. Apply pagination in the application
+            const startIndex = (parseInt(page, 10) - 1) * perPage;
+            const paginatedDocs = uniqueRestaurants.slice(startIndex, startIndex + perPage);
+
+            // 4. Add Estimated Delivery Time
+            const restaurants = paginatedDocs.map(r => {
+                const distanceKm = r.geoDistance / 1000;
+                const durationMin = Math.ceil(distanceKm * 2);
+                return {
+                    ...r,
+                    estimatedDeliveryTime: {
+                        min: durationMin >= 20 ? durationMin - 10 : durationMin,
+                        max: durationMin + 10
+                    }
+                };
+            });
+
+            return res.send({ status: "success", restaurants });
+        }
     } catch (err) {
         next(err);
     }

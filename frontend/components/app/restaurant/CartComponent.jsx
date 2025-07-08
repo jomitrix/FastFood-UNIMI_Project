@@ -5,6 +5,7 @@ import AddressOrderType from '@/components/app/search/AddressOrderType';
 import { Button } from '@heroui/button';
 import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { get } from 'js-cookie';
 
 export default function CartComponent({ 
   isDesktop = false, 
@@ -16,7 +17,9 @@ export default function CartComponent({
   setIsCartOpen,
   onCheckout,
   deliveryFee,
+  getFee,
   estimatedDeliveryTime,
+  calculateDeliveryTime,
   restaurantOrderType = "all"
 }) {
   const { user } = useAuth();
@@ -105,9 +108,10 @@ export default function CartComponent({
       }
     }
 
+    calculateDeliveryTime(selectedAddress);
+    getFee(selectedAddress);
     setIsCheckoutDisabled(false);
     setCheckoutDisabledReason("Pay");
-
   }, [orderType, selectedAddress, isRestaurantOpen, estimatedDeliveryTime, cartTotal]);
 
   return (

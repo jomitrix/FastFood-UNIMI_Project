@@ -65,55 +65,58 @@ export default function Home() {
     10
   );
 
-  const lastElementRef = (node) => {
-    // Controlla solo il loading appropriato per il tipo di ricerca corrente
-    if ((searchType === 'restaurant' && nearbyRestaurantsPaginator.isLoading) || 
-        (searchType === 'dishes' && nearbyMealsPaginator.isLoading)) return;
-    
+  const lastElementRef = useCallback(node => {
+    let paginator = searchType === 'restaurant' ? nearbyRestaurantsPaginator : nearbyMealsPaginator;
+    if (searchType === "restaurant" &&
+      !searchValue &&
+      selectedCategories.length === 0 &&
+      activeFilters.selectedAllergens.length === 0 &&
+      activeFilters.selectedCuisines.length === 0 &&
+      activeFilters.priceRange.min === '' &&
+      activeFilters.priceRange.max === '' &&
+      activeFilters.isOpenNow === true) paginator = nearbyPreferredRestaurantsPaginator;
+    if (paginator.isLoading) return;
+
     if (scrollController.current) scrollController.current.disconnect();
-    scrollController.current = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        console.log("Last element is intersecting, loading next page");
-        if (searchType === 'restaurant' && nearbyRestaurantsPaginator.hasMore) {
-          nearbyRestaurantsPaginator.loadNext();
-        } else if (searchType === 'dishes' && nearbyMealsPaginator.hasMore) {
-          nearbyMealsPaginator.loadNext();
-        }
+
+    scrollController.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && paginator.hasMore && !paginator.isLoading) {
+        console.log("Observer triggered: loading next page.");
+        paginator.loadNext();
+
+        scrollController.current.disconnect();
       }
+    }, {
+      rootMargin: '300px',
     });
-    if (node) scrollController.current.observe(node);
-  };
+
+    if (node) {
+      scrollController.current.observe(node);
+    }
+  }, [searchType, nearbyRestaurantsPaginator, nearbyMealsPaginator]);
 
   useEffect(() => {
-    nearbyPreferredRestaurantsPaginator.reset();
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [selectedAddress]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [orderType]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [selectedCategories]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [activeFilters]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [debouncedSearch]);
-
-  useEffect(() => {
-    if (searchType === 'restaurant') nearbyRestaurantsPaginator.reset();
-    else if (searchType === 'dishes') nearbyMealsPaginator.reset();
-  }, [searchType]);
+    if (searchType === "restaurant" &&
+      !searchValue &&
+      selectedCategories.length === 0 &&
+      activeFilters.selectedAllergens.length === 0 &&
+      activeFilters.selectedCuisines.length === 0 &&
+      activeFilters.priceRange.min === '' &&
+      activeFilters.priceRange.max === '' &&
+      activeFilters.isOpenNow === true) nearbyPreferredRestaurantsPaginator.reset();
+    if (searchType === 'restaurant') {
+      nearbyRestaurantsPaginator.reset();
+    } else if (searchType === 'dishes') {
+      nearbyMealsPaginator.reset();
+    }
+  }, [
+    selectedAddress,
+    orderType,
+    selectedCategories,
+    activeFilters,
+    debouncedSearch,
+    searchType
+  ]);
 
   useEffect(() => {
     const courseFromStorage = localStorage.getItem('course');
@@ -281,6 +284,7 @@ export default function Home() {
                         key={r._id}
                         className="w-72 shrink-0"
                         restaurant={r}
+                        ref={nearbyPreferredRestaurantsPaginator.items.length - 1 === r ? lastElementRef : null}
                       />
                     ))
                   )}
@@ -316,7 +320,7 @@ export default function Home() {
                       key={r._id}
                       className="w-full"
                       restaurant={r}
-                      ref={idx === nearbyRestaurantsPaginator.items.length - 1 ? lastElementRef : null}
+                    // ref={idx === nearbyRestaurantsPaginator.items.length - 1 ? lastElementRef : null}
                     />
                   ))
                 )}

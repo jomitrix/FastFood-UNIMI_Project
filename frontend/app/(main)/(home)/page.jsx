@@ -26,7 +26,7 @@ export default function Home() {
   const [deliveryAddress, setDeliveryAddress] = useState(user?.delivery[0]?._id || "");
 
   const restaurantsPaginator = usePaginator(useCallback(
-    (page, _) => FeedService.getNearbyRestaurants(page, deliveryAddress)
+    (page, _) => FeedService.getNearbyPreferredRestaurants(page, deliveryAddress)
       .then(data => data.status !== 'success' ? [] : data.restaurants), [deliveryAddress]),
     10
   );

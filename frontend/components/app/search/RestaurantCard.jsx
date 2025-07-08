@@ -3,9 +3,9 @@ import { Time } from '@/components/icons/heroicons';
 import { useRouter } from 'next/navigation';
 import { Card } from '@heroui/card';
 import { Skeleton } from '@heroui/skeleton';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 
-export default function RestaurantCard({ restaurant, className }) {
+const RestaurantCard = forwardRef(({ restaurant, className }, ref) => {
   const router = useRouter();
   const [isImageLoaded, setIsImageLoaded] = useState(false);
 
@@ -26,6 +26,7 @@ export default function RestaurantCard({ restaurant, className }) {
       className={`rounded-lg overflow-hidden shadow hover:shadow-lg transition ${className}`}
       isPressable
       onPress={handleCardPress}
+      ref={ref}
     >
       <div className="relative aspect-video bg-gray-200">
         {!isImageLoaded && <Skeleton className="absolute top-0 left-0 w-full h-full" />}
@@ -51,4 +52,6 @@ export default function RestaurantCard({ restaurant, className }) {
       </div>
     </Card>
   );
-}
+})
+
+export default RestaurantCard;

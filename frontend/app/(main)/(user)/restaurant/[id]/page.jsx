@@ -17,6 +17,7 @@ import { useDebounce } from '@/utils/useDebounce';
 import { useCart } from '@/contexts/CartContext';
 import { getRouteDistance } from '@/utils/getRouteDistance';
 import { useAuth } from '@/contexts/AuthContext';
+import { addToast } from "@heroui/toast";
 
 export default function RestaurantPage({ params }) {
     const router = useRouter();
@@ -107,6 +108,14 @@ export default function RestaurantPage({ params }) {
         setQuantity(1);
     }, [productId]);
 
+    const getFee = async (addr) => {
+        const data = await RestaurantService.getFee(cart.restaurant._id, addr?._id);
+        if (!data || data.status !== "success") {
+            return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+        }
+        setDeliveryFee(data.fee);
+    };
+
     // Funzione per aggiungere un prodotto al carrello
     const addToCart = (product, quantity) => {
         setCart(prev => {
@@ -186,45 +195,46 @@ export default function RestaurantPage({ params }) {
         router.push('/checkout/');
     };
 
+    async function calculateDeliveryTime(addr) {
+        const time = await getRouteDistance({ lng: restaurant.position.geopoint.coordinates[0], lat: restaurant.position.geopoint.coordinates[1] }, addr);
+        const deliveryDistance = Math.ceil(time / 60);
+        setEstimatedDeliveryTime({
+            min: deliveryDistance >= 20 ? deliveryDistance - 10 : deliveryDistance,
+            max: deliveryDistance + 10
+        });
+    }
+
     useEffect(() => {
         if (!restaurant.position || !user.delivery[0]) return;
-        async function calculateDeliveryTime() {
-            const time = await getRouteDistance({ lng: restaurant.position.geopoint.coordinates[0], lat: restaurant.position.geopoint.coordinates[1] }, user.delivery[0]);
-            const deliveryDistance = Math.ceil(time / 60);
-            setEstimatedDeliveryTime({
-                min: deliveryDistance >= 20 ? deliveryDistance - 10 : deliveryDistance,
-                max: deliveryDistance + 10
-            });
-        }
 
         function valuateIsOpenNow() {
             if (!restaurant.openingHours) return;
-    
+
             const now = new Date();
             const dayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
             console.log(dayName);
             const slot = restaurant.openingHours[dayName];
             console.log(slot);
-    
+
             if (!slot || slot.closed) {
                 setIsOpenNow(false);
                 return;
             }
-    
+
             const [oh, om] = slot.open.split(':').map(Number);
             const [ch, cm] = slot.close.split(':').map(Number);
-    
+
             const openTime = new Date(now);
             openTime.setHours(oh, om, 0, 0);
-    
+
             const closeTime = new Date(now);
             closeTime.setHours(ch, cm, 0, 0);
-    
+
             setIsOpenNow(now >= openTime && now <= closeTime);
         }
 
         valuateIsOpenNow();
-        calculateDeliveryTime();
+        calculateDeliveryTime(user.delivery[0]);
     }, [restaurant.position,
     restaurant.minDeliveryTime,
     restaurant.maxDeliveryTime,
@@ -268,7 +278,7 @@ export default function RestaurantPage({ params }) {
                             </div>
                             <div className="flex">
                                 <p className="flex gap-1 text-sm text-gray-700">
-                                    { estimatedDeliveryTime.min !== 0 && estimatedDeliveryTime.max !== 0 && isOpenNow && (
+                                    {estimatedDeliveryTime.min !== 0 && estimatedDeliveryTime.max !== 0 && isOpenNow && (
                                         <>
                                             <span className='flex py-1 gap-1'>
                                                 <Time className="inline-block h-4 w-4 mt-[3px]" />
@@ -364,7 +374,9 @@ export default function RestaurantPage({ params }) {
                             setIsCartOpen={setIsCartOpen}
                             onCheckout={handleCheckout}
                             deliveryFee={deliveryFee}
+                            getFee={getFee}
                             estimatedDeliveryTime={estimatedDeliveryTime}
+                            calculateDeliveryTime={calculateDeliveryTime}
                             restaurantOrderType={restaurant.serviceMode || "all"}
                             isRestaurantOpen={isOpenNow}
                         />
@@ -520,7 +532,7 @@ export default function RestaurantPage({ params }) {
                                         </ul>
                                     </div>
                                 )}
-                                
+
                             </ModalBody>
                             <ModalFooter className="flex justify-between border-t pt-4">
                                 <div className="flex items-center border rounded-xl w-32 h-[50px] overflow-hidden">
@@ -570,7 +582,9 @@ export default function RestaurantPage({ params }) {
                         setIsCartOpen={setIsCartOpen}
                         onCheckout={handleCheckout}
                         deliveryFee={deliveryFee}
+                        getFee={getFee}
                         estimatedDeliveryTime={estimatedDeliveryTime}
+                        calculateDeliveryTime={calculateDeliveryTime}
                         restaurantOrderType={restaurant.serviceMode || "all"}
                         isRestaurantOpen={isOpenNow}
                     />

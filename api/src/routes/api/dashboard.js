@@ -403,6 +403,9 @@ router.get("/salestrend/get", authStrict, async (req, res, next) => {
 
         // 1) costruisci match e groupBy
         const match = { restaurant: restaurant._id };
+        if (type == "revenue") match.status = "completed";
+        else if (type != "orders") match.status = { $ne: "canceled" };
+
         const groupBy = { _id: null, totalRevenue: { $sum: "$totalPrice" } };
         let allPeriods = [];
 

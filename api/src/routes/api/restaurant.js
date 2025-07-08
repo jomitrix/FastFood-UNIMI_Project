@@ -549,4 +549,28 @@ router.patch("/orders/:orderId/status/edit", authStrict, validate(validator.orde
     } catch (err) { next(err); }
 });
 
+router.get("/:restaurantId/fee/get", authStrict, async (req, res, next) => {
+    try {
+        const { restaurantId } = req.params;
+        const { address } = req.query;
+
+        if (!restaurantId || !mongoose.Types.ObjectId.isValid(restaurantId)) return res.status(400).send({ status: "error", error: "Invalid restaurant ID" });
+
+        const restaurant = await Restaurants.findOne({ _id: restaurantId }).lean();
+        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
+
+        const userAddress = req.user.delivery.find(d => d._id.toString() === address);
+        if (!userAddress) return res.status(400).send({ status: "error", error: "Invalid delivery address" });
+
+        const deliveryTime = await getRouteDistance(userAddress, { lng: restaurant.position.geopoint.coordinates[0], lat: restaurant.position.geopoint.coordinates[1] }, "driving");
+        if (!deliveryTime) return res.status(400).send({ status: "error", error: "Invalid delivery address" });
+
+        if (deliveryTime > 3600) return res.status(400).send({ status: "error", error: "Delivery time exceeds 1 hour" });
+
+        const fee = Math.ceil(deliveryTime / 60) * 0.15;
+
+        res.send({ status: "success", fee });
+    } catch (err) { next(err); }
+});
+
 module.exports = router;
