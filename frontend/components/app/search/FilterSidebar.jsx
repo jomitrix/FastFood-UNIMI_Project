@@ -22,12 +22,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
     priceRange
   }), [isOpenNow, selectedAllergens, selectedCuisines, priceRange]);
 
-  useEffect(() => {
-    setIsOpenNow(pageFilters.isOpenNow);
-    setSelectedAllergens(pageFilters.selectedAllergens);
-    setSelectedCuisines(pageFilters.selectedCuisines);
-    setPriceRange(pageFilters.priceRange);
-  }, [pageFilters]);
+  
 
   useEffect(() => {
     // Su desktop, applica i filtri istantaneamente.
