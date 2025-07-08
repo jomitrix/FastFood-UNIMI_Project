@@ -66,38 +66,44 @@ export default function Home() {
   );
 
   const lastElementRef = useCallback(node => {
-    // Se stiamo già caricando dati, non fare nulla.
-    // Questo è un primo livello di protezione.
-    const paginator = searchType === 'restaurant' ? nearbyRestaurantsPaginator : nearbyMealsPaginator;
+    let paginator = searchType === 'restaurant' ? nearbyRestaurantsPaginator : nearbyMealsPaginator;
+    if (searchType === "restaurant" &&
+      !searchValue &&
+      selectedCategories.length === 0 &&
+      activeFilters.selectedAllergens.length === 0 &&
+      activeFilters.selectedCuisines.length === 0 &&
+      activeFilters.priceRange.min === '' &&
+      activeFilters.priceRange.max === '' &&
+      activeFilters.isOpenNow === true) paginator = nearbyPreferredRestaurantsPaginator;
     if (paginator.isLoading) return;
 
-    // Se esiste un observer precedente, disconnettilo.
     if (scrollController.current) scrollController.current.disconnect();
 
-    // Crea un nuovo observer.
     scrollController.current = new IntersectionObserver(entries => {
-      // Controlla se l'elemento è visibile E se ci sono più dati da caricare E se NON stiamo già caricando.
-      // Questo è il controllo cruciale che risolve la race condition.
       if (entries[0].isIntersecting && paginator.hasMore && !paginator.isLoading) {
         console.log("Observer triggered: loading next page.");
         paginator.loadNext();
 
-        // FONDAMENTALE: Una volta che l'observer ha fatto il suo lavoro, lo disconnettiamo
-        // per evitare che si attivi di nuovo per lo stesso elemento.
         scrollController.current.disconnect();
       }
     }, {
       rootMargin: '300px',
     });
 
-    // Se il nodo DOM esiste, inizia a osservarlo.
     if (node) {
       scrollController.current.observe(node);
     }
-  }, [searchType, nearbyRestaurantsPaginator, nearbyMealsPaginator]); // Le dipendenze possono essere gli oggetti paginator stessi
+  }, [searchType, nearbyRestaurantsPaginator, nearbyMealsPaginator]);
 
   useEffect(() => {
-    // This will reset the data and page count whenever a filter changes.
+    if (searchType === "restaurant" &&
+      !searchValue &&
+      selectedCategories.length === 0 &&
+      activeFilters.selectedAllergens.length === 0 &&
+      activeFilters.selectedCuisines.length === 0 &&
+      activeFilters.priceRange.min === '' &&
+      activeFilters.priceRange.max === '' &&
+      activeFilters.isOpenNow === true) nearbyPreferredRestaurantsPaginator.reset();
     if (searchType === 'restaurant') {
       nearbyRestaurantsPaginator.reset();
     } else if (searchType === 'dishes') {
@@ -278,6 +284,7 @@ export default function Home() {
                         key={r._id}
                         className="w-72 shrink-0"
                         restaurant={r}
+                        ref={nearbyPreferredRestaurantsPaginator.items.length - 1 === r ? lastElementRef : null}
                       />
                     ))
                   )}
