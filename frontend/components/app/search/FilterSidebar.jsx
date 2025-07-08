@@ -22,10 +22,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
     priceRange
   }), [isOpenNow, selectedAllergens, selectedCuisines, priceRange]);
 
-  
-
   useEffect(() => {
-    // Su desktop, applica i filtri istantaneamente.
     if (onFiltersChange && !isMobile) {
       onFiltersChange(localFilters);
     }
@@ -34,7 +31,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
   const activeFilterCount = useMemo(() => {
     const filters = isMobile ? pageFilters : localFilters;
     let count = 0;
-    if (filters.isOpenNow) count++;
+    if (!filters.isOpenNow) count++;
     if (filters.selectedAllergens.length > 0) count++;
     if (filters.selectedCuisines.length > 0) count++;
     if (searchType === 'dishes' && (filters.priceRange.min || filters.priceRange.max)) count++;
@@ -79,7 +76,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
   };
 
   const resetFilters = () => {
-    setIsOpenNow(false);
+    setIsOpenNow(true);
     setSelectedAllergens([]);
     setSelectedCuisines([]);
     setPriceRange({ min: '', max: '' });
