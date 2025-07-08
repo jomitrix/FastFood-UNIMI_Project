@@ -22,7 +22,6 @@ async function geocodeAddress(address) {
 }
 
 async function getRouteDistance(from, to, profile = 'driving') {
-    // OSRM si aspetta “lon,lat;lon,lat”
     const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
     const url = `https://router.project-osrm.org/route/v1/${profile}/${coords}`;
     const params = { overview: 'false' };
@@ -36,9 +35,6 @@ async function getRouteDistance(from, to, profile = 'driving') {
 
     // ritorna il tempo di percorrenza in secondi
     return body.routes[0].duration;
-
-    // body.routes[0].distance è in metri
-    // return body.routes[0].distance;
 }
 
 module.exports = {
