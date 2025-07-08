@@ -170,7 +170,7 @@ router.get("/restaurants/nearby", authStrict, async (req, res, next) => {
         // openNow filtering (JS fallback)
         if (openNowFlag) {
             const now = new Date();
-            const dayName = now.toLocaleDateString("it-IT", { weekday: "long" }).toLowerCase();
+            const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
 
             pipeline.push({
                 $addFields: {
@@ -386,7 +386,7 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
         // openNow filtering (if needed)
         if (openNowFlag) {
             const now = new Date();
-            const dayName = now.toLocaleDateString("it-IT", { weekday: "long" }).toLowerCase();
+            const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
 
             pipeline.push({
                 $addFields: {
