@@ -99,7 +99,7 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
             color="primary"
             classNames={{ wrapper: "group-data-[selected=true]:bg-[#083d77]" }}
           >
-            Open now
+            Open
           </Checkbox>
         </div>
       </div>

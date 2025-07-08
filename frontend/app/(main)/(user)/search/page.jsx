@@ -293,8 +293,8 @@ export default function Home() {
 
             <h2 className="text-xl font-semibold mb-4">
               {searchType === "restaurant"
-                ? `Order from MockNumber restaurants`
-                : `Choose from MockNumber dishes`
+                ? `Order from the following restaurants`
+                : `Choose from the following dishes`
               }
             </h2>
 

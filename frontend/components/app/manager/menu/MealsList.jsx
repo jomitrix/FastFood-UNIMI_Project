@@ -122,9 +122,9 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
         <div className="w-full mt-0 flex flex-col items-center justify-center w-full h-full">
             {/* Meals List */}
             <div className="w-full max-w-3xl flex flex-col">
-                <div className="flex justify-between items-center mb-4 gap-2">
+                <div className="flex justify-end items-center mb-4 gap-2">
                     <div className="flex gap-2">
-                        <Button
+                        {/*<Button
                             className="text-sm sm:text-base"
                             size="sm"
                             onPress={() => setIsMoveable(!isMoveable)}
@@ -143,7 +143,7 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
                                     <span className="inline">Edit</span>
                                 </>
                             )}
-                        </Button>
+                        </Button>*/}
                     </div>
                     <Dropdown placement="bottom-end">
                         <DropdownTrigger>
