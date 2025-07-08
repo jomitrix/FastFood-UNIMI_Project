@@ -197,8 +197,6 @@ export default function FilterSidebar({ onFiltersChange, isDrawerOpen = false, s
     </>
   );
 
-  // Sistema di visualizzazione dei filtri
-
   if (isMobile) {
     return (
       <Modal 

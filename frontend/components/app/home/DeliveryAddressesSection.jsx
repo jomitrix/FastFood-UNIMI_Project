@@ -13,13 +13,11 @@ export default function DeliveryAddressesSection({
   addresses = [],
   isOpen,
   setIsModalOpen,
-  onSave, // <- callback to Home
+  onSave, 
 }) {
-  // Start with existing addresses if provided
   const [entries, setEntries] = useState(addresses ?? []);
   const [errors, setErrors] = useState([]);
 
-  // keep local state in sync if parent passes a fresh list
   useEffect(() => {
     setEntries(addresses);
   }, [addresses, isOpen]);
@@ -31,7 +29,6 @@ export default function DeliveryAddressesSection({
     );
   }
 
-  // true if field has text but fails regex
   const invalidAddress = useMemo(
     () => entries.map((e) => (e.address === "" ? false : !validateAddress(e.address))),
     [entries]
@@ -41,7 +38,6 @@ export default function DeliveryAddressesSection({
     const next = [...entries];
     next[i].address = val;
     setEntries(next);
-    // clear error for that row while typing
     setErrors((prev) => {
       const nextErr = [...prev];
       delete nextErr[i]?.address;
@@ -49,10 +45,6 @@ export default function DeliveryAddressesSection({
     });
   };
 
-  /**
-   * Add a new empty row *only* if the last one is filled & valid.
-   * Otherwise show the appropriate error on the last row.
-   */
   const addEntry = () => {
     const last = entries[entries.length - 1];
     if (!last.address || !validateAddress(last.address)) {

@@ -58,7 +58,6 @@ const AddressOrderType = ({
     [addressQuery, addresses]
   );
 
-  // Sostituisce getQueryParam usando localStorage
   useEffect(() => {
     if (typeof window !== 'undefined' && addresses.length > 0) {
       const savedAddressId = localStorage.getItem('selectedAddressId');
@@ -77,7 +76,6 @@ const AddressOrderType = ({
     setSelectedAddress(addr);
     setAddressQuery(addr.address);
     onAddressSelect(addr);
-    // Salva l'ID dell'indirizzo nel localStorage
     localStorage.setItem('selectedAddressId', addr._id);
   };
 
@@ -85,7 +83,6 @@ const AddressOrderType = ({
     const newType = String(key);
     setOrderType(newType);
     onOrderTypeChange(newType);
-    // Salva l'orderType nel localStorage
     localStorage.setItem('orderType', newType);
   };
 
@@ -97,10 +94,7 @@ const AddressOrderType = ({
     }));
   }, [orderType]);
 
-  // Nasconde l'indirizzo se è takeaway nel carrello
   const showAddressField = !isCartComponent || (isCartComponent && orderType === 'delivery');
-
-  // Determina quali tab mostrare in base al tipo di ordine del ristorante
   const showDelivery = restaurantOrderType === "all" || restaurantOrderType === "delivery";
   const showTakeaway = restaurantOrderType === "all" || restaurantOrderType === "takeaway";
 
@@ -153,7 +147,6 @@ const AddressOrderType = ({
               if (!value) {
                 setSelectedAddress(null);
                 onAddressSelect(null);
-                // Rimuovi l'ID dell'indirizzo dal localStorage quando l'utente cancella manualmente l'input
                 localStorage.removeItem('selectedAddressId');
               }
             }}

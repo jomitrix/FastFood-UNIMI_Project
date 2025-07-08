@@ -77,7 +77,6 @@ export default function MealsList({ meals, searchMeals, onMealsReorder, restaura
             return;
         }
 
-        // API call is in NewMealModal/EditMealModal
         const newMeals = [...localMeals, meal];
         setLocalMeals(newMeals);
         setIsModalOpen(null);

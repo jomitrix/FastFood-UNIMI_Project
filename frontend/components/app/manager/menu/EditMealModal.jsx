@@ -14,7 +14,7 @@ import { RestaurantService } from '@/services/restaurantService';
 
 export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mealData, courses = [], areas = [], allergens = [], restaurantId }) {
     const [image, setImage] = useState(null);
-    const [isNewImage, setIsNewImage] = useState(false); // Nuova variabile di stato
+    const [isNewImage, setIsNewImage] = useState(false); 
     const [name, setName] = useState('');
     const [ingredients, setIngredients] = useState([]);
     const [newIngredient, setNewIngredient] = useState('');
@@ -34,7 +34,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
         if (isOpen && mealData) {
             setMealId(mealData._id);
             setImage(mealData?.image || null);
-            setIsNewImage(false); // Resetta il flag quando il modal viene aperto
+            setIsNewImage(false); 
             setName(mealData?.name || '');
             setIngredients(mealData?.ingredients || []);
             //setDescription(mealData?.description || '');
@@ -57,7 +57,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
             const optimizedImage = await optimizeImage(file);
             const imageUrl = URL.createObjectURL(optimizedImage);
             setImage(imageUrl);
-            setIsNewImage(true); // Imposta il flag quando viene caricata una nuova immagine
+            setIsNewImage(true);
             setImageFile(optimizedImage);
         } catch (error) {
             addToast({
@@ -108,12 +108,9 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
         }
     }, [ingredients]);
 
-    // Gestione submit per l'aggiornamento del pasto
     const handleSubmitEditMeal = async (mealId) => {
-        // Reset errors
         setErrors({});
 
-        // Validazione solo per name e price
         const newErrors = {};
         if (!name.trim()) newErrors.name = "Dish name is required";
         if (!price) newErrors.price = "Dish price is required";
@@ -409,7 +406,7 @@ export default function EditMealModal({ isOpen, onClose, onSubmit, onDelete, mea
                                         let numValue = typeof value === 'string' ? parseFloat(value) : value;
                                         numValue = isNaN(numValue) ? 0.49 : numValue;
                                         if (numValue < 0.49) {
-                                            numValue = 0.49; // Imposta il prezzo minimo a 0.49
+                                            numValue = 0.49;
                                         }
                                         setPrice(numValue);
                                         if (errors.price) {

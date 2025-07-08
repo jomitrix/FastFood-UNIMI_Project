@@ -412,7 +412,7 @@ export default function NewMealModal({ isOpen, onClose, onSubmit, courses = [], 
                                     let numValue = typeof value === 'string' ? parseFloat(value) : value;
                                     numValue = isNaN(numValue) ? 0.49 : numValue;
                                     if (numValue < 0.49) {
-                                        numValue = 0.49; // Imposta il prezzo minimo a 0.49
+                                        numValue = 0.49; 
                                     }
                                     setPrice(numValue);
                                     if (errors.price) {

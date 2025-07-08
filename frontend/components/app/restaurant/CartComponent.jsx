@@ -70,7 +70,6 @@ export default function CartComponent({
     getQueueTime();
   }, [cart.restaurant]);
 
-  // Se il ristorante accetta solo un tipo di ordine, forziamo quel tipo
   useEffect(() => {
     if (restaurantOrderType === "delivery" && orderType !== "delivery") {
       setOrderType("delivery");

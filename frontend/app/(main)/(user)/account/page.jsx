@@ -43,7 +43,6 @@ function ProfilePage() {
   const [username, setUsername] = useState(user?.username);
   const [email, setEmail] = useState(user?.email);
 
-  // Modify these states to use new Set() instead of arrays
   const [userAllergies, setUserAllergies] = useState(user?.preferences.allergens || new Set([]));
   const [preferredCourses, setPreferredCourses] = useState(user?.preferences.preferredFoodTypes || new Set([]));
   const [preferredAreas, setPreferredAreas] = useState(user?.preferences.preferredCuisines || new Set([]));
@@ -77,22 +76,19 @@ function ProfilePage() {
     return validateEmail(email) ? false : true;
   }, [email]);
 
-  // Regex validazione indirizzo
   const validateAddress = (address) =>
     address.match(/^(?=.{15,200}$)([\p{L}0-9.'’\-/ ]+),\s*([\p{L} \-']{2,}),\s*([0-9A-Za-z\- ]{4,12}),\s*([\p{L} \-']{3,})$/u);
 
-  // Regex validazione carta (base)
   const validateCardNumber = (num) => num.replace(/\s/g, '').match(/^\d{16}$/);
   const validateCardExpiry = (exp) => exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
   
-  // Aggiunta validazione che la data di scadenza non sia nel passato
   const isExpiryDateValid = (expiry) => {
     if (!validateCardExpiry(expiry)) return false;
     
     const [month, year] = expiry.split('/');
     const expiryDate = new Date(2000 + parseInt(year), parseInt(month) - 1, 1);
     const today = new Date();
-    today.setDate(1); // Per confrontare solo anno e mese
+    today.setDate(1);
     today.setHours(0, 0, 0, 0);
     
     return expiryDate >= today;
@@ -226,7 +222,6 @@ function ProfilePage() {
     setDeliveryAddresses(deliveryAddresses.filter((e) => e._id !== id));
   };
 
-  // Handler salvataggio indirizzo di fatturazione
   const handleSaveBillingAddress = async (e) => {
     if (!billingAddress) {
       setBillingAddressError("Billing address required");

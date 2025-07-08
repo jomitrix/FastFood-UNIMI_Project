@@ -28,22 +28,19 @@ export default function Checkout() {
     }, [cart, router]);
 
     const validatePhone = (phone) => phone.match(/^\+(?:[0-9] ?){6,14}[0-9]$/);
-    // Regex validazione carta (base)
     const validateCardNumber = (num) => num.replace(/\s/g, '').match(/^\d{16}$/);
     const validateCardExpiry = (exp) => exp.match(/^(0[1-9]|1[0-2])\/\d{2}$/);
 
-    // Aggiunta validazione che la data di scadenza non sia nel passato
     const isExpiryDateValid = (expiry) => {
         if (!validateCardExpiry(expiry)) return false;
 
         const [month, year] = expiry.split('/');
-        const expiryDate = new Date(2000 + parseInt(year), parseInt(month), 0); // Day 0 of next month is last day of current month
+        const expiryDate = new Date(2000 + parseInt(year), parseInt(month), 0);
         const today = new Date();
 
         return expiryDate >= today;
     };
 
-    // Order data
     const [name, setName] = useState(user?.name);
     const [surname, setSurname] = useState(user?.surname);
     const [phone, setPhone] = useState(user?.phoneNumber);
@@ -66,7 +63,7 @@ export default function Checkout() {
     });
 
     // Payment data
-    const [paymentMethod, setPaymentMethod] = useState(null); // 'cash' or 'card'
+    const [paymentMethod, setPaymentMethod] = useState(null); // 'cash'  'card'
     const [paymentCards, setPaymentCards] = useState(user.cards);
     const [selectedCardId, setSelectedCardId] = useState(user.cards.length > 0 ? user.cards[0]._id : null);
     const [newCard, setNewCard] = useState({ name: "", holder: "", number: "", expiry: "", cvv: "" });
@@ -223,7 +220,6 @@ export default function Checkout() {
             let nextSelected = tempSelectedCardId;
             if (tempSelectedCardId === 'new_card') {
                 const errors = {};
-                // Validazioni per nuova carta
                 if (!newCard.name) errors.name = "Card name is required.";
                 if (!newCard.holder) errors.holder = "Card holder name is required.";
                 if (!newCard.number) {
@@ -284,14 +280,12 @@ export default function Checkout() {
         if (modalKey === 'address') {
             setSelectedAddress(address?.address);
         }
-        // Assicuriamoci che la modale dell'indirizzo sia disponibile solo per la consegna
         if (modalKey === 'address' && orderType !== 'delivery') {
             return;
         }
         setIsModalOpen(modalKey);
     }
 
-    // 🛠️ helper per key/value univoci
     const getCardKey = (card, idx) =>
         typeof card._id === 'string'
             ? card._id
@@ -319,7 +313,7 @@ export default function Checkout() {
     }
 
     if (!cart.restaurant || !cart.items || cart.items.length === 0) {
-        return null; // or a loading spinner <Spinner />
+        return null; 
     }
 
     return (

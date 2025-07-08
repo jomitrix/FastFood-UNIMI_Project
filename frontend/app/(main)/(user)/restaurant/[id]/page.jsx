@@ -89,13 +89,10 @@ export default function RestaurantPage({ params }) {
     };
 
     useEffect(() => {
-        // Make sure the restaurant data has been loaded
         if (restaurant && restaurant._id) {
-            // Check if a different restaurant is already in the cart
             if (cart.restaurant && cart.restaurant._id !== restaurant._id) {
-                // Reset the cart: update to the new restaurant and clear the items array
                 setCart(prev => ({
-                    ...prev, // Keep existing settings like orderType if needed
+                    ...prev,
                     restaurant: {
                         _id: restaurant._id,
                         name: restaurant.name,
@@ -103,7 +100,7 @@ export default function RestaurantPage({ params }) {
                         logo: restaurant.logo,
                         position: restaurant.position,
                     },
-                    items: [] // Clear the items
+                    items: [] 
                 }));
             }
         }
@@ -124,7 +121,7 @@ export default function RestaurantPage({ params }) {
         if (!foundProduct) return;
 
         setProduct(foundProduct);
-        setIsProductImageLoaded(false); // Reset on new product
+        setIsProductImageLoaded(false); 
         setIsModalOpen("product");
         setQuantity(1);
     }, [productId]);
@@ -138,7 +135,6 @@ export default function RestaurantPage({ params }) {
         setDeliveryFee(data.fee);
     };
 
-    // Funzione per aggiungere un prodotto al carrello
     const addToCart = (product, quantity) => {
         setCart(prev => {
             // Se non c'è ancora un ristorante, lo imposto
@@ -177,7 +173,6 @@ export default function RestaurantPage({ params }) {
         }
     };
 
-    // Funzione per rimuovere un prodotto dal carrello
     const removeFromCart = (id) => {
         setCart(prev => ({
             ...prev,
@@ -185,7 +180,6 @@ export default function RestaurantPage({ params }) {
         }));
     };
 
-    // Funzione per aggiornare la quantità di un prodotto nel carrello
     const updateCartItemQuantity = (id, newQuantity) => {
         setCart(prev => {
             if (newQuantity <= 0) {

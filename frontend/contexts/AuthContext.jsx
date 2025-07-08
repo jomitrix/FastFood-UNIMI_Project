@@ -1,4 +1,3 @@
-// context/AuthContext.js
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { ApiService } from '@/services/apiService';
 import { AuthService } from '@/services/authService';

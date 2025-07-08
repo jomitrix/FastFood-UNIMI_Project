@@ -77,7 +77,7 @@ export default function OrderRestaurant({ orders, totalOrders, loadPage, current
       return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
     }
 
-    loadPage(currentPage); // Mantiene la pagina corrente dopo l'aggiornamento
+    loadPage(currentPage);
     setSelectedOrder(prev => ({ ...prev, status: newStatus }));
   };
 
@@ -101,13 +101,6 @@ export default function OrderRestaurant({ orders, totalOrders, loadPage, current
     }
     
     return [];
-  };
-
-  const getDeliveryCode = (orderId) => {
-    
-    // codice mock prendo gli ultimi 3 caratteri dell'id ordine
-    const id = orderId.replace(/\D/g, '');
-    return id.substring(id.length - 3);
   };
 
   // colore pulsante

@@ -16,7 +16,7 @@ export default function HamburgerMenu({ children }) {
     { name: "Manage Menu", small: "Menu", icon: Meals, href: "/manager/menu" },
   ];
 
-  // Chiude l'hamburger menu quando la larghezza della finestra è inferiore a 1024px
+  // Chiude l'hamburger menu in base al viewport
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth <= 1023 && isManHambMenuOpen) {

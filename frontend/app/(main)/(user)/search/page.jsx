@@ -223,7 +223,6 @@ export default function Home() {
                   onSelectionChange={(keys) => {
                     const newSearchType = Array.from(keys)[0];
                     setSearchType(newSearchType);
-                    // Reset all filters when switching between restaurant and dishes
                     setActiveFilters({
                       isOpenNow: true,
                       selectedAllergens: [],

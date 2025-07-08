@@ -42,7 +42,7 @@ export default function Layout({ children }) {
   }, [user, isAuthenticated]);
 
   const handleToggleManager = () => {
-    // Toggle the hamburger menu (manager)
+    // hamburger menu
     setIsManHambMenuOpen(!isManHambMenuOpen);
   };
 

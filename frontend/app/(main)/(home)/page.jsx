@@ -35,7 +35,6 @@ export default function Home() {
     restaurantsPaginator.reset();
   }, [user]);
 
-  // Gli indirizzi ora sono gestiti nello stato del componente
   const [addresses, setAddresses] = useState([]);
 
   const [addressQuery, setAddressQuery] = useState("");
@@ -43,7 +42,6 @@ export default function Home() {
   const [selectedAddress, setSelectedAddress] = useState({});
 
   useEffect(() => {
-    // Recupera l'utente al caricamento della pagina
     getUser()
   }, [getUser]);
 
@@ -52,7 +50,6 @@ export default function Home() {
     setAddresses(user.delivery || []);
   }, [user]);
 
-  // Memoizzazione del filtro per performance migliori
   const filtered = useMemo(
     () =>
       addressQuery
@@ -74,8 +71,6 @@ export default function Home() {
     console.log("Home", selectedAddress);
   }, [selectedAddress]);
 
-  // Il bottone è abilitato solo se l'indirizzo selezionato è valido
-  // const isAddressValid = !!selectedAddress?.address;
 
   return (
     <div className="w-full flex flex-col min-h-screen bg-[#f5f3f5]">
