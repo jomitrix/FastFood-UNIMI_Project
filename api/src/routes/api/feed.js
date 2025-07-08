@@ -167,59 +167,57 @@ router.get("/restaurants/nearby", authStrict, async (req, res, next) => {
             }
         });
 
-        // openNow filtering (JS fallback)
-        if (openNowFlag) {
-            const now = new Date();
-            const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+        // openNow filtering
+        const now = new Date();
+        const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
 
-            pipeline.push({
-                $addFields: {
-                    openNow: {
-                        $let: {
-                            vars: {
-                                slot: { $ifNull: [`$openingHours.${dayName}`, null] }
-                            },
-                            in: {
-                                $cond: [
-                                    { $or: [{ $eq: ["$$slot", null] }, "$$slot.closed"] },
-                                    false,
-                                    {
-                                        $let: {
-                                            vars: {
-                                                nowHour: now.getHours(),
-                                                nowMinute: now.getMinutes(),
-                                                openH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 0] } },
-                                                openM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 1] } },
-                                                closeH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 0] } },
-                                                closeM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 1] } },
-                                            },
-                                            in: {
-                                                $and: [
-                                                    {
-                                                        $gte: [
-                                                            { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
-                                                            { $add: [{ $multiply: ["$$openH", 60] }, "$$openM"] }
-                                                        ]
-                                                    },
-                                                    {
-                                                        $lte: [
-                                                            { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
-                                                            { $add: [{ $multiply: ["$$closeH", 60] }, "$$closeM"] }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
+        pipeline.push({
+            $addFields: {
+                openNow: {
+                    $let: {
+                        vars: {
+                            slot: { $ifNull: [`$openingHours.${dayName}`, null] }
+                        },
+                        in: {
+                            $cond: [
+                                { $or: [{ $eq: ["$$slot", null] }, "$$slot.closed"] },
+                                false,
+                                {
+                                    $let: {
+                                        vars: {
+                                            nowHour: now.getHours(),
+                                            nowMinute: now.getMinutes(),
+                                            openH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 0] } },
+                                            openM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 1] } },
+                                            closeH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 0] } },
+                                            closeM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 1] } },
+                                        },
+                                        in: {
+                                            $and: [
+                                                {
+                                                    $gte: [
+                                                        { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
+                                                        { $add: [{ $multiply: ["$$openH", 60] }, "$$openM"] }
+                                                    ]
+                                                },
+                                                {
+                                                    $lte: [
+                                                        { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
+                                                        { $add: [{ $multiply: ["$$closeH", 60] }, "$$closeM"] }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
                 }
-            });
+            }
+        });
 
-            pipeline.push({ $match: { openNow: true } });
-        }
+        pipeline.push({ $match: { openNow: openNowFlag } });
 
         // sort, skip, limit
         pipeline.push({ $sort: { geoDistance: 1, _id: 1 } });
@@ -338,7 +336,7 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
 
         // filter meals based on criteria
         const mealMatchConditions = {};
-        
+
         if (avoidAllergens.length > 0) {
             mealMatchConditions["meals.allergens"] = { $nin: avoidAllergens };
         }
@@ -383,63 +381,61 @@ router.get("/restaurants/nearby/meals", authStrict, async (req, res, next) => {
             }
         });
 
-        // openNow filtering (if needed)
-        if (openNowFlag) {
-            const now = new Date();
-            const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
+        // openNow filtering
+        const now = new Date();
+        const dayName = now.toLocaleDateString("en-US", { weekday: "long" }).toLowerCase();
 
-            pipeline.push({
-                $addFields: {
-                    openNow: {
-                        $let: {
-                            vars: {
-                                slot: { $ifNull: [`$openingHours.${dayName}`, null] }
-                            },
-                            in: {
-                                $cond: [
-                                    { $or: [{ $eq: ["$$slot", null] }, "$$slot.closed"] },
-                                    false,
-                                    {
-                                        $let: {
-                                            vars: {
-                                                nowHour: now.getHours(),
-                                                nowMinute: now.getMinutes(),
-                                                openH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 0] } },
-                                                openM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 1] } },
-                                                closeH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 0] } },
-                                                closeM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 1] } },
-                                            },
-                                            in: {
-                                                $and: [
-                                                    {
-                                                        $gte: [
-                                                            { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
-                                                            { $add: [{ $multiply: ["$$openH", 60] }, "$$openM"] }
-                                                        ]
-                                                    },
-                                                    {
-                                                        $lte: [
-                                                            { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
-                                                            { $add: [{ $multiply: ["$$closeH", 60] }, "$$closeM"] }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
+        pipeline.push({
+            $addFields: {
+                openNow: {
+                    $let: {
+                        vars: {
+                            slot: { $ifNull: [`$openingHours.${dayName}`, null] }
+                        },
+                        in: {
+                            $cond: [
+                                { $or: [{ $eq: ["$$slot", null] }, "$$slot.closed"] },
+                                false,
+                                {
+                                    $let: {
+                                        vars: {
+                                            nowHour: now.getHours(),
+                                            nowMinute: now.getMinutes(),
+                                            openH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 0] } },
+                                            openM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.open", ":"] }, 1] } },
+                                            closeH: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 0] } },
+                                            closeM: { $toInt: { $arrayElemAt: [{ $split: ["$$slot.close", ":"] }, 1] } },
+                                        },
+                                        in: {
+                                            $and: [
+                                                {
+                                                    $gte: [
+                                                        { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
+                                                        { $add: [{ $multiply: ["$$openH", 60] }, "$$openM"] }
+                                                    ]
+                                                },
+                                                {
+                                                    $lte: [
+                                                        { $add: [{ $multiply: ["$$nowHour", 60] }, "$$nowMinute"] },
+                                                        { $add: [{ $multiply: ["$$closeH", 60] }, "$$closeM"] }
+                                                    ]
+                                                }
+                                            ]
                                         }
                                     }
-                                ]
-                            }
+                                }
+                            ]
                         }
                     }
                 }
-            });
+            }
+        });
 
-            pipeline.push({ $match: { openNow: true } });
-        }
+        pipeline.push({ $match: { openNow: openNowFlag } });
 
         // sort by distance (closest restaurants first)
         pipeline.push({ $sort: { geoDistance: 1, _id: 1, "meal._id": 1 } });
-        
+
         // pagination
         pipeline.push({ $skip: (page - 1) * perPage });
         pipeline.push({ $limit: perPage });
