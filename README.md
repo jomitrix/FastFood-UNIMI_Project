@@ -7,6 +7,7 @@ Per avviare il progetto
 - npm i
 - npm run dev
 
+---
 
 - cd frontend
 - npm i
