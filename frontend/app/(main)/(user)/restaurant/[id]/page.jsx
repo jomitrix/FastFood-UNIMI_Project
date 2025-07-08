@@ -109,6 +109,7 @@ export default function RestaurantPage({ params }) {
     }, [productId]);
 
     const getFee = async (addr) => {
+        if (!cart.restaurant) return;
         const data = await RestaurantService.getFee(cart.restaurant._id, addr?._id);
         if (!data || data.status !== "success") {
             return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
