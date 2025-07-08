@@ -71,6 +71,8 @@ export default function Checkout() {
     const [orderType, setOrderType] = useState(cart.orderType);
     const [isModalOpen, setIsModalOpen] = useState(null);
 
+    const [fee, setFee] = useState(0);
+
     useState(() => {
         console.log(cart);
     }, [])
@@ -95,10 +97,6 @@ export default function Checkout() {
     const isCheckoutDisabled = infoMissing || addressMissing || paymentMissing;
 
     useEffect(() => {
-        console.log(cart);
-    }, [])
-
-    useEffect(() => {
         if (user?.cards?.length) {
             setPaymentCards(user?.cards);
             if (!selectedCardId) {
@@ -115,12 +113,21 @@ export default function Checkout() {
 
         const addressParts = address.address.split(',');
         setFilteredAddresses([addressParts[0], addressParts.slice(1).join(',')]);
+        getFee();
     }, [address]);
 
+    const getFee = async () => {
+        const data = await RestaurantService.getFee(cart.restaurant._id, address?._id);
+        if (!data || data.status !== "success") {
+            return addToast({ title: "Error", description: data.error ?? "Server Error", color: "danger", timeout: 4000 });
+        }
+        setFee(data.fee);
+    };
+
     useEffect(() => {
-        if (!cart.restaurant.position || !user.delivery[0]) return;
+        if (!cart.restaurant.position || !address) return;
         async function calculateDeliveryTime() {
-            const time = await getRouteDistance({ lng: cart.restaurant.position.geopoint.coordinates[0], lat: cart.restaurant.position.geopoint.coordinates[1] }, user.delivery[0]);
+            const time = await getRouteDistance({ lng: cart.restaurant.position.geopoint.coordinates[0], lat: cart.restaurant.position.geopoint.coordinates[1] }, address);
             const deliveryDistance = Math.ceil(time / 60);
             setEstimatedDeliveryTime({
                 min: deliveryDistance >= 20 ? deliveryDistance - 10 : deliveryDistance,
@@ -129,7 +136,7 @@ export default function Checkout() {
         }
 
         calculateDeliveryTime();
-    }, [cart.restaurant.position, user.deliveryAddress]);
+    }, [cart.restaurant.position, address]);
 
     const cards = [
         { key: "info", title: `${name || "Name"} ${surname || "Surname"}`, subtitle: phone || "Phone Number", icon: <Profile />, missing: infoMissing },
@@ -414,7 +421,7 @@ export default function Checkout() {
                                             </div>
                                             <div className="flex justify-between">
                                                 <span className="text-gray-600">Delivery fee</span>
-                                                <span>{"12.00"}€</span>
+                                                <span>{fee.toFixed(2)}€</span>
                                             </div>
                                             <div className="flex justify-between text-sm text-gray-500">
                                                 <span>Estimated delivery time</span>
@@ -429,7 +436,7 @@ export default function Checkout() {
                                             {(cart.items.reduce(
                                                 (sum, item) => sum + item.price * item.quantity,
                                                 0
-                                            ) + 2).toFixed(2)}€
+                                            ) + (orderType == 'delivery' ? fee : 0)).toFixed(2)}€
                                         </span>
                                     </div>
                                 </div>

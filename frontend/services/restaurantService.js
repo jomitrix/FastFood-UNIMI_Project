@@ -81,4 +81,10 @@ export const RestaurantService = {
             body: { status }
         });
     },
+
+    getFee(restaurantId, address) {
+        return ApiService.get(`/restaurant/${restaurantId}/fee/get`, {
+            params: { address }
+        });
+    }
 };
