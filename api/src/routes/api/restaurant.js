@@ -404,33 +404,82 @@ router.post("/:restaurantId/checkout", authStrict, validate(validator.checkoutSc
 
 router.get("/orders/get", authStrict, async (req, res, next) => {
     try {
-        const { page = 1, query, status } = req.query;
+        const pageNum = Math.max(1, parseInt(req.query.page) || 1);
+        const perPage = 10;
+        const { query, status } = req.query;
 
-        const restaurant = await Restaurants.findOne({ user: req.user._id }).lean();
-        if (!restaurant) return res.status(404).send({ status: "error", error: "Restaurant not found" });
-        if (restaurant.user.toString() !== req.user._id.toString()) return res.status(403).send({ status: "error", error: "You do not have permission to access this restaurant" });
-
-        let matchConditions = { restaurant: restaurant._id };
-        if (query) {
-            const regex = new RegExp(query, 'i');
-            matchConditions.$or = [
-                { "user.name": { $regex: regex } },
-                { "user.surname": { $regex: regex } }
-            ];
-        }
-        if (status) matchConditions.status = { $in: status.split(",").map(s => s.trim()) };
-        const orders = await Orders.find(matchConditions)
-            .populate("user", "name surname email")
-            .populate("meals.meal", "name price ingredients")
-            .sort({ createdAt: -1, _id: -1 })
-            .skip((page - 1) * 10)
-            .limit(10)
+        // Trovo il ristorante dell’utente
+        const restaurant = await Restaurants
+            .findOne({ user: req.user._id })
             .lean();
+        if (!restaurant) {
+            return res.status(404).send({ status: "error", error: "Restaurant not found" });
+        }
+        if (restaurant.user.toString() !== req.user._id.toString()) {
+            return res.status(403).send({ status: "error", error: "Permission denied" });
+        }
 
+        // Costruisco il match base
+        const matchBase = { restaurant: restaurant._id };
+        if (status) {
+            matchBase.status = { $in: status.split(",").map(s => s.trim()) };
+        }
+
+        // Inizializzo la pipeline
+        const pipeline = [
+            // 1) filtro iniziale per ristorante (e status se presente)
+            { $match: matchBase },
+
+            // 2) join con gli utenti
+            {
+                $lookup: {
+                    from: "Users",           // nome della collection degli utenti
+                    localField: "user",
+                    foreignField: "_id",
+                    as: "user"
+                }
+            },
+            { $unwind: "$user" }
+        ];
+
+        // 3) filtro opzionale su nome/cognome
+        if (query) {
+            const regex = new RegExp(query, "i");
+            pipeline.push({
+                $match: {
+                    $or: [
+                        { "user.name": { $regex: regex } },
+                        { "user.surname": { $regex: regex } }
+                    ]
+                }
+            });
+        }
+
+        // 4) ordinamento e paginazione
+        pipeline.push(
+            { $sort: { createdAt: -1, _id: -1 } },
+            { $skip: (pageNum - 1) * perPage },
+            { $limit: perPage }
+        );
+
+        // 5) proiezione pulita (se vuoi limitare i campi restituiti)
+        pipeline.push({
+            $project: {
+                "user.password": 0,   // escludi password
+                // aggiungi qui altri campi da escludere o includere
+            }
+        });
+
+        // Eseguo l'aggregazione
+        const orders = await Orders.aggregate(pipeline);
+
+        // Totale ordini (senza filtro su nome)
         const totalOrders = await Orders.countDocuments({ restaurant: restaurant._id });
 
         res.send({ status: "success", orders, totalOrders });
-    } catch (err) { next(err); }
+    } catch (err) {
+        next(err);
+    }
 });
 
 router.patch("/orders/:orderId/status/edit", authStrict, validate(validator.orderStatusEditSchema), async (req, res, next) => {
