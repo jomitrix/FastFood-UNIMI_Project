@@ -111,7 +111,7 @@ export default function CartComponent({
     calculateDeliveryTime(selectedAddress);
     getFee(selectedAddress);
     setIsCheckoutDisabled(false);
-    setCheckoutDisabledReason("Proceed to Checkout");
+    setCheckoutDisabledReason("Pay");
   }, [orderType, selectedAddress, isRestaurantOpen, estimatedDeliveryTime, cartTotal]);
 
   return (

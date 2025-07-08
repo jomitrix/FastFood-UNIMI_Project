@@ -452,7 +452,7 @@ export default function Checkout() {
                                     isDisabled={isCheckoutDisabled}
                                 >
                                     {paymentMethod === 'cash' ? <Cash /> : <CreditCard />}
-                                    Proceed to Checkout
+                                    Pay
                                 </Button>
                             </div>
                         </CardBody>

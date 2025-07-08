@@ -114,7 +114,7 @@ export default function Home() {
                       setAddressQuery(value);
                       setSelectedAddress(""); // reset se si digita manualmente
                     }}
-                    placeholder="Insert delivery address"
+                    placeholder="Insert your address to search"
                     radius="lg"
                     size="md"
                     className="w-full"
