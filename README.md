@@ -11,4 +11,5 @@ Per avviare il progetto
 
 - cd frontend
 - npm i
-- npm run dev
+- npm run build
+- npm start
