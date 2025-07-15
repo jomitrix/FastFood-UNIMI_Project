@@ -1,11 +1,6 @@
-// lib/hooks/usePaginator.js
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-/**
- * @template T
- * @param {(page: number, pageSize: number) => Promise<T[]>} fetchPage
- * @param {number} pageSize
- */
+
 export function usePaginator(fetchPage, pageSize = 20) {
     const [items, setItems] = useState([]);
     const [isLoading, setLoading] = useState(false);
