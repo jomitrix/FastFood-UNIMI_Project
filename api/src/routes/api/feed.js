@@ -58,7 +58,7 @@ router.get("/restaurants/nearby", authStrict, async (req, res, next) => {
         const page = Math.max(1, parseInt(req.query.page) || 1);
         const perPage = 10;
         const { address } = req.query;
-        const serviceMode = req.query.serviceMode;   // "delivery" | "takeaway" | "all"
+        const serviceMode = req.query.serviceMode;
         const categories = req.query.categories
             ? req.query.categories.split(",").map(s => s.trim())
             : null;

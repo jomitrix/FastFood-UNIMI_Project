@@ -511,7 +511,7 @@ router.get("/orders/get", authStrict, async (req, res, next) => {
             { $limit: perPage }
         );
 
-        // 5) proiezione pulita (se vuoi limitare i campi restituiti)
+        // 5) proiezione pulita
         pipeline.push({
             $project: {
                 "user.password": 0,   // escludi password

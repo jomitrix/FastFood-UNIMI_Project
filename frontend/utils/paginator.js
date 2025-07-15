@@ -1,11 +1,5 @@
-// lib/hooks/usePaginator.js
 import { useState, useRef, useCallback, useEffect } from 'react';
 
-/**
- * @template T
- * @param {(page: number, pageSize: number) => Promise<T[]>} fetchPage
- * @param {number} pageSize
- */
 export function usePaginator(fetchPage, pageSize = 20) {
     const [items, setItems] = useState([]);
     const [isLoading, setLoading] = useState(false);
@@ -55,7 +49,7 @@ export function usePaginator(fetchPage, pageSize = 20) {
 
     // resetta tutto e carica il primo batch
     const reset = useCallback(async () => {
-        loadGen.current += 1;        // bump generation
+        loadGen.current += 1;
         setItems([]);
         currentPage.current = 0;
         setHasMore(true);
