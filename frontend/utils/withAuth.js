@@ -1,7 +1,6 @@
-// utils/withAuth.js
-'use client';                     // se stai nell’App Router
+'use client';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // o 'next/router' se pages/
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Spinner } from '@heroui/spinner';
 
