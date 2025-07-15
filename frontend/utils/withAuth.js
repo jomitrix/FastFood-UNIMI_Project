@@ -37,7 +37,6 @@ export function withAuth(PageComponent) {
             );
         }
 
-        // authenticated mostro la pagina
         return <PageComponent {...props} />;
     };
 }

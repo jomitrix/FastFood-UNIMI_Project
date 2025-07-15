@@ -1,5 +1,4 @@
 async function getRouteDistance(from, to, profile = 'driving') {
-  // OSRM si aspetta “lon,lat;lon,lat”
   const coords = `${from.lng},${from.lat};${to.lng},${to.lat}`;
   const baseUrl = `https://router.project-osrm.org/route/v1/${profile}/${coords}`;
   const url = new URL(baseUrl);
@@ -15,10 +14,8 @@ async function getRouteDistance(from, to, profile = 'driving') {
     throw new Error(`Routing fallito: ${body.message || 'nessun percorso trovato'}`);
   }
 
-  // ritorna il tempo di percorrenza in secondi
   return body.routes[0].duration;
 
-  // per distanza (in metri) invece di durata:
   // return body.routes[0].distance;
 }
 

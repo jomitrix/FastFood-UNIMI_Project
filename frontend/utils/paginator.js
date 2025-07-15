@@ -8,9 +8,7 @@ export function usePaginator(fetchPage, pageSize = 20) {
     const currentPage = useRef(0);
     const loadGen = useRef(0);
 
-    // carica il batch successivo
     const loadNext = useCallback(async () => {
-        // if (isLoadingMore || !hasMore) return;
         if (currentPage.current > 0 && (isLoadingMore || !hasMore)) return;
         setLoadingMore(true);
         if (currentPage.current === 0) setLoading(true);
@@ -19,7 +17,7 @@ export function usePaginator(fetchPage, pageSize = 20) {
         const nextPage = currentPage.current + 1;
         try {
             const fetched = await fetchPage(nextPage, pageSize);
-            if (myGen !== loadGen.current) return;      // aborted by a reset
+            if (myGen !== loadGen.current) return;
             setItems(prev => [...prev, ...fetched]);
             currentPage.current = nextPage;
             setHasMore(fetched.length === pageSize);
@@ -47,16 +45,14 @@ export function usePaginator(fetchPage, pageSize = 20) {
         }
     }, [fetchPage, pageSize, hasMore, isLoading, isLoadingMore]);
 
-    // resetta tutto e carica il primo batch
     const reset = useCallback(async () => {
         loadGen.current += 1;
         setItems([]);
         currentPage.current = 0;
         setHasMore(true);
-        await loadNext();            // only this generation’s loadNext will apply
+        await loadNext();
     }, [loadNext]);
 
-    // ** auto‐init **: eseguo reset() solo una volta, internamente
     const didInit = useRef(false);
     useEffect(() => {
         if (!didInit.current) {

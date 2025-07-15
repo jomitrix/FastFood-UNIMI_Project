@@ -58,11 +58,8 @@ export const ApiService = {
     const filteredParams = Object.fromEntries(
       Object.entries(params)
         .filter(([key, value]) => {
-          // rimuovi null, stringhe vuote
           if (value == null || value === "") return false;
-          // rimuovi array vuoti
           if (Array.isArray(value) && value.length === 0) return false;
-          // if (typeof value === 'boolean' && value === false) return false;
           return true;
         })
     );

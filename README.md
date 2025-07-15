@@ -1,4 +1,15 @@
-# Fast Food - UNIMI Project
-Ricorda di pubblicare il repository prima della consegna
+# Fast Food UNIMI Project
 
-SPOSTA ANCHE TUTTO SU UN SECONDO BRANCH PER CANCELLARE LA COMMIT HISTORY
+- Per connettersi al db: mongodb+srv://admin:xZg3PTxUEZgNxLDj@cluster0.ri6slhb.mongodb.net/db
+
+Per avviare il progetto
+- cd api
+- npm i
+- npm run dev
+
+---
+
+- cd frontend
+- npm i
+- npm run build
+- npm start
