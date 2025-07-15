@@ -15,7 +15,7 @@ export function withAuth(PageComponent) {
             let mounted = true;
 
             (async () => {
-                const ok = await checkAuthStatus();   // deve restituire true/false
+                const ok = await checkAuthStatus();
                 if (!mounted) return;
 
                 if (!ok) {
@@ -28,7 +28,6 @@ export function withAuth(PageComponent) {
             return () => { mounted = false; };
         }, [checkAuthStatus, router]);
 
-        // finché non so che va tutto bene, non renderizzo nulla
         if (loading) {
             return (
                 <div className="flex items-center justify-center bg-[#f5f3f5] min-h-screen">
@@ -39,7 +38,6 @@ export function withAuth(PageComponent) {
             );
         }
 
-        // authenticated → mostro la pagina
         return <PageComponent {...props} />;
     };
 }
