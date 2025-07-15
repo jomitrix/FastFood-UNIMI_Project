@@ -58,12 +58,8 @@ export const ApiService = {
     const filteredParams = Object.fromEntries(
       Object.entries(params)
         .filter(([key, value]) => {
-          // rimuovi null, undefined, stringhe vuote
           if (value == null || value === "") return false;
-          // rimuovi array vuoti
           if (Array.isArray(value) && value.length === 0) return false;
-          // se NON vuoi passare openNow=false, rimuovi anche i boolean false:
-          // if (typeof value === 'boolean' && value === false) return false;
           return true;
         })
     );
